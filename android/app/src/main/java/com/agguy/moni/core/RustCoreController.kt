@@ -22,7 +22,7 @@ class RustCoreController {
     }
 
     fun dispatch(intent: CoreIntent): CoreMutation {
-        val update = core.dispatch(BridgeJson.encodeToString(intent))
+        val update = core.dispatch(BridgeJsonEncode.encodeToString(intent))
         return decodeMutation(update)
     }
 

@@ -42,8 +42,8 @@ data class CoreCategory(
     val colorHex: String,
     val sortOrder: Int,
     val isPreset: Boolean,
-    val createdAt: Long,
-    val updatedAt: Long
+    val createdAt: Long = 0,
+    val updatedAt: Long = 0
 )
 
 @Serializable

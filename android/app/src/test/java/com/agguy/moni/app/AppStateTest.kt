@@ -21,9 +21,10 @@ class AppStateTest {
                     amountCents = 1234,
                     recordType = "expense",
                     categoryId = 1,
+                    categoryName = "餐饮",
+                    categoryColor = "#FF6B6B",
                     note = "测试",
-                    createdAt = 1000,
-                    updatedAt = 1000
+                    createdAt = 1000
                 )
             ),
             categories = listOf(

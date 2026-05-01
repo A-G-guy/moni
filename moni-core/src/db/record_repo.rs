@@ -129,12 +129,12 @@ pub fn monthly_aggregates(
 ) -> Result<Vec<(String, AmountCents, AmountCents)>, rusqlite::Error> {
     let now = chrono::Utc::now();
     let start = now - chrono::Months::new(months as u32 + 1);
-    let start_timestamp = chrono::NaiveDate::from_ymd_opt(start.year(), start.month(), 1)
-        .unwrap()
+    let start_date = chrono::NaiveDate::from_ymd_opt(start.year(), start.month(), 1)
+        .ok_or_else(|| rusqlite::Error::InvalidParameterName("无效的日期参数".to_string()))?;
+    let start_datetime = start_date
         .and_hms_opt(0, 0, 0)
-        .unwrap()
-        .and_utc()
-        .timestamp();
+        .ok_or_else(|| rusqlite::Error::InvalidParameterName("无效的时间参数".to_string()))?;
+    let start_timestamp = start_datetime.and_utc().timestamp();
 
     let mut stmt = conn.prepare(
         "SELECT
@@ -189,100 +189,3 @@ pub fn category_aggregates(
     rows.collect()
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::db::category_repo;
-    use crate::db::connection::open_in_memory;
-    use crate::db::schema::init_schema;
-
-    fn setup() -> Connection {
-        let conn = open_in_memory().unwrap();
-        init_schema(&conn).unwrap();
-        conn
-    }
-
-    fn create_category(conn: &Connection, name: &str, ty: RecordType) -> i64 {
-        category_repo::insert(conn, name, ty, "icon", "#000", 1, false).unwrap()
-    }
-
-    #[test]
-    fn test_insert_and_get() {
-        let conn = setup();
-        let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
-        let id = insert(&conn, 1234, RecordType::Expense, cat_id, "午餐", None).unwrap();
-        assert!(id > 0);
-
-        let rec = get_by_id(&conn, id).unwrap().unwrap();
-        assert_eq!(rec.amount_cents, 1234);
-        assert_eq!(rec.record_type, RecordType::Expense);
-        assert_eq!(rec.note, "午餐");
-    }
-
-    #[test]
-    fn test_list_paginated_ordering() {
-        let conn = setup();
-        let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
-        insert(&conn, 100, RecordType::Expense, cat_id, "", Some(1000)).unwrap();
-        insert(&conn, 200, RecordType::Expense, cat_id, "", Some(2000)).unwrap();
-        insert(&conn, 300, RecordType::Expense, cat_id, "", Some(1500)).unwrap();
-
-        let list = list_paginated(&conn, 0, 10).unwrap();
-        assert_eq!(list.len(), 3);
-        assert_eq!(list[0].amount_cents, 200); // created_at=2000, newest
-        assert_eq!(list[1].amount_cents, 300); // created_at=1500
-        assert_eq!(list[2].amount_cents, 100); // created_at=1000
-    }
-
-    #[test]
-    fn test_list_paginated_paging() {
-        let conn = setup();
-        let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
-        for i in 0..5 {
-            insert(&conn, (i + 1) as i64 * 100, RecordType::Expense, cat_id, "", Some(i as i64 * 1000)).unwrap();
-        }
-
-        let page0 = list_paginated(&conn, 0, 2).unwrap();
-        assert_eq!(page0.len(), 2);
-
-        let page1 = list_paginated(&conn, 1, 2).unwrap();
-        assert_eq!(page1.len(), 2);
-
-        let page2 = list_paginated(&conn, 2, 2).unwrap();
-        assert_eq!(page2.len(), 1);
-    }
-
-    #[test]
-    fn test_update() {
-        let conn = setup();
-        let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
-        let id = insert(&conn, 100, RecordType::Expense, cat_id, "旧备注", None).unwrap();
-
-        update(&conn, id, Some(200), None, None, Some("新备注")).unwrap();
-        let rec = get_by_id(&conn, id).unwrap().unwrap();
-        assert_eq!(rec.amount_cents, 200);
-        assert_eq!(rec.note, "新备注");
-    }
-
-    #[test]
-    fn test_delete() {
-        let conn = setup();
-        let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
-        let id = insert(&conn, 100, RecordType::Expense, cat_id, "", None).unwrap();
-        delete(&conn, id).unwrap();
-        assert!(get_by_id(&conn, id).unwrap().is_none());
-    }
-
-    #[test]
-    fn test_list_by_date_range() {
-        let conn = setup();
-        let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
-        insert(&conn, 100, RecordType::Expense, cat_id, "", Some(1000)).unwrap();
-        insert(&conn, 200, RecordType::Expense, cat_id, "", Some(2000)).unwrap();
-        insert(&conn, 300, RecordType::Expense, cat_id, "", Some(3000)).unwrap();
-
-        let list = list_by_date_range(&conn, 1500, 2500).unwrap();
-        assert_eq!(list.len(), 1);
-        assert_eq!(list[0].amount_cents, 200);
-    }
-}

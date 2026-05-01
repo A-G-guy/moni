@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CoreAppState(
     val records: List<CoreRecord> = emptyList(),
+    val recordGroups: List<CoreRecordGroup> = emptyList(),
     val categories: List<CoreCategory> = emptyList(),
     val monthlySummaries: List<CoreMonthlySummary> = emptyList(),
     val currentMonthBreakdown: List<CoreCategoryBreakdown> = emptyList(),
@@ -18,9 +19,18 @@ data class CoreRecord(
     val amountCents: Long,
     val recordType: String,
     val categoryId: Long,
+    val categoryName: String,
+    val categoryColor: String,
     val note: String,
     val createdAt: Long,
-    val updatedAt: Long
+)
+
+@Serializable
+data class CoreRecordGroup(
+    val date: String,
+    val incomeCents: Long,
+    val expenseCents: Long,
+    val records: List<CoreRecord> = emptyList(),
 )
 
 @Serializable

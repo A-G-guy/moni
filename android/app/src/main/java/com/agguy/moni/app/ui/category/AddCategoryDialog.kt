@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.core.RecordType
+import android.util.Log
 
 @Composable
 fun AddCategoryDialog(
@@ -72,7 +73,8 @@ fun AddCategoryDialog(
                     colorOptions.take(5).forEachIndexed { index, (colorHex, _) ->
                         val color = try {
                             Color(android.graphics.Color.parseColor(colorHex))
-                        } catch (_: Exception) {
+                        } catch (e: Exception) {
+                            Log.w("Moni", "颜色选项解析失败: $colorHex, ${e.message}")
                             Color.Gray
                         }
                         ColorOption(
@@ -90,7 +92,8 @@ fun AddCategoryDialog(
                         val actualIndex = index + 5
                         val color = try {
                             Color(android.graphics.Color.parseColor(colorHex))
-                        } catch (_: Exception) {
+                        } catch (e: Exception) {
+                            Log.w("Moni", "颜色选项解析失败: $colorHex, ${e.message}")
                             Color.Gray
                         }
                         ColorOption(

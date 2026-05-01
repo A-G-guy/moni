@@ -1,5 +1,6 @@
 package com.agguy.moni.app
 
+import android.app.Application
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -11,7 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -19,11 +20,21 @@ import com.agguy.moni.app.components.MoniBottomBar
 import com.agguy.moni.app.navigation.MoniNavHost
 import com.agguy.moni.app.navigation.Screen
 import com.agguy.moni.app.theme.MoniTheme
+import com.agguy.moni.di.AppModule
+import kotlinx.coroutines.launch
 
 @Composable
 fun MoniApp() {
     MoniTheme {
-        val viewModel: AppViewModel = viewModel()
+        val context = LocalContext.current
+        val application = context.applicationContext as Application
+        val viewModel: AppViewModel = viewModel(
+            factory = AppViewModelFactory(
+                application = application,
+                rustCore = AppModule.provideRustCoreController(),
+                effectRunner = AppModule.provideCoreEffectRunner(context),
+            )
+        )
         val appState by viewModel.uiState.collectAsState()
         val navController = rememberNavController()
         val snackbarHostState = remember { SnackbarHostState() }

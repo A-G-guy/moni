@@ -17,7 +17,11 @@ impl AppCoreRuntime {
                 self.finish(Vec::new())
             }
             CoreIntent::SettingsExportData { format } => {
-                let records = record_repo::list_paginated(&self.conn, 0, 10000)?;
+                let records = record_repo::list_paginated(
+                    &self.conn,
+                    0,
+                    crate::shared::constants::EXPORT_MAX_RECORDS as u32,
+                )?;
                 let categories = category_repo::list_all(&self.conn)?;
 
                 let content = match format {

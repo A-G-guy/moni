@@ -1,6 +1,7 @@
 use crate::core::error::CoreError;
 use crate::core::runtime::AppCoreRuntime;
 use crate::db::record_repo;
+use crate::dto::record_list_to_dto;
 use crate::models::effects::CoreUpdate;
 use crate::models::intent::CoreIntent;
 
@@ -25,7 +26,9 @@ impl AppCoreRuntime {
         }
 
         let list = record_repo::list_paginated(&self.conn, page, page_size)?;
-        self.state.records = list;
+        self.state.records = record_list_to_dto(&list, &self.state.categories);
+        self.state.record_groups =
+            crate::dto::group_records_by_date(&self.state.records);
         self.finish(Vec::new())
     }
 }

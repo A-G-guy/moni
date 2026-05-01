@@ -8,6 +8,7 @@ use crate::models::state::AppState;
 pub mod core;
 pub mod db;
 pub mod domain;
+pub mod dto;
 pub mod models;
 pub mod shared;
 

@@ -1,0 +1,95 @@
+use moni_core::db::category_repo;
+use moni_core::db::connection::open_in_memory;
+use moni_core::db::record_repo;
+use moni_core::db::schema::init_schema;
+use moni_contracts::record::RecordType;
+
+fn setup() -> rusqlite::Connection {
+    let conn = open_in_memory().unwrap();
+    init_schema(&conn).unwrap();
+    conn
+}
+
+fn create_category(conn: &rusqlite::Connection, name: &str, ty: RecordType) -> i64 {
+    category_repo::insert(conn, name, ty, "icon", "#000", 1, false).unwrap()
+}
+
+#[test]
+fn test_insert_and_get() {
+    let conn = setup();
+    let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
+    let id = record_repo::insert(&conn, 1234, RecordType::Expense, cat_id, "午餐", None).unwrap();
+    assert!(id > 0);
+
+    let rec = record_repo::get_by_id(&conn, id).unwrap().unwrap();
+    assert_eq!(rec.amount_cents, 1234);
+    assert_eq!(rec.record_type, RecordType::Expense);
+    assert_eq!(rec.note, "午餐");
+}
+
+#[test]
+fn test_list_paginated_ordering() {
+    let conn = setup();
+    let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
+    record_repo::insert(&conn, 100, RecordType::Expense, cat_id, "", Some(1000)).unwrap();
+    record_repo::insert(&conn, 200, RecordType::Expense, cat_id, "", Some(2000)).unwrap();
+    record_repo::insert(&conn, 300, RecordType::Expense, cat_id, "", Some(1500)).unwrap();
+
+    let list = record_repo::list_paginated(&conn, 0, 10).unwrap();
+    assert_eq!(list.len(), 3);
+    assert_eq!(list[0].amount_cents, 200); // created_at=2000, newest
+    assert_eq!(list[1].amount_cents, 300); // created_at=1500
+    assert_eq!(list[2].amount_cents, 100); // created_at=1000
+}
+
+#[test]
+fn test_list_paginated_paging() {
+    let conn = setup();
+    let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
+    for i in 0..5 {
+        record_repo::insert(&conn, (i + 1) as i64 * 100, RecordType::Expense, cat_id, "", Some(i as i64 * 1000)).unwrap();
+    }
+
+    let page0 = record_repo::list_paginated(&conn, 0, 2).unwrap();
+    assert_eq!(page0.len(), 2);
+
+    let page1 = record_repo::list_paginated(&conn, 1, 2).unwrap();
+    assert_eq!(page1.len(), 2);
+
+    let page2 = record_repo::list_paginated(&conn, 2, 2).unwrap();
+    assert_eq!(page2.len(), 1);
+}
+
+#[test]
+fn test_update() {
+    let conn = setup();
+    let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
+    let id = record_repo::insert(&conn, 100, RecordType::Expense, cat_id, "旧备注", None).unwrap();
+
+    record_repo::update(&conn, id, Some(200), None, None, Some("新备注")).unwrap();
+    let rec = record_repo::get_by_id(&conn, id).unwrap().unwrap();
+    assert_eq!(rec.amount_cents, 200);
+    assert_eq!(rec.note, "新备注");
+}
+
+#[test]
+fn test_delete() {
+    let conn = setup();
+    let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
+    let id = record_repo::insert(&conn, 100, RecordType::Expense, cat_id, "", None).unwrap();
+    record_repo::delete(&conn, id).unwrap();
+    assert!(record_repo::get_by_id(&conn, id).unwrap().is_none());
+}
+
+#[test]
+fn test_list_by_date_range() {
+    let conn = setup();
+    let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
+    record_repo::insert(&conn, 100, RecordType::Expense, cat_id, "", Some(1000)).unwrap();
+    record_repo::insert(&conn, 200, RecordType::Expense, cat_id, "", Some(2000)).unwrap();
+    record_repo::insert(&conn, 300, RecordType::Expense, cat_id, "", Some(3000)).unwrap();
+
+    let list = record_repo::list_by_date_range(&conn, 1500, 2500).unwrap();
+    assert_eq!(list.len(), 1);
+    assert_eq!(list[0].amount_cents, 200);
+}

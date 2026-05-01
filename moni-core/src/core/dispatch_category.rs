@@ -1,6 +1,7 @@
 use crate::core::error::CoreError;
 use crate::core::runtime::AppCoreRuntime;
 use crate::db::category_repo;
+use crate::dto::CategoryDto;
 use crate::models::effects::CoreUpdate;
 use crate::models::intent::CoreIntent;
 
@@ -44,7 +45,8 @@ impl AppCoreRuntime {
                 )?;
                 let category = category_repo::get_by_id(&self.conn, id)?
                     .ok_or_else(|| CoreError::Internal("插入后查询失败".to_string()))?;
-                self.state.categories.push(category);
+                let dto = CategoryDto::from_category(&category);
+                self.state.categories.push(dto);
                 self.state.categories.sort_by(|a, b| a.sort_order.cmp(&b.sort_order));
                 self.finish(vec![crate::models::effects::CoreEffect {
                     kind: "show_snackbar".to_string(),
@@ -71,7 +73,8 @@ impl AppCoreRuntime {
                 }])
             }
             CoreIntent::CategoryList => {
-                self.state.categories = category_repo::list_all(&self.conn)?;
+                let list = category_repo::list_all(&self.conn)?;
+                self.state.categories = list.iter().map(CategoryDto::from_category).collect();
                 self.finish(Vec::new())
             }
             _ => {

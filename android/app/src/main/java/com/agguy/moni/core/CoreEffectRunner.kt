@@ -16,7 +16,8 @@ class CoreEffectRunner {
                 val message = try {
                     kotlinx.serialization.json.Json.parseToJsonElement(effect.payloadJson)
                         .jsonObject["message"]?.jsonPrimitive?.content ?: effect.payloadJson
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    Log.w("Moni", "Effect 消息解析失败，使用原始 payload: ${e.message}")
                     effect.payloadJson
                 }
                 onShowSnackbar?.invoke(message)
@@ -25,7 +26,8 @@ class CoreEffectRunner {
                 val screen = try {
                     kotlinx.serialization.json.Json.parseToJsonElement(effect.payloadJson)
                         .jsonObject["screen"]?.jsonPrimitive?.content ?: ""
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    Log.w("Moni", "导航目标解析失败: ${e.message}")
                     ""
                 }
                 onNavigate?.invoke(screen)
@@ -33,7 +35,8 @@ class CoreEffectRunner {
             "export_file" -> {
                 val json = try {
                     kotlinx.serialization.json.Json.parseToJsonElement(effect.payloadJson).jsonObject
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    Log.w("Moni", "导出参数解析失败: ${e.message}")
                     null
                 }
                 val format = json?.get("format")?.jsonPrimitive?.content ?: "csv"

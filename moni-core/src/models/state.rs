@@ -1,15 +1,15 @@
 use serde::{Deserialize, Serialize};
 
-use moni_contracts::category::Category;
-use moni_contracts::record::Record;
+use crate::dto::{CategoryDto, RecordDayGroup, RecordDto};
 use moni_contracts::stats::{CategoryBreakdown, MonthlySummary};
 
 /// 应用状态根
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AppState {
-    pub records: Vec<Record>,
-    pub categories: Vec<Category>,
+    pub records: Vec<RecordDto>,
+    pub record_groups: Vec<RecordDayGroup>,
+    pub categories: Vec<CategoryDto>,
     pub monthly_summaries: Vec<MonthlySummary>,
     pub current_month_breakdown: Vec<CategoryBreakdown>,
     pub settings: AppSettings,
@@ -20,6 +20,7 @@ impl Default for AppState {
     fn default() -> Self {
         Self {
             records: Vec::new(),
+            record_groups: Vec::new(),
             categories: Vec::new(),
             monthly_summaries: Vec::new(),
             current_month_breakdown: Vec::new(),

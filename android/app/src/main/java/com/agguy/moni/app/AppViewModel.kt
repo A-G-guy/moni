@@ -15,9 +15,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class AppViewModel(application: Application) : AndroidViewModel(application) {
-    private val rustCore = RustCoreController()
-    private val _effectRunner = CoreEffectRunner()
+class AppViewModel(
+    application: Application,
+    private val rustCore: RustCoreController,
+    private val effectRunner: CoreEffectRunner,
+) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(AppState())
     val uiState: StateFlow<AppState> = _uiState.asStateFlow()
@@ -31,22 +33,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     /** 供 UI 层绑定 Snackbar 回调。 */
     fun bindSnackbarCallback(callback: (String) -> Unit) {
-        _effectRunner.onShowSnackbar = callback
+        effectRunner.onShowSnackbar = callback
     }
 
     /** 供 UI 层绑定导出文件回调。 */
     fun bindExportCallback(callback: (String, String) -> Unit) {
-        _effectRunner.onExportFile = callback
+        effectRunner.onExportFile = callback
     }
 
     init {
-        _effectRunner.onNavigate = { screen ->
+        effectRunner.onNavigate = { screen ->
             Log.d("MoniNavigate", screen)
-        }
-        _effectRunner.onExportFile = { format, content ->
-            com.agguy.moni.core.platform.ExportHelper.saveToDownloads(
-                getApplication(), format, content
-            )
         }
 
         viewModelScope.launch {
@@ -54,10 +51,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 val dbPath = application.filesDir.absolutePath + "/moni.db"
                 val mutation = rustCore.initializeWithDb(dbPath)
                 applyMutation(mutation)
-                // 加载初始数据
                 dispatch(CoreIntent.CategoryList)
                 dispatch(CoreIntent.RecordList(page = 0, pageSize = 50))
-                // 同步 DataStore 中保存的货币符号
                 syncCurrencySymbolFromDataStore()
             } catch (e: Exception) {
                 Log.e("MoniInit", "数据库初始化失败，回退到内存模式", e)
@@ -102,6 +97,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun applyMutation(mutation: com.agguy.moni.core.CoreMutation) {
         _uiState.value = mutation.state.toAppState()
-        mutation.effects.forEach { _effectRunner.runEffect(it) }
+        mutation.effects.forEach { effectRunner.runEffect(it) }
     }
 }

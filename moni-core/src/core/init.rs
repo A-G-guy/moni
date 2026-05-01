@@ -1,6 +1,7 @@
 use crate::core::runtime::AppCoreRuntime;
 use crate::db::schema::init_schema;
 use crate::db::category_repo::seed_presets;
+use crate::dto::CategoryDto;
 use crate::models::effects::CoreUpdate;
 use crate::models::state::AppState;
 
@@ -22,7 +23,8 @@ impl AppCoreRuntime {
         log::info!("数据库初始化完成");
 
         // 加载初始数据到状态
-        self.state.categories = crate::db::category_repo::list_all(&self.conn)?;
+        let categories = crate::db::category_repo::list_all(&self.conn)?;
+        self.state.categories = categories.iter().map(CategoryDto::from_category).collect();
 
         self.finish(Vec::new())
     }

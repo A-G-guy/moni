@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.core.CoreCategory
+import android.util.Log
 
 @Composable
 fun CategoryListContent(
@@ -54,7 +55,8 @@ fun CategoryListItem(
 ) {
     val categoryColor = try {
         Color(android.graphics.Color.parseColor(category.colorHex))
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        Log.w("Moni", "分类颜色解析失败: ${category.colorHex}, ${e.message}")
         MaterialTheme.colorScheme.primary
     }
 

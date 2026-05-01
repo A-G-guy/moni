@@ -24,6 +24,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import android.util.Log
 
 /**
  * 日期选择字段。
@@ -88,9 +89,12 @@ fun DatePickerField(
 
 private fun formatDate(timestamp: Long): String {
     return try {
-        LocalDate.ofInstant(Instant.ofEpochSecond(timestamp), ZoneId.systemDefault())
+        Instant.ofEpochSecond(timestamp)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        Log.w("Moni", "日期格式化失败: timestamp=$timestamp, ${e.message}")
         LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
     }
 }

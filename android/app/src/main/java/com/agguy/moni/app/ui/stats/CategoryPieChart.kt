@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.core.CoreCategoryBreakdown
 import com.agguy.moni.core.util.formatAmount
+import android.util.Log
 
 /**
  * 分类支出饼图。
@@ -180,7 +181,8 @@ fun EmptyChartPlaceholder(
 fun parseColor(colorHex: String): Color {
     return try {
         Color(android.graphics.Color.parseColor(colorHex))
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        Log.w("Moni", "饼图颜色解析失败: $colorHex, ${e.message}")
         Color.Gray
     }
 }

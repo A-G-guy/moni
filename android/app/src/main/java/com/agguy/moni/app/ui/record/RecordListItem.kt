@@ -33,13 +33,12 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import android.util.Log
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RecordListItem(
     record: CoreRecord,
-    categoryName: String,
-    categoryColor: String,
     currencySymbol: String,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
@@ -67,14 +66,14 @@ fun RecordListItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 分类颜色指示器
-            CategoryIndicator(colorHex = categoryColor)
+            CategoryIndicator(colorHex = record.categoryColor)
 
             Spacer(modifier = Modifier.width(12.dp))
 
             // 分类名称和备注
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = categoryName,
+                    text = record.categoryName,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium
                 )
@@ -109,7 +108,8 @@ fun RecordListItem(
 private fun CategoryIndicator(colorHex: String) {
     val color = try {
         Color(android.graphics.Color.parseColor(colorHex))
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        Log.w("Moni", "颜色解析失败: $colorHex, ${e.message}")
         MaterialTheme.colorScheme.primary
     }
 
@@ -123,12 +123,12 @@ private fun CategoryIndicator(colorHex: String) {
     )
 }
 
-
 private fun formatTime(timestamp: Long): String {
     return try {
         LocalDateTime.ofInstant(Instant.ofEpochSecond(timestamp), ZoneId.systemDefault())
             .format(DateTimeFormatter.ofPattern("HH:mm"))
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        Log.w("Moni", "时间格式化失败: timestamp=$timestamp, ${e.message}")
         ""
     }
 }

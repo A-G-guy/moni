@@ -36,11 +36,9 @@ import com.agguy.moni.app.AppState
 import com.agguy.moni.app.theme.ExpenseRed
 import com.agguy.moni.app.theme.IncomeGreen
 import com.agguy.moni.core.CoreIntent
-import com.agguy.moni.core.CoreRecord
+import com.agguy.moni.core.CoreRecordGroup
 import com.agguy.moni.core.util.formatAmount
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Composable
@@ -73,7 +71,7 @@ fun RecordListScreen(
             }
         }
     ) { innerPadding ->
-        if (appState.records.isEmpty()) {
+        if (appState.recordGroups.isEmpty()) {
             EmptyRecordList(
                 modifier = Modifier
                     .fillMaxSize()
@@ -81,8 +79,7 @@ fun RecordListScreen(
             )
         } else {
             RecordListContent(
-                records = appState.records,
-                categories = appState.categories,
+                recordGroups = appState.recordGroups,
                 currencySymbol = appState.currencySymbol,
                 onRecordClick = { onNavigateToRecordDetail(it) },
                 onDeleteRequest = { recordToDelete = it },
@@ -117,36 +114,31 @@ fun RecordListScreen(
 
 @Composable
 private fun RecordListContent(
-    records: List<CoreRecord>,
-    categories: List<com.agguy.moni.core.CoreCategory>,
+    recordGroups: List<CoreRecordGroup>,
     currencySymbol: String,
     onRecordClick: (Long) -> Unit,
     onDeleteRequest: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val groupedRecords = remember(records) { groupRecordsByDate(records) }
-
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        groupedRecords.forEach { (date, dayRecords) ->
-            item(key = "header_$date") {
+        recordGroups.forEach { group ->
+            item(key = "header_${group.date}") {
                 DayHeader(
-                    date = date,
-                    records = dayRecords,
+                    date = group.date,
+                    incomeCents = group.incomeCents,
+                    expenseCents = group.expenseCents,
                     currencySymbol = currencySymbol,
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                 )
             }
 
-            items(dayRecords, key = { it.id }) { record ->
-                val category = categories.find { it.id == record.categoryId }
+            items(group.records, key = { it.id }) { record ->
                 RecordListItem(
                     record = record,
-                    categoryName = category?.name ?: "未知分类",
-                    categoryColor = category?.colorHex ?: "#808080",
                     currencySymbol = currencySymbol,
                     onClick = { onRecordClick(record.id) },
                     onLongClick = { onDeleteRequest(record.id) }
@@ -159,13 +151,11 @@ private fun RecordListContent(
 @Composable
 private fun DayHeader(
     date: String,
-    records: List<CoreRecord>,
+    incomeCents: Long,
+    expenseCents: Long,
     currencySymbol: String,
     modifier: Modifier = Modifier
 ) {
-    val income = records.filter { it.recordType == "income" }.sumOf { it.amountCents }
-    val expense = records.filter { it.recordType == "expense" }.sumOf { it.amountCents }
-
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -180,16 +170,16 @@ private fun DayHeader(
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (income > 0) {
+                if (incomeCents > 0) {
                     Text(
-                        text = "收 ${currencySymbol}${formatAmount(income)}",
+                        text = "收 ${currencySymbol}${formatAmount(incomeCents)}",
                         style = MaterialTheme.typography.labelSmall,
                         color = IncomeGreen
                     )
                 }
-                if (expense > 0) {
+                if (expenseCents > 0) {
                     Text(
-                        text = "支 ${currencySymbol}${formatAmount(expense)}",
+                        text = "支 ${currencySymbol}${formatAmount(expenseCents)}",
                         style = MaterialTheme.typography.labelSmall,
                         color = ExpenseRed
                     )
@@ -221,17 +211,6 @@ private fun EmptyRecordList(modifier: Modifier = Modifier) {
     }
 }
 
-private fun groupRecordsByDate(records: List<CoreRecord>): Map<String, List<CoreRecord>> {
-    return records.groupBy { record ->
-        try {
-            LocalDate.ofInstant(Instant.ofEpochSecond(record.createdAt), ZoneId.systemDefault())
-                .format(DateTimeFormatter.ISO_LOCAL_DATE)
-        } catch (_: Exception) {
-            ""
-        }
-    }
-}
-
 private fun formatDisplayDate(dateStr: String): String {
     return try {
         val date = LocalDate.parse(dateStr)
@@ -245,4 +224,3 @@ private fun formatDisplayDate(dateStr: String): String {
         dateStr
     }
 }
-

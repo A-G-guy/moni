@@ -5,9 +5,11 @@ import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreCategoryBreakdown
 import com.agguy.moni.core.CoreMonthlySummary
 import com.agguy.moni.core.CoreRecord
+import com.agguy.moni.core.CoreRecordGroup
 
 data class AppState(
     val records: List<CoreRecord> = emptyList(),
+    val recordGroups: List<CoreRecordGroup> = emptyList(),
     val categories: List<CoreCategory> = emptyList(),
     val monthlySummaries: List<CoreMonthlySummary> = emptyList(),
     val currentMonthBreakdown: List<CoreCategoryBreakdown> = emptyList(),
@@ -17,6 +19,7 @@ data class AppState(
 
 fun CoreAppState.toAppState(): AppState = AppState(
     records = records,
+    recordGroups = recordGroups,
     categories = categories,
     monthlySummaries = monthlySummaries,
     currentMonthBreakdown = currentMonthBreakdown,

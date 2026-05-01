@@ -17,10 +17,6 @@ impl AppCoreRuntime {
 
     fn dispatch(&mut self, intent: CoreIntent) -> Result<CoreUpdate, CoreError> {
         match intent {
-            CoreIntent::Greet { name } => {
-                self.state.greeting_message = format!("你好, {}! 来自 Rust 内核的问候。", name);
-                Ok(self.finish(Vec::new()))
-            }
             CoreIntent::RecordCreate { .. }
             | CoreIntent::RecordUpdate { .. }
             | CoreIntent::RecordDelete { .. }

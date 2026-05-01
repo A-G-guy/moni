@@ -12,11 +12,12 @@ import com.agguy.moni.core.RustCoreController
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val rustCore = RustCoreController()
-    private val effectRunner = CoreEffectRunner()
+    val effectRunner = CoreEffectRunner()
 
     private val _uiState = MutableStateFlow(AppState())
     val uiState: StateFlow<AppState> = _uiState.asStateFlow()
@@ -24,14 +25,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     var navController: NavHostController? = null
 
     init {
-        effectRunner.onShowSnackbar = { message ->
-            Log.d("MoniSnackbar", message)
-        }
         effectRunner.onNavigate = { screen ->
             Log.d("MoniNavigate", screen)
         }
         effectRunner.onExportFile = { format, content ->
-            Log.d("MoniExport", "format=$format, contentLength=${content.length}")
+            com.agguy.moni.core.platform.ExportHelper.saveToDownloads(
+                getApplication(), format, content
+            )
         }
 
         viewModelScope.launch {
@@ -42,6 +42,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 // 加载初始数据
                 dispatch(CoreIntent.CategoryList)
                 dispatch(CoreIntent.RecordList(page = 0, pageSize = 50))
+                // 同步 DataStore 中保存的货币符号
+                syncCurrencySymbolFromDataStore()
             } catch (e: Exception) {
                 Log.e("MoniInit", "数据库初始化失败，回退到内存模式", e)
                 val mutation = rustCore.initialize()
@@ -52,8 +54,22 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun dispatch(intent: CoreIntent) {
         viewModelScope.launch {
+            if (intent is CoreIntent.SettingsUpdateCurrency) {
+                com.agguy.moni.core.platform.DataStoreHelper.saveCurrencySymbol(
+                    getApplication(), intent.symbol
+                )
+            }
             val mutation = rustCore.dispatch(intent)
             applyMutation(mutation)
+        }
+    }
+
+    private suspend fun syncCurrencySymbolFromDataStore() {
+        val savedSymbol = com.agguy.moni.core.platform.DataStoreHelper
+            .currencySymbolFlow(getApplication())
+            .first()
+        if (savedSymbol != _uiState.value.currencySymbol) {
+            dispatch(CoreIntent.SettingsUpdateCurrency(symbol = savedSymbol))
         }
     }
 

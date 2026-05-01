@@ -2,12 +2,15 @@ package com.agguy.moni.app
 
 import com.agguy.moni.core.CoreAppState
 import com.agguy.moni.core.CoreCategory
+import com.agguy.moni.core.CoreCategoryBreakdown
+import com.agguy.moni.core.CoreMonthlySummary
 import com.agguy.moni.core.CoreRecord
 
 data class AppState(
     val records: List<CoreRecord> = emptyList(),
     val categories: List<CoreCategory> = emptyList(),
-    val greetingMessage: String = "",
+    val monthlySummaries: List<CoreMonthlySummary> = emptyList(),
+    val currentMonthBreakdown: List<CoreCategoryBreakdown> = emptyList(),
     val errorMessage: String? = null,
     val currencySymbol: String = "¥"
 )
@@ -15,7 +18,8 @@ data class AppState(
 fun CoreAppState.toAppState(): AppState = AppState(
     records = records,
     categories = categories,
-    greetingMessage = greetingMessage,
+    monthlySummaries = monthlySummaries,
+    currentMonthBreakdown = currentMonthBreakdown,
     errorMessage = ui.errorMessage,
     currencySymbol = settings.currencySymbol
 )

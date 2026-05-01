@@ -13,7 +13,6 @@ pub struct AppState {
     pub current_month_breakdown: Vec<CategoryBreakdown>,
     pub settings: AppSettings,
     pub ui: UiState,
-    pub greeting_message: String,
 }
 
 impl Default for AppState {
@@ -25,7 +24,6 @@ impl Default for AppState {
             current_month_breakdown: Vec::new(),
             settings: AppSettings::default(),
             ui: UiState::default(),
-            greeting_message: String::new(),
         }
     }
 }

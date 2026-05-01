@@ -8,8 +8,6 @@ use moni_contracts::types::{AmountCents, CategoryId, RecordId, TimestampSec};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum CoreIntent {
-    Greet { name: String },
-
     RecordCreate {
         amount_cents: AmountCents,
         record_type: RecordType,

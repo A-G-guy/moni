@@ -9,8 +9,7 @@ data class CoreAppState(
     val monthlySummaries: List<CoreMonthlySummary> = emptyList(),
     val currentMonthBreakdown: List<CoreCategoryBreakdown> = emptyList(),
     val settings: CoreSettings = CoreSettings(),
-    val ui: CoreUiState = CoreUiState(),
-    val greetingMessage: String = ""
+    val ui: CoreUiState = CoreUiState()
 )
 
 @Serializable

@@ -7,10 +7,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.agguy.moni.app.AppState
-import com.agguy.moni.app.GreetingScreen
 import com.agguy.moni.app.ui.category.CategoryListScreen
 import com.agguy.moni.app.ui.record.RecordDetailScreen
 import com.agguy.moni.app.ui.record.RecordListScreen
+import com.agguy.moni.app.ui.settings.SettingsScreen
+import com.agguy.moni.app.ui.stats.StatsScreen
 import com.agguy.moni.core.CoreIntent
 
 @Composable
@@ -53,17 +54,16 @@ fun MoniNavHost(
             )
         }
         composable<Screen.Stats> {
-            // 迭代三实现统计页
-            GreetingScreen(
+            StatsScreen(
                 appState = appState,
                 onDispatch = onDispatch
             )
         }
         composable<Screen.Settings> {
-            // 迭代三实现设置页
-            GreetingScreen(
+            SettingsScreen(
                 appState = appState,
-                onDispatch = onDispatch
+                onDispatch = onDispatch,
+                onNavigateBack = onNavigateBack
             )
         }
     }

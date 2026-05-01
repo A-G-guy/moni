@@ -5,7 +5,7 @@ use crate::models::effects::CoreUpdate;
 use crate::models::state::AppState;
 
 impl AppCoreRuntime {
-    /// 使用内存数据库初始化（用于测试/Greet 兼容）。
+    /// 使用内存数据库初始化（用于测试兼容）。
     pub fn initialize(&mut self) -> CoreUpdate {
         self.state = AppState::default();
         self.finish(Vec::new())

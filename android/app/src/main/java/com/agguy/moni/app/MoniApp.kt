@@ -9,7 +9,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.launch
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.agguy.moni.app.components.MoniBottomBar
@@ -24,10 +26,20 @@ fun MoniApp() {
         val appState by viewModel.uiState.collectAsState()
         val navController = rememberNavController()
         val snackbarHostState = remember { SnackbarHostState() }
+        val snackbarScope = rememberCoroutineScope()
 
         // 将 NavController 绑定到 ViewModel
         LaunchedEffect(navController) {
             viewModel.navController = navController
+        }
+
+        // 将 SnackbarHostState 绑定到 EffectRunner
+        LaunchedEffect(snackbarHostState) {
+            viewModel.effectRunner.onShowSnackbar = { message ->
+                snackbarScope.launch {
+                    snackbarHostState.showSnackbar(message)
+                }
+            }
         }
 
         Scaffold(

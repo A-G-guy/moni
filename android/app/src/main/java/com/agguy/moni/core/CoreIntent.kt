@@ -5,10 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class CoreIntent {
-    @Serializable
-    @SerialName("greet")
-    data class Greet(val name: String) : CoreIntent()
-
     // 记录相关
     @Serializable
     @SerialName("record_create")

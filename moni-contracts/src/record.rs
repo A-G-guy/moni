@@ -12,6 +12,7 @@ pub enum RecordType {
 
 /// 记账记录实体
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Record {
     pub id: RecordId,
     pub amount_cents: AmountCents,

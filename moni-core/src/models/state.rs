@@ -6,6 +6,7 @@ use moni_contracts::stats::{CategoryBreakdown, MonthlySummary};
 
 /// 应用状态根
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AppState {
     pub records: Vec<Record>,
     pub categories: Vec<Category>,
@@ -30,6 +31,7 @@ impl Default for AppState {
 
 /// 应用设置
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AppSettings {
     pub currency_symbol: String,
 }
@@ -44,6 +46,7 @@ impl Default for AppSettings {
 
 /// UI 状态
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UiState {
     pub active_tab: String,
     pub selected_record_id: Option<i64>,

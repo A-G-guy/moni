@@ -5,6 +5,7 @@ use crate::record::RecordType;
 
 /// 分类实体
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Category {
     pub id: CategoryId,
     pub name: String,

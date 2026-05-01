@@ -4,6 +4,7 @@ use crate::types::{AmountCents, CategoryId};
 
 /// 月度收支汇总
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MonthlySummary {
     pub year_month: String,
     pub income_cents: AmountCents,
@@ -13,6 +14,7 @@ pub struct MonthlySummary {
 
 /// 分类支出占比
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CategoryBreakdown {
     pub category_id: CategoryId,
     pub category_name: String,

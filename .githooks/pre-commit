@@ -1,0 +1,37 @@
+#!/bin/bash
+# 预提交钩子：拦截超过500行的源文件
+
+set -euo pipefail
+
+MAX_LINES=500
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(rs|kt|gradle\.kts)$' || true)
+
+if [ -z "$STAGED_FILES" ]; then
+    exit 0
+fi
+
+VIOLATIONS=()
+
+for file in $STAGED_FILES; do
+    if [ -f "$file" ]; then
+        LINE_COUNT=$(wc -l < "$file")
+        if [ "$LINE_COUNT" -gt "$MAX_LINES" ]; then
+            VIOLATIONS+=("$file: $LINE_COUNT 行 (上限 $MAX_LINES 行)")
+        fi
+    fi
+done
+
+if [ ${#VIOLATIONS[@]} -gt 0 ]; then
+    echo ""
+    echo "提交被拦截：以下文件超过 $MAX_LINES 行上限"
+    echo "================================================"
+    for v in "${VIOLATIONS[@]}"; do
+        echo "  $v"
+    done
+    echo "================================================"
+    echo "请在提交前拆分这些文件。参考 docs/code-style.md 中的拆分指引。"
+    echo ""
+    exit 1
+fi
+
+exit 0

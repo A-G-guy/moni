@@ -14,7 +14,7 @@ impl AppCoreRuntime {
         match intent {
             CoreIntent::SettingsUpdateCurrency { symbol } => {
                 self.state.settings.currency_symbol = symbol;
-                Ok(self.finish(Vec::new()))
+                self.finish(Vec::new())
             }
             CoreIntent::SettingsExportData { format } => {
                 let records = record_repo::list_paginated(&self.conn, 0, 10000)?;
@@ -28,7 +28,7 @@ impl AppCoreRuntime {
                     }
                 };
 
-                Ok(self.finish(vec![crate::models::effects::CoreEffect {
+                self.finish(vec![crate::models::effects::CoreEffect {
                     kind: "export_file".to_string(),
                     payload_json: format!(
                         r#"{{"format":"{}","content":{}}}"#,
@@ -38,9 +38,12 @@ impl AppCoreRuntime {
                         },
                         serde_json::Value::String(content)
                     ),
-                }]))
+                }])
             }
-            _ => unreachable!(),
+            _ => {
+                log::warn!("设置模块收到未支持的意图类型");
+                Err(CoreError::Internal("未支持的意图类型".to_string()))
+            }
         }
     }
 }

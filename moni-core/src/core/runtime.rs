@@ -12,7 +12,7 @@ impl AppCoreRuntime {
     pub fn finish(
         &self,
         effects: Vec<crate::models::effects::CoreEffect>,
-    ) -> crate::models::effects::CoreUpdate {
+    ) -> Result<crate::models::effects::CoreUpdate, crate::core::error::CoreError> {
         crate::models::effects::CoreUpdate::new(&self.state, effects)
     }
 }

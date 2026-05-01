@@ -37,6 +37,7 @@ import com.agguy.moni.app.theme.ExpenseRed
 import com.agguy.moni.app.theme.IncomeGreen
 import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.CoreRecord
+import com.agguy.moni.core.util.formatAmount
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -245,8 +246,3 @@ private fun formatDisplayDate(dateStr: String): String {
     }
 }
 
-private fun formatAmount(cents: Long): String {
-    val yuan = cents / 100
-    val fen = cents % 100
-    return if (fen == 0L) "$yuan" else "$yuan.${fen.toString().padStart(2, '0')}"
-}

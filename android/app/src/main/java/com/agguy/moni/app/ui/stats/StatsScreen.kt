@@ -28,6 +28,7 @@ import com.agguy.moni.app.theme.ExpenseRed
 import com.agguy.moni.app.theme.IncomeGreen
 import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.CoreMonthlySummary
+import com.agguy.moni.core.util.formatAmount
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -181,8 +182,3 @@ private fun SummaryCard(
     }
 }
 
-private fun formatAmount(cents: Long): String {
-    val yuan = cents / 100
-    val fen = kotlin.math.abs(cents % 100)
-    return if (fen == 0L) "$yuan" else "$yuan.${fen.toString().padStart(2, '0')}"
-}

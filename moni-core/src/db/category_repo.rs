@@ -182,7 +182,7 @@ mod tests {
         let conn = setup();
         seed_presets(&conn).unwrap();
         let list = list_all(&conn).unwrap();
-        assert_eq!(list.len(), 12);
+        assert_eq!(list.len(), crate::shared::constants::PRESET_CATEGORY_COUNT);
         assert!(list.iter().all(|c| c.is_preset));
     }
 
@@ -192,7 +192,7 @@ mod tests {
         seed_presets(&conn).unwrap();
         seed_presets(&conn).unwrap();
         let list = list_all(&conn).unwrap();
-        assert_eq!(list.len(), 12);
+        assert_eq!(list.len(), crate::shared::constants::PRESET_CATEGORY_COUNT);
     }
 
     #[test]

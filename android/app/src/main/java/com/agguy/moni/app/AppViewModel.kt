@@ -17,18 +17,33 @@ import kotlinx.coroutines.launch
 
 class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val rustCore = RustCoreController()
-    val effectRunner = CoreEffectRunner()
+    private val _effectRunner = CoreEffectRunner()
 
     private val _uiState = MutableStateFlow(AppState())
     val uiState: StateFlow<AppState> = _uiState.asStateFlow()
 
-    var navController: NavHostController? = null
+    private var _navController: NavHostController? = null
+
+    /** 供 UI 层绑定导航控制器。 */
+    fun bindNavController(navController: NavHostController) {
+        _navController = navController
+    }
+
+    /** 供 UI 层绑定 Snackbar 回调。 */
+    fun bindSnackbarCallback(callback: (String) -> Unit) {
+        _effectRunner.onShowSnackbar = callback
+    }
+
+    /** 供 UI 层绑定导出文件回调。 */
+    fun bindExportCallback(callback: (String, String) -> Unit) {
+        _effectRunner.onExportFile = callback
+    }
 
     init {
-        effectRunner.onNavigate = { screen ->
+        _effectRunner.onNavigate = { screen ->
             Log.d("MoniNavigate", screen)
         }
-        effectRunner.onExportFile = { format, content ->
+        _effectRunner.onExportFile = { format, content ->
             com.agguy.moni.core.platform.ExportHelper.saveToDownloads(
                 getApplication(), format, content
             )
@@ -74,19 +89,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun navigateToRecordDetail(recordId: Long? = null) {
-        navController?.navigate(Screen.RecordDetail(recordId))
+        _navController?.navigate(Screen.RecordDetail(recordId))
     }
 
     fun navigateToCategoryList() {
-        navController?.navigate(Screen.CategoryList)
+        _navController?.navigate(Screen.CategoryList)
     }
 
     fun navigateBack() {
-        navController?.popBackStack()
+        _navController?.popBackStack()
     }
 
     private fun applyMutation(mutation: com.agguy.moni.core.CoreMutation) {
         _uiState.value = mutation.state.toAppState()
-        mutation.effects.forEach { effectRunner.runEffect(it) }
+        mutation.effects.forEach { _effectRunner.runEffect(it) }
     }
 }

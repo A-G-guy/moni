@@ -1,3 +1,4 @@
+use chrono::Datelike;
 use rusqlite::{Connection, OptionalExtension, Row};
 
 use moni_contracts::record::Record;
@@ -60,7 +61,9 @@ pub fn list_paginated(
     page: u32,
     page_size: u32,
 ) -> Result<Vec<Record>, rusqlite::Error> {
-    let offset = page as i64 * page_size as i64;
+    let offset = (page as i64)
+        .checked_mul(page_size as i64)
+        .unwrap_or(i64::MAX);
     let limit = page_size as i64;
     let mut stmt = conn.prepare(
         "SELECT * FROM records ORDER BY created_at DESC LIMIT ?1 OFFSET ?2"
@@ -124,19 +127,28 @@ pub fn monthly_aggregates(
     conn: &Connection,
     months: u8,
 ) -> Result<Vec<(String, AmountCents, AmountCents)>, rusqlite::Error> {
+    let now = chrono::Utc::now();
+    let start = now - chrono::Months::new(months as u32 + 1);
+    let start_timestamp = chrono::NaiveDate::from_ymd_opt(start.year(), start.month(), 1)
+        .unwrap()
+        .and_hms_opt(0, 0, 0)
+        .unwrap()
+        .and_utc()
+        .timestamp();
+
     let mut stmt = conn.prepare(
         "SELECT
             strftime('%Y-%m', datetime(created_at, 'unixepoch')) as year_month,
             SUM(CASE WHEN record_type = 'income' THEN amount_cents ELSE 0 END) as income,
             SUM(CASE WHEN record_type = 'expense' THEN amount_cents ELSE 0 END) as expense
          FROM records
-         WHERE created_at >= strftime('%s', date('now', '-?1 months', 'start of month'))
+         WHERE created_at >= ?1
          GROUP BY year_month
          ORDER BY year_month ASC
          LIMIT ?2"
     )?;
     let rows = stmt.query_map(
-        (months as i64 + 1, months as i64),
+        (start_timestamp, months as i64),
         |row| {
             Ok((
                 row.get::<_, String>(0)?,

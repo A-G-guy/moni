@@ -11,17 +11,17 @@ data class CoreMutation(
 class RustCoreController {
     private val core = MoniCore()
 
-    fun initialize(): CoreMutation {
+    suspend fun initialize(): CoreMutation {
         val update = core.initialize()
         return decodeMutation(update)
     }
 
-    fun initializeWithDb(dbPath: String): CoreMutation {
+    suspend fun initializeWithDb(dbPath: String): CoreMutation {
         val update = core.initializeWithDb(dbPath)
         return decodeMutation(update)
     }
 
-    fun dispatch(intent: CoreIntent): CoreMutation {
+    suspend fun dispatch(intent: CoreIntent): CoreMutation {
         val update = core.dispatch(BridgeJsonEncode.encodeToString(intent))
         return decodeMutation(update)
     }

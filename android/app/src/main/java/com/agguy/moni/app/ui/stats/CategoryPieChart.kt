@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.core.CoreCategoryBreakdown
+import com.agguy.moni.core.util.formatAmount
 
 /**
  * 分类支出饼图。
@@ -184,8 +185,3 @@ fun parseColor(colorHex: String): Color {
     }
 }
 
-private fun formatAmount(cents: Long): String {
-    val yuan = cents / 100
-    val fen = cents % 100
-    return if (fen == 0L) "$yuan" else "$yuan.${fen.toString().padStart(2, '0')}"
-}

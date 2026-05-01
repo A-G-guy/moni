@@ -4,13 +4,25 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+enum class RecordType {
+    @SerialName("income") INCOME,
+    @SerialName("expense") EXPENSE
+}
+
+@Serializable
+enum class ExportFormat {
+    @SerialName("csv") CSV,
+    @SerialName("json") JSON
+}
+
+@Serializable
 sealed class CoreIntent {
     // 记录相关
     @Serializable
     @SerialName("record_create")
     data class RecordCreate(
         val amountCents: Long,
-        val recordType: String,
+        val recordType: RecordType,
         val categoryId: Long,
         val note: String = "",
         val timestamp: Long? = null
@@ -21,7 +33,7 @@ sealed class CoreIntent {
     data class RecordUpdate(
         val id: Long,
         val amountCents: Long? = null,
-        val recordType: String? = null,
+        val recordType: RecordType? = null,
         val categoryId: Long? = null,
         val note: String? = null
     ) : CoreIntent()
@@ -43,7 +55,7 @@ sealed class CoreIntent {
     @SerialName("category_create")
     data class CategoryCreate(
         val name: String,
-        val categoryType: String,
+        val categoryType: RecordType,
         val iconName: String,
         val colorHex: String
     ) : CoreIntent()
@@ -72,7 +84,7 @@ sealed class CoreIntent {
 
     @Serializable
     @SerialName("settings_export_data")
-    data class SettingsExportData(val format: String) : CoreIntent()
+    data class SettingsExportData(val format: ExportFormat) : CoreIntent()
 
     // UI 相关
     @Serializable
@@ -83,3 +95,10 @@ sealed class CoreIntent {
     @SerialName("dismiss_error")
     data object DismissError : CoreIntent()
 }
+
+/** 获取 RecordType 的序列化名称，用于与来自 Rust 的 String 字段比较。 */
+val RecordType.serialName: String
+    get() = when (this) {
+        RecordType.INCOME -> "income"
+        RecordType.EXPENSE -> "expense"
+    }

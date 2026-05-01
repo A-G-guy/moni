@@ -46,6 +46,8 @@ import com.agguy.moni.app.theme.ExpenseRed
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.CoreRecord
+import com.agguy.moni.core.RecordType
+import com.agguy.moni.core.serialName
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -65,7 +67,11 @@ fun RecordDetailScreen(
 
     // 表单状态
     var amountCents by remember { mutableLongStateOf(existingRecord?.amountCents ?: 0L) }
-    var recordType by remember { mutableStateOf(existingRecord?.recordType ?: "expense") }
+    var recordType by remember {
+        mutableStateOf(
+            if (existingRecord?.recordType == "income") RecordType.INCOME else RecordType.EXPENSE
+        )
+    }
     var selectedCategoryId by remember { mutableLongStateOf(existingRecord?.categoryId ?: -1L) }
     var note by remember { mutableStateOf(existingRecord?.note ?: "") }
     var timestamp by remember {
@@ -77,7 +83,7 @@ fun RecordDetailScreen(
     LaunchedEffect(existingRecord) {
         existingRecord?.let {
             amountCents = it.amountCents
-            recordType = it.recordType
+            recordType = if (it.recordType == "income") RecordType.INCOME else RecordType.EXPENSE
             selectedCategoryId = it.categoryId
             note = it.note
             timestamp = it.createdAt
@@ -136,7 +142,7 @@ fun RecordDetailScreen(
 
             // 分类选择
             CategorySelector(
-                categories = appState.categories.filter { it.categoryType == recordType },
+                categories = appState.categories.filter { it.categoryType == recordType.serialName },
                 selectedCategoryId = selectedCategoryId,
                 onCategorySelected = { selectedCategoryId = it }
             )
@@ -216,8 +222,8 @@ fun RecordDetailScreen(
 
 @Composable
 private fun RecordTypeSelector(
-    selectedType: String,
-    onTypeSelected: (String) -> Unit,
+    selectedType: RecordType,
+    onTypeSelected: (RecordType) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -225,14 +231,14 @@ private fun RecordTypeSelector(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         FilterChip(
-            selected = selectedType == "expense",
-            onClick = { onTypeSelected("expense") },
+            selected = selectedType == RecordType.EXPENSE,
+            onClick = { onTypeSelected(RecordType.EXPENSE) },
             label = { Text("支出") },
             modifier = Modifier.weight(1f)
         )
         FilterChip(
-            selected = selectedType == "income",
-            onClick = { onTypeSelected("income") },
+            selected = selectedType == RecordType.INCOME,
+            onClick = { onTypeSelected(RecordType.INCOME) },
             label = { Text("收入") },
             modifier = Modifier.weight(1f)
         )

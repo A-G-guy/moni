@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.core.ExportFormat
 
 /**
  * 数据导出格式选择对话框。
@@ -28,14 +29,14 @@ import androidx.compose.ui.unit.dp
  */
 @Composable
 fun ExportDataDialog(
-    onConfirm: (String) -> Unit,
+    onConfirm: (ExportFormat) -> Unit,
     onDismiss: () -> Unit
 ) {
     val formats = listOf(
-        "csv" to "CSV 格式（表格）",
-        "json" to "JSON 格式（原始数据）"
+        ExportFormat.CSV to "CSV 格式（表格）",
+        ExportFormat.JSON to "JSON 格式（原始数据）"
     )
-    var selectedFormat by remember { mutableStateOf("csv") }
+    var selectedFormat by remember { mutableStateOf(ExportFormat.CSV) }
 
     AlertDialog(
         onDismissRequest = onDismiss,

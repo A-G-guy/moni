@@ -24,6 +24,9 @@ thiserror = "2.0.17"
 uniffi = "0.31.1"
 rusqlite = { version = "0.34", features = ["bundled"] }
 chrono = { version = "0.4", features = ["serde"] }
+log = "0.4"
+android_logger = "0.15"
+tokio = { version = "1.44", features = ["rt-multi-thread"] }
 
 [build-dependencies]
 uniffi = { version = "0.31.1", features = ["build"] }

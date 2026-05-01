@@ -31,12 +31,12 @@ fun MoniApp() {
 
         // 将 NavController 绑定到 ViewModel
         LaunchedEffect(navController) {
-            viewModel.navController = navController
+            viewModel.bindNavController(navController)
         }
 
         // 将 SnackbarHostState 绑定到 EffectRunner
         LaunchedEffect(snackbarHostState) {
-            viewModel.effectRunner.onShowSnackbar = { message ->
+            viewModel.bindSnackbarCallback { message ->
                 snackbarScope.launch {
                     snackbarHostState.showSnackbar(message)
                 }

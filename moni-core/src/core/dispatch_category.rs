@@ -17,7 +17,21 @@ impl AppCoreRuntime {
                 color_hex,
             } => {
                 if name.trim().is_empty() {
+                    log::warn!("创建分类失败: 名称为空");
                     return Err(CoreError::InvalidInput("分类名称不能为空".to_string()));
+                }
+                if icon_name.trim().is_empty() {
+                    log::warn!("创建分类失败: 图标名称为空");
+                    return Err(CoreError::InvalidInput("图标名称不能为空".to_string()));
+                }
+                if !color_hex.starts_with('#')
+                    || color_hex.len() != 7
+                    || !color_hex[1..].chars().all(|c| c.is_ascii_hexdigit())
+                {
+                    log::warn!("创建分类失败: 颜色格式错误, 收到: {color_hex}");
+                    return Err(CoreError::InvalidInput(
+                        "颜色格式必须为 #RRGGBB".to_string(),
+                    ));
                 }
                 let id = category_repo::insert(
                     &self.conn,
@@ -25,23 +39,25 @@ impl AppCoreRuntime {
                     category_type,
                     &icon_name,
                     &color_hex,
-                    999, // 自定义分类排在末尾
+                    crate::shared::constants::CUSTOM_CATEGORY_SORT_ORDER,
                     false,
                 )?;
                 let category = category_repo::get_by_id(&self.conn, id)?
                     .ok_or_else(|| CoreError::Internal("插入后查询失败".to_string()))?;
                 self.state.categories.push(category);
                 self.state.categories.sort_by(|a, b| a.sort_order.cmp(&b.sort_order));
-                Ok(self.finish(vec![crate::models::effects::CoreEffect {
+                self.finish(vec![crate::models::effects::CoreEffect {
                     kind: "show_snackbar".to_string(),
                     payload_json: r#"{"message":"分类添加成功"}"#.to_string(),
-                }]))
+                }])
             }
             CoreIntent::CategoryDelete { id } => {
                 if category_repo::get_by_id(&self.conn, id)?.is_none() {
+                    log::warn!("删除分类失败: 分类不存在, id={id}");
                     return Err(CoreError::CategoryNotFound(id));
                 }
                 if category_repo::is_in_use(&self.conn, id)? {
+                    log::warn!("删除分类失败: 分类正在使用中, id={id}");
                     return Err(CoreError::CategoryInUse);
                 }
                 let affected = category_repo::delete(&self.conn, id)?;
@@ -49,16 +65,19 @@ impl AppCoreRuntime {
                     return Err(CoreError::InvalidInput("预设分类不可删除".to_string()));
                 }
                 self.state.categories.retain(|c| c.id != id);
-                Ok(self.finish(vec![crate::models::effects::CoreEffect {
+                self.finish(vec![crate::models::effects::CoreEffect {
                     kind: "show_snackbar".to_string(),
                     payload_json: r#"{"message":"分类删除成功"}"#.to_string(),
-                }]))
+                }])
             }
             CoreIntent::CategoryList => {
                 self.state.categories = category_repo::list_all(&self.conn)?;
-                Ok(self.finish(Vec::new()))
+                self.finish(Vec::new())
             }
-            _ => unreachable!(),
+            _ => {
+                log::warn!("分类模块收到未支持的意图类型");
+                Err(CoreError::Internal("未支持的意图类型".to_string()))
+            }
         }
     }
 }

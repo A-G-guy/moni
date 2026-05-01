@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.core.util.formatAmount
 
 /**
  * 金额输入组件。
@@ -92,8 +93,3 @@ private fun formatDisplay(integer: String, decimal: String, symbol: String): Str
     }
 }
 
-private fun formatAmount(cents: Long): String {
-    val yuan = cents / 100
-    val fen = cents % 100
-    return if (fen == 0L) "$yuan" else "$yuan.${fen.toString().padStart(2, '0')}"
-}

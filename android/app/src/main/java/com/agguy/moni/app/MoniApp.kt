@@ -13,6 +13,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.agguy.moni.app.components.MoniBottomBar
 import com.agguy.moni.app.navigation.MoniNavHost
@@ -44,7 +45,8 @@ fun MoniApp() {
 
         Scaffold(
             bottomBar = {
-                val currentRoute = navController.currentBackStackEntry?.destination?.route
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
                 val showBottomBar = currentRoute?.contains("RecordList") == true
                         || currentRoute?.contains("Stats") == true
                         || currentRoute?.contains("Settings") == true

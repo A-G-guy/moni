@@ -25,35 +25,39 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun MoniApp() {
-    MoniTheme {
-        val context = LocalContext.current
-        val application = context.applicationContext as Application
-        val viewModel: AppViewModel = viewModel(
-            factory = AppViewModelFactory(
-                application = application,
-                rustCore = AppModule.provideRustCoreController(),
-                effectRunner = AppModule.provideCoreEffectRunner(context),
-            )
+    val context = LocalContext.current
+    val application = context.applicationContext as Application
+    val viewModel: AppViewModel = viewModel(
+        factory = AppViewModelFactory(
+            application = application,
+            rustCore = AppModule.provideRustCoreController(),
+            effectRunner = AppModule.provideCoreEffectRunner(context),
         )
-        val appState by viewModel.uiState.collectAsState()
-        val navController = rememberNavController()
-        val snackbarHostState = remember { SnackbarHostState() }
-        val snackbarScope = rememberCoroutineScope()
+    )
+    val appState by viewModel.uiState.collectAsState()
+    val themeSettings by viewModel.themeSettings.collectAsState()
+    val navController = rememberNavController()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarScope = rememberCoroutineScope()
 
-        // 将 NavController 绑定到 ViewModel
-        LaunchedEffect(navController) {
-            viewModel.bindNavController(navController)
-        }
+    // 将 NavController 绑定到 ViewModel
+    LaunchedEffect(navController) {
+        viewModel.bindNavController(navController)
+    }
 
-        // 将 SnackbarHostState 绑定到 EffectRunner
-        LaunchedEffect(snackbarHostState) {
-            viewModel.bindSnackbarCallback { message ->
-                snackbarScope.launch {
-                    snackbarHostState.showSnackbar(message)
-                }
+    // 将 SnackbarHostState 绑定到 EffectRunner
+    LaunchedEffect(snackbarHostState) {
+        viewModel.bindSnackbarCallback { message ->
+            snackbarScope.launch {
+                snackbarHostState.showSnackbar(message)
             }
         }
+    }
 
+    MoniTheme(
+        themeMode = themeSettings.themeMode,
+        dynamicColor = themeSettings.dynamicColor
+    ) {
         Scaffold(
             bottomBar = {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -80,7 +84,8 @@ fun MoniApp() {
                                 popUpTo(Screen.RecordList) { inclusive = false }
                                 launchSingleTop = true
                             }
-                        }
+                        },
+                        visible = showBottomBar
                     )
                 }
             },
@@ -89,10 +94,13 @@ fun MoniApp() {
             MoniNavHost(
                 navController = navController,
                 appState = appState,
+                themeSettings = themeSettings,
                 onDispatch = viewModel::dispatch,
                 onNavigateToRecordDetail = viewModel::navigateToRecordDetail,
                 onNavigateToCategoryList = viewModel::navigateToCategoryList,
                 onNavigateBack = viewModel::navigateBack,
+                onUpdateThemeMode = viewModel::updateThemeMode,
+                onUpdateDynamicColor = viewModel::updateDynamicColor,
                 modifier = Modifier.padding(innerPadding)
             )
         }

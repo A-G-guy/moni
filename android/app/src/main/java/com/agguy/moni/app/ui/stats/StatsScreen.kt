@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -24,8 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
-import com.agguy.moni.app.theme.ExpenseRed
-import com.agguy.moni.app.theme.IncomeGreen
+import com.agguy.moni.app.theme.expenseRed
+import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.CoreMonthlySummary
 import com.agguy.moni.core.util.formatAmount
@@ -79,6 +80,7 @@ fun StatsScreen(
             // 月度柱状图
             Card(
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -92,6 +94,7 @@ fun StatsScreen(
             // 分类饼图
             Card(
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -128,14 +131,14 @@ private fun MonthSummaryCards(
             label = "本月收入",
             amount = currentSummary.incomeCents,
             currencySymbol = currencySymbol,
-            color = IncomeGreen,
+            color = MaterialTheme.colorScheme.incomeGreen,
             modifier = Modifier.weight(1f)
         )
         SummaryCard(
             label = "本月支出",
             amount = currentSummary.expenseCents,
             currencySymbol = currencySymbol,
-            color = ExpenseRed,
+            color = MaterialTheme.colorScheme.expenseRed,
             modifier = Modifier.weight(1f)
         )
         SummaryCard(

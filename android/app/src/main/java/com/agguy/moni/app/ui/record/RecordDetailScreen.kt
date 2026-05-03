@@ -1,5 +1,13 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.agguy.moni.app.ui.record
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,7 +26,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,7 +52,7 @@ import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.components.AmountInput
 import com.agguy.moni.app.components.DatePickerField
-import com.agguy.moni.app.theme.ExpenseRed
+import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.CoreRecord
@@ -103,7 +113,7 @@ fun RecordDetailScreen(
                 actions = {
                     if (isEditMode) {
                         IconButton(onClick = { showDeleteConfirm = true }) {
-                            Icon(Icons.Filled.Delete, contentDescription = "删除", tint = ExpenseRed)
+                            Icon(Icons.Filled.Delete, contentDescription = "删除", tint = MaterialTheme.colorScheme.expenseRed)
                         }
                     }
                 }
@@ -115,7 +125,13 @@ fun RecordDetailScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
-                .padding(16.dp),
+                .padding(16.dp)
+                .animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // 收入/支出切换
@@ -188,14 +204,24 @@ fun RecordDetailScreen(
                     }
                 },
                 enabled = amountCents > 0 && selectedCategoryId != -1L,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shapes = ButtonDefaults.shapes()
             ) {
                 Text("保存")
             }
         }
     }
 
-    if (showDeleteConfirm) {
+    AnimatedVisibility(
+        visible = showDeleteConfirm,
+        enter = scaleIn(
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        ),
+        exit = scaleOut(animationSpec = spring())
+    ) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             title = { Text("确认删除") },
@@ -208,7 +234,7 @@ fun RecordDetailScreen(
                         onNavigateBack()
                     }
                 ) {
-                    Text("删除", color = ExpenseRed)
+                    Text("删除", color = MaterialTheme.colorScheme.expenseRed)
                 }
             },
             dismissButton = {

@@ -3,9 +3,11 @@ package com.agguy.moni.core.platform
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.agguy.moni.app.theme.ThemeMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -18,6 +20,8 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  */
 object DataStoreHelper {
     private val CURRENCY_SYMBOL_KEY = stringPreferencesKey("currency_symbol")
+    private val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
+    private val DYNAMIC_COLOR_KEY = booleanPreferencesKey("dynamic_color")
 
     /**
      * 获取货币符号流。
@@ -34,6 +38,50 @@ object DataStoreHelper {
     suspend fun saveCurrencySymbol(context: Context, symbol: String) {
         context.dataStore.edit { preferences ->
             preferences[CURRENCY_SYMBOL_KEY] = symbol
+        }
+    }
+
+    /**
+     * 获取主题模式流。
+     */
+    fun themeModeFlow(context: Context): Flow<ThemeMode> {
+        return context.dataStore.data.map { preferences ->
+            when (preferences[THEME_MODE_KEY]) {
+                "light" -> ThemeMode.LIGHT
+                "dark" -> ThemeMode.DARK
+                else -> ThemeMode.SYSTEM
+            }
+        }
+    }
+
+    /**
+     * 保存主题模式。
+     */
+    suspend fun saveThemeMode(context: Context, mode: ThemeMode) {
+        context.dataStore.edit { preferences ->
+            preferences[THEME_MODE_KEY] = when (mode) {
+                ThemeMode.LIGHT -> "light"
+                ThemeMode.DARK -> "dark"
+                ThemeMode.SYSTEM -> "system"
+            }
+        }
+    }
+
+    /**
+     * 获取动态颜色开关流。
+     */
+    fun dynamicColorFlow(context: Context): Flow<Boolean> {
+        return context.dataStore.data.map { preferences ->
+            preferences[DYNAMIC_COLOR_KEY] ?: false
+        }
+    }
+
+    /**
+     * 保存动态颜色开关。
+     */
+    suspend fun saveDynamicColor(context: Context, enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[DYNAMIC_COLOR_KEY] = enabled
         }
     }
 }

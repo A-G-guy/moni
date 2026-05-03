@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -25,8 +26,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.agguy.moni.app.theme.ExpenseRed
-import com.agguy.moni.app.theme.IncomeGreen
+import com.agguy.moni.app.theme.expenseRed
+import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreRecord
 import com.agguy.moni.core.util.formatAmount
 import java.time.Instant
@@ -45,7 +46,7 @@ fun RecordListItem(
     modifier: Modifier = Modifier
 ) {
     val isExpense = record.recordType == "expense"
-    val amountColor = if (isExpense) ExpenseRed else IncomeGreen
+    val amountColor = if (isExpense) MaterialTheme.colorScheme.expenseRed else MaterialTheme.colorScheme.incomeGreen
     val sign = if (isExpense) "-" else "+"
     val amountText = "${sign}${currencySymbol}${formatAmount(record.amountCents)}"
 
@@ -56,7 +57,11 @@ fun RecordListItem(
                 onClick = onClick,
                 onLongClick = onLongClick
             ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 1.dp,
+            pressedElevation = 4.dp
+        ),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(

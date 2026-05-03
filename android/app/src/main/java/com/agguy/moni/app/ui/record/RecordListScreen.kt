@@ -1,5 +1,12 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.agguy.moni.app.ui.record
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,6 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -33,8 +41,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
-import com.agguy.moni.app.theme.ExpenseRed
-import com.agguy.moni.app.theme.IncomeGreen
+import com.agguy.moni.app.theme.expenseRed
+import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.CoreRecordGroup
 import com.agguy.moni.core.util.formatAmount
@@ -65,7 +73,8 @@ fun RecordListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { onNavigateToRecordDetail(null) }
+                onClick = { onNavigateToRecordDetail(null) },
+                shape = androidx.compose.foundation.shape.CircleShape
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "记一笔")
             }
@@ -88,7 +97,16 @@ fun RecordListScreen(
         }
     }
 
-    if (recordToDelete != -1L) {
+    AnimatedVisibility(
+        visible = recordToDelete != -1L,
+        enter = scaleIn(
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        ),
+        exit = scaleOut(animationSpec = spring())
+    ) {
         AlertDialog(
             onDismissRequest = { recordToDelete = -1L },
             title = { Text("确认删除") },
@@ -100,7 +118,7 @@ fun RecordListScreen(
                         recordToDelete = -1L
                     }
                 ) {
-                    Text("删除", color = ExpenseRed)
+                    Text("删除", color = MaterialTheme.colorScheme.expenseRed)
                 }
             },
             dismissButton = {
@@ -174,14 +192,14 @@ private fun DayHeader(
                     Text(
                         text = "收 ${currencySymbol}${formatAmount(incomeCents)}",
                         style = MaterialTheme.typography.labelSmall,
-                        color = IncomeGreen
+                        color = MaterialTheme.colorScheme.incomeGreen
                     )
                 }
                 if (expenseCents > 0) {
                     Text(
                         text = "支 ${currencySymbol}${formatAmount(expenseCents)}",
                         style = MaterialTheme.typography.labelSmall,
-                        color = ExpenseRed
+                        color = MaterialTheme.colorScheme.expenseRed
                     )
                 }
             }

@@ -1,13 +1,20 @@
 package com.agguy.moni.app.ui.category
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,7 +38,7 @@ import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.RecordType
 import com.agguy.moni.core.serialName
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CategoryListScreen(
     appState: AppState,
@@ -60,7 +67,10 @@ fun CategoryListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
+            FloatingActionButton(
+                onClick = { showAddDialog = true },
+                shape = CircleShape
+            ) {
                 Icon(Icons.Filled.Add, contentDescription = "添加分类")
             }
         }
@@ -99,44 +109,66 @@ fun CategoryListScreen(
         }
     }
 
-    if (showAddDialog) {
-        AddCategoryDialog(
-            categoryType = if (selectedTab == 0) RecordType.EXPENSE else RecordType.INCOME,
-            onConfirm = { name, iconName, colorHex ->
-                onDispatch(
-                    CoreIntent.CategoryCreate(
-                        name = name,
-                        categoryType = if (selectedTab == 0) RecordType.EXPENSE else RecordType.INCOME,
-                        iconName = iconName,
-                        colorHex = colorHex
+    AnimatedVisibility(
+        visible = showAddDialog,
+        enter = scaleIn(
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        ),
+        exit = scaleOut(animationSpec = spring())
+    ) {
+        if (showAddDialog) {
+            AddCategoryDialog(
+                categoryType = if (selectedTab == 0) RecordType.EXPENSE else RecordType.INCOME,
+                onConfirm = { name, iconName, colorHex ->
+                    onDispatch(
+                        CoreIntent.CategoryCreate(
+                            name = name,
+                            categoryType = if (selectedTab == 0) RecordType.EXPENSE else RecordType.INCOME,
+                            iconName = iconName,
+                            colorHex = colorHex
+                        )
                     )
-                )
-                showAddDialog = false
-            },
-            onDismiss = { showAddDialog = false }
-        )
+                    showAddDialog = false
+                },
+                onDismiss = { showAddDialog = false }
+            )
+        }
     }
 
-    categoryToDelete?.let { category ->
-        AlertDialog(
-            onDismissRequest = { categoryToDelete = null },
-            title = { Text("确认删除") },
-            text = { Text("确定要删除「${category.name}」吗？\n如果该分类已被使用，将无法删除。") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDispatch(CoreIntent.CategoryDelete(category.id))
-                        categoryToDelete = null
+    AnimatedVisibility(
+        visible = categoryToDelete != null,
+        enter = scaleIn(
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        ),
+        exit = scaleOut(animationSpec = spring())
+    ) {
+        categoryToDelete?.let { category ->
+            AlertDialog(
+                onDismissRequest = { categoryToDelete = null },
+                title = { Text("确认删除") },
+                text = { Text("确定要删除「${category.name}」吗？\n如果该分类已被使用，将无法删除。") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onDispatch(CoreIntent.CategoryDelete(category.id))
+                            categoryToDelete = null
+                        }
+                    ) {
+                        Text("删除")
                     }
-                ) {
-                    Text("删除")
+                },
+                dismissButton = {
+                    TextButton(onClick = { categoryToDelete = null }) {
+                        Text("取消")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { categoryToDelete = null }) {
-                    Text("取消")
-                }
-            }
-        )
+            )
+        }
     }
 }

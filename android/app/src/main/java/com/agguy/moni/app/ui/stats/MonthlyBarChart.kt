@@ -1,5 +1,8 @@
 package com.agguy.moni.app.ui.stats
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +15,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -23,8 +28,8 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.agguy.moni.app.theme.ExpenseRed
-import com.agguy.moni.app.theme.IncomeGreen
+import com.agguy.moni.app.theme.expenseRed
+import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreMonthlySummary
 
 /**
@@ -50,6 +55,20 @@ fun MonthlyBarChart(
     val textMeasurer = rememberTextMeasurer()
     val labelStyle = TextStyle(fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     val valueStyle = TextStyle(fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    val incomeColor = MaterialTheme.colorScheme.incomeGreen
+    val expenseColor = MaterialTheme.colorScheme.expenseRed
+
+    val animationProgress = remember { Animatable(0f) }
+    LaunchedEffect(summaries) {
+        animationProgress.snapTo(0f)
+        animationProgress.animateTo(
+            targetValue = 1f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMedium
+            )
+        )
+    }
 
     Column(modifier = modifier) {
         Text(
@@ -93,19 +112,19 @@ fun MonthlyBarChart(
                 val centerX = groupX + barGroupWidth / 2
 
                 // 收入柱
-                val incomeHeight = (summary.incomeCents.toFloat() / maxAmount) * chartHeight
+                val incomeHeight = (summary.incomeCents.toFloat() / maxAmount) * chartHeight * animationProgress.value
                 val incomeX = centerX - barWidth - gap / 2
                 drawRect(
-                    color = IncomeGreen,
+                    color = incomeColor,
                     topLeft = Offset(incomeX, zeroY - incomeHeight),
                     size = Size(barWidth, incomeHeight)
                 )
 
                 // 支出柱
-                val expenseHeight = (summary.expenseCents.toFloat() / maxAmount) * chartHeight
+                val expenseHeight = (summary.expenseCents.toFloat() / maxAmount) * chartHeight * animationProgress.value
                 val expenseX = centerX + gap / 2
                 drawRect(
-                    color = ExpenseRed,
+                    color = expenseColor,
                     topLeft = Offset(expenseX, zeroY - expenseHeight),
                     size = Size(barWidth, expenseHeight)
                 )
@@ -168,8 +187,8 @@ fun MonthlyBarChart(
         // 图例
         ChartLegend(
             items = listOf(
-                LegendItem("收入", IncomeGreen),
-                LegendItem("支出", ExpenseRed)
+                LegendItem("收入", incomeColor),
+                LegendItem("支出", expenseColor)
             )
         )
     }

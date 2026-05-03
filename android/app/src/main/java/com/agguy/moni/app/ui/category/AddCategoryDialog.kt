@@ -141,7 +141,7 @@ fun ColorOption(
     ) {
         Surface(
             onClick = onClick,
-            shape = MaterialTheme.shapes.small,
+            shape = androidx.compose.foundation.shape.CircleShape,
             color = color,
             modifier = Modifier.fillMaxSize(),
             border = if (isSelected) {

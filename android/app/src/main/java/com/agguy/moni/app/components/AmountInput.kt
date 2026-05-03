@@ -1,5 +1,8 @@
 package com.agguy.moni.app.components
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -37,7 +40,14 @@ fun AmountInput(
         mutableStateOf(if (value > 0) formatAmount(value) else "")
     }
 
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier.animateContentSize(
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMedium
+            )
+        )
+    ) {
         OutlinedTextField(
             value = textValue,
             onValueChange = { newText ->

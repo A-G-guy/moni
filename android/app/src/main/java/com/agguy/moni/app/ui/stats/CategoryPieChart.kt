@@ -1,5 +1,8 @@
 package com.agguy.moni.app.ui.stats
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -91,6 +96,20 @@ private fun PieChartCanvas(
     breakdowns: List<CoreCategoryBreakdown>,
     modifier: Modifier = Modifier
 ) {
+    val animationProgress = remember { Animatable(0f) }
+    LaunchedEffect(breakdowns) {
+        animationProgress.snapTo(0f)
+        animationProgress.animateTo(
+            targetValue = 1f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMedium
+            )
+        )
+    }
+
+    val surfaceColor = MaterialTheme.colorScheme.surface
+
     Canvas(modifier = modifier.size(140.dp)) {
         val total = breakdowns.sumOf { it.percentage }
         if (total <= 0) return@Canvas
@@ -101,7 +120,7 @@ private fun PieChartCanvas(
         var startAngle = -90f // 从顶部开始
 
         breakdowns.forEach { item ->
-            val sweepAngle = (item.percentage / total * 360f).toFloat()
+            val sweepAngle = (item.percentage / total * 360f).toFloat() * animationProgress.value
             val color = parseColor(item.colorHex)
 
             drawArc(
@@ -116,9 +135,9 @@ private fun PieChartCanvas(
             startAngle += sweepAngle
         }
 
-        // 中心白色圆形（甜甜圈效果）
+        // 中心圆形（使用 surface 色，适配暗色主题）
         drawCircle(
-            color = Color.White,
+            color = surfaceColor,
             radius = radius * 0.5f,
             center = center
         )

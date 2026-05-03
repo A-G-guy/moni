@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -91,18 +92,19 @@ fun RecordListItem(
                 }
             }
 
-            // 金额
+            // 金额和时间
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = amountText,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.headlineSmall,
                     color = amountColor,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Bold
                 )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = formatTime(record.createdAt),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                 )
             }
         }

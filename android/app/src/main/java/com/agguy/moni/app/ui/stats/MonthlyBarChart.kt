@@ -95,9 +95,9 @@ fun MonthlyBarChart(
                 .height(180.dp)
         ) {
             val paddingStart = 32f
-            val paddingEnd = 8f
-            val paddingTop = 24f
-            val paddingBottom = 28f
+            val paddingEnd = 16f
+            val paddingTop = 32f
+            val paddingBottom = 32f
             val chartWidth = size.width - paddingStart - paddingEnd
             val chartHeight = size.height - paddingTop - paddingBottom
 
@@ -106,8 +106,8 @@ fun MonthlyBarChart(
             }?.coerceAtLeast(1) ?: 1L
 
             val barGroupWidth = chartWidth / summaries.size
-            val barWidth = barGroupWidth * 0.35f
-            val gap = barGroupWidth * 0.15f
+            val barWidth = barGroupWidth * 0.30f
+            val gap = barGroupWidth * 0.20f
 
             // 绘制零线
             val zeroY = paddingTop + chartHeight
@@ -117,6 +117,18 @@ fun MonthlyBarChart(
                 end = Offset(size.width - paddingEnd, zeroY),
                 strokeWidth = 1f
             )
+
+            // 绘制 Y 轴水平辅助线
+            val guideLineColor = Color.Gray.copy(alpha = 0.15f)
+            listOf(1f / 3f, 2f / 3f).forEach { ratio ->
+                val y = paddingTop + chartHeight * (1 - ratio)
+                drawLine(
+                    color = guideLineColor,
+                    start = Offset(paddingStart, y),
+                    end = Offset(size.width - paddingEnd, y),
+                    strokeWidth = 1f
+                )
+            }
 
             // 绘制柱状图
             summaries.forEachIndexed { index, summary ->
@@ -142,7 +154,7 @@ fun MonthlyBarChart(
                 )
 
                 // 月份标签
-                val monthLabel = summary.yearMonth.substring(5) // "2026-04" -> "04"
+                val monthLabel = summary.yearMonth.substring(5) + "月" // "2026-04" -> "04月"
                 val labelResult = textMeasurer.measure(monthLabel, labelStyle)
                 drawText(
                     textMeasurer = textMeasurer,

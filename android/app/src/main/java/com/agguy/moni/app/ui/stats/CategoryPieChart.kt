@@ -65,9 +65,7 @@ fun CategoryPieChart(
         ) {
             // 饼图
             Box(
-                modifier = Modifier
-                    .size(140.dp)
-                    .padding(8.dp),
+                modifier = Modifier.size(120.dp),
                 contentAlignment = Alignment.Center
             ) {
                 PieChartCanvas(breakdowns = breakdowns)
@@ -122,7 +120,7 @@ private fun PieChartCanvas(
 
     val surfaceColor = MaterialTheme.colorScheme.surface
 
-    Canvas(modifier = modifier.size(140.dp)) {
+    Canvas(modifier = modifier.size(120.dp)) {
         val total = breakdowns.sumOf { it.percentage }
         if (total <= 0) return@Canvas
 
@@ -179,13 +177,15 @@ private fun PieLegendItem(
         Text(
             text = "${percentage.toInt()}%",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(36.dp)
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = amountText,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.width(64.dp)
         )
     }
 }

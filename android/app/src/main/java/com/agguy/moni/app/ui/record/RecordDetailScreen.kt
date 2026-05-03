@@ -31,24 +31,26 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.components.AmountInput
@@ -90,6 +92,8 @@ fun RecordDetailScreen(
     }
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
+    val isSaveEnabled = amountCents > 0 && selectedCategoryId != -1L
+
     // 当编辑已有记录时，确保状态同步
     LaunchedEffect(existingRecord) {
         existingRecord?.let {
@@ -121,6 +125,51 @@ fun RecordDetailScreen(
                     }
                 }
             )
+        },
+        bottomBar = {
+            Surface(
+                tonalElevation = 2.dp,
+                shadowElevation = 4.dp
+            ) {
+                Button(
+                    onClick = {
+                        if (isSaveEnabled) {
+                            if (isEditMode) {
+                                onDispatch(
+                                    CoreIntent.RecordUpdate(
+                                        id = existingRecord.id,
+                                        amountCents = amountCents,
+                                        recordType = recordType,
+                                        categoryId = selectedCategoryId,
+                                        note = note
+                                    )
+                                )
+                            } else {
+                                onDispatch(
+                                    CoreIntent.RecordCreate(
+                                        amountCents = amountCents,
+                                        recordType = recordType,
+                                        categoryId = selectedCategoryId,
+                                        note = note,
+                                        timestamp = timestamp
+                                    )
+                                )
+                            }
+                            onNavigateBack()
+                        }
+                    },
+                    enabled = isSaveEnabled,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                ) {
+                    Text("保存")
+                }
+            }
         }
     ) { innerPadding ->
         Column(
@@ -175,43 +224,6 @@ fun RecordDetailScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 保存按钮
-            Button(
-                onClick = {
-                    if (amountCents > 0 && selectedCategoryId != -1L) {
-                        if (isEditMode) {
-                            onDispatch(
-                                CoreIntent.RecordUpdate(
-                                    id = existingRecord.id,
-                                    amountCents = amountCents,
-                                    recordType = recordType,
-                                    categoryId = selectedCategoryId,
-                                    note = note
-                                )
-                            )
-                        } else {
-                            onDispatch(
-                                CoreIntent.RecordCreate(
-                                    amountCents = amountCents,
-                                    recordType = recordType,
-                                    categoryId = selectedCategoryId,
-                                    note = note,
-                                    timestamp = timestamp
-                                )
-                            )
-                        }
-                        onNavigateBack()
-                    }
-                },
-                enabled = amountCents > 0 && selectedCategoryId != -1L,
-                modifier = Modifier.fillMaxWidth(),
-                shapes = ButtonDefaults.shapes()
-            ) {
-                Text("保存")
-            }
         }
     }
 
@@ -298,7 +310,7 @@ private fun CategorySelector(
         } else {
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(horizontal = 4.dp)
+                contentPadding = PaddingValues(horizontal = 16.dp)
             ) {
                 items(categories) { category ->
                     CategoryChip(
@@ -322,6 +334,12 @@ private fun CategoryChip(
     FilterChip(
         selected = isSelected,
         onClick = onClick,
-        label = { Text(category.name) }
+        label = { Text(category.name) },
+        colors = FilterChipDefaults.filterChipColors(
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+            labelColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+        )
     )
 }

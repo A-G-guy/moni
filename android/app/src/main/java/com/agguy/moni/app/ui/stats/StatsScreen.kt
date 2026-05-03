@@ -178,12 +178,12 @@ private fun SummaryCard(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "${currencySymbol}${formatAmount(amount)}",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.headlineSmall,
                 color = color,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             )
         }
     }

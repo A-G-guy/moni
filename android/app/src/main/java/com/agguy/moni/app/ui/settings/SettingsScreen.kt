@@ -7,6 +7,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -30,6 +32,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -82,6 +85,12 @@ fun SettingsScreen(
             )
         }
     ) { innerPadding ->
+        val themeModeLabel = when (themeSettings.themeMode) {
+            ThemeMode.LIGHT -> "浅色"
+            ThemeMode.DARK -> "深色"
+            ThemeMode.SYSTEM -> "跟随系统"
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -89,20 +98,18 @@ fun SettingsScreen(
                 .padding(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // 主题模式
-            val themeModeLabel = when (themeSettings.themeMode) {
-                ThemeMode.LIGHT -> "浅色"
-                ThemeMode.DARK -> "深色"
-                ThemeMode.SYSTEM -> "跟随系统"
-            }
             SettingsItem(
                 icon = Icons.Default.DarkMode,
                 title = "主题模式",
                 subtitle = "当前: $themeModeLabel",
                 onClick = { showThemeModeDialog = true }
             )
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
+            )
 
-            // 动态颜色
             SettingsToggleItem(
                 icon = Icons.Default.Palette,
                 title = "动态颜色",
@@ -110,24 +117,36 @@ fun SettingsScreen(
                 checked = themeSettings.dynamicColor,
                 onCheckedChange = { onUpdateDynamicColor(it) }
             )
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
+            )
 
-            // 货币设置
             SettingsItem(
                 icon = Icons.Default.AttachMoney,
                 title = "货币符号",
                 subtitle = "当前: ${appState.currencySymbol}",
                 onClick = { showCurrencyDialog = true }
             )
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
+            )
 
-            // 导出数据
             SettingsItem(
                 icon = Icons.AutoMirrored.Filled.Send,
                 title = "导出数据",
                 subtitle = "导出为 CSV 或 JSON 格式",
                 onClick = { showExportDialog = true }
             )
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
+            )
 
-            // 关于
             SettingsItem(
                 icon = Icons.AutoMirrored.Filled.Help,
                 title = "关于",
@@ -222,24 +241,31 @@ private fun SettingsItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
+            Box(
+                modifier = Modifier.size(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyLarge
                 )
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
             }
         }
@@ -266,24 +292,31 @@ private fun SettingsToggleItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
+            Box(
+                modifier = Modifier.size(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyLarge
                 )
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
             }
             Switch(

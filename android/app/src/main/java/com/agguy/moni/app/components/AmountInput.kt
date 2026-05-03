@@ -5,6 +5,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -81,14 +83,17 @@ fun AmountInput(
                 keyboardType = KeyboardType.Decimal,
                 imeAction = ImeAction.Next
             ),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 64.dp)
         )
 
         if (value > 0) {
             Text(
                 text = "${currencySymbol}${formatAmount(value)}",
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }

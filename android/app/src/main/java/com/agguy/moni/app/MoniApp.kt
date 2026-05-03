@@ -75,6 +75,8 @@ fun MoniApp() {
                     MoniBottomBar(
                         activeTab = activeTab,
                         onTabSelected = { tab ->
+                            // 当前已在该 tab 时不触发空动画
+                            if (tab == activeTab) return@MoniBottomBar
                             val destination = when (tab) {
                                 "stats" -> Screen.Stats
                                 "settings" -> Screen.Settings

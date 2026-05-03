@@ -1,11 +1,17 @@
 package com.agguy.moni.app.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -19,6 +25,37 @@ import com.agguy.moni.app.ui.settings.SettingsScreen
 import com.agguy.moni.app.ui.stats.StatsScreen
 import com.agguy.moni.app.theme.ThemeMode
 import com.agguy.moni.core.CoreIntent
+
+private const val TRANSITION_DURATION_MS = 300
+
+/**
+ * 底部栏页面的左右顺序索引，用于决定切换时动画方向。
+ * 顺序：账单 < 统计 < 设置。
+ */
+private fun NavDestination?.bottomTabIndex(): Int? = when {
+    this == null -> null
+    hasRoute(Screen.RecordList::class) -> 0
+    hasRoute(Screen.Stats::class) -> 1
+    hasRoute(Screen.Settings::class) -> 2
+    else -> null
+}
+
+/**
+ * 根据起止 destination 决定切换方向：
+ * - 都是底部栏页面时，按 tab 索引大小决定 Start/End；
+ * - 否则（详情页等）回退到默认方向。
+ */
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.resolveSlideDirection(
+    fallback: SlideDirection
+): SlideDirection {
+    val from = initialState.destination.bottomTabIndex()
+    val to = targetState.destination.bottomTabIndex()
+    return if (from != null && to != null && from != to) {
+        if (to > from) SlideDirection.Start else SlideDirection.End
+    } else {
+        fallback
+    }
+}
 
 @Composable
 fun MoniNavHost(
@@ -38,32 +75,24 @@ fun MoniNavHost(
         startDestination = Screen.RecordList,
         modifier = modifier,
         enterTransition = {
-            fadeIn(animationSpec = tween(300)) +
-            slideIntoContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                animationSpec = tween(300)
-            )
+            val direction = resolveSlideDirection(SlideDirection.Start)
+            fadeIn(animationSpec = tween(TRANSITION_DURATION_MS)) +
+                slideIntoContainer(towards = direction, animationSpec = tween(TRANSITION_DURATION_MS))
         },
         exitTransition = {
-            fadeOut(animationSpec = tween(300)) +
-            slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                animationSpec = tween(300)
-            )
+            val direction = resolveSlideDirection(SlideDirection.Start)
+            fadeOut(animationSpec = tween(TRANSITION_DURATION_MS)) +
+                slideOutOfContainer(towards = direction, animationSpec = tween(TRANSITION_DURATION_MS))
         },
         popEnterTransition = {
-            fadeIn(animationSpec = tween(300)) +
-            slideIntoContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.End,
-                animationSpec = tween(300)
-            )
+            val direction = resolveSlideDirection(SlideDirection.End)
+            fadeIn(animationSpec = tween(TRANSITION_DURATION_MS)) +
+                slideIntoContainer(towards = direction, animationSpec = tween(TRANSITION_DURATION_MS))
         },
         popExitTransition = {
-            fadeOut(animationSpec = tween(300)) +
-            slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.End,
-                animationSpec = tween(300)
-            )
+            val direction = resolveSlideDirection(SlideDirection.End)
+            fadeOut(animationSpec = tween(TRANSITION_DURATION_MS)) +
+                slideOutOfContainer(towards = direction, animationSpec = tween(TRANSITION_DURATION_MS))
         }
     ) {
         composable<Screen.RecordList> {
@@ -101,7 +130,6 @@ fun MoniNavHost(
                 appState = appState,
                 themeSettings = themeSettings,
                 onDispatch = onDispatch,
-                onNavigateBack = onNavigateBack,
                 onUpdateThemeMode = onUpdateThemeMode,
                 onUpdateDynamicColor = onUpdateDynamicColor
             )

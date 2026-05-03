@@ -1,5 +1,6 @@
 package com.agguy.moni.app.ui.stats
 
+import android.provider.Settings
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -21,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -96,16 +98,26 @@ private fun PieChartCanvas(
     breakdowns: List<CoreCategoryBreakdown>,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val animationProgress = remember { Animatable(0f) }
     LaunchedEffect(breakdowns) {
-        animationProgress.snapTo(0f)
-        animationProgress.animateTo(
-            targetValue = 1f,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioNoBouncy,
-                stiffness = Spring.StiffnessMedium
-            )
+        val scale = Settings.Global.getFloat(
+            context.contentResolver,
+            Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f
         )
+        if (scale == 0f) {
+            animationProgress.snapTo(1f)
+        } else {
+            animationProgress.snapTo(0f)
+            animationProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMedium
+                )
+            )
+        }
     }
 
     val surfaceColor = MaterialTheme.colorScheme.surface

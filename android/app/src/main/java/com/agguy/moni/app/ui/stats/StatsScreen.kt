@@ -161,6 +161,7 @@ private fun SummaryCard(
 ) {
     Card(
         modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(

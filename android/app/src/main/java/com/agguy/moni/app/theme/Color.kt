@@ -61,7 +61,7 @@ val OutlineDark = Color(0xFF89938D)
 /**
  * 计算颜色的亮度（Material Design 公式）。
  */
-private fun Color.luminance(): Float {
+internal fun Color.luminance(): Float {
     val r = red * 0.2126f
     val g = green * 0.7152f
     val b = blue * 0.0722f

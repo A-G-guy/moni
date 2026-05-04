@@ -25,7 +25,7 @@ enum class MoniCardVariant {
  *
  * Material 3 Expressive 把 Card 拆成 Filled / Tonal / Outlined / Elevated 四种形态，
  * 通过 [variant] 选择。默认 [MoniCardVariant.Tonal]：surfaceContainerLow 背景、零阴影、
- * large 圆角（已升级到 20dp）——保留旧调用点视觉。
+ * large 圆角（20dp），与 carousel maskClip 保持一致。
  *
  * @param modifier 修饰符
  * @param variant 卡片形态，默认 Tonal
@@ -48,7 +48,7 @@ fun MoniCard(
     when (variant) {
         MoniCardVariant.Filled -> Card(
             modifier = cardModifier,
-            shape = MaterialTheme.shapes.extraLarge,
+            shape = MaterialTheme.shapes.large,
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
@@ -57,7 +57,7 @@ fun MoniCard(
 
         MoniCardVariant.Tonal -> Card(
             modifier = cardModifier,
-            shape = MaterialTheme.shapes.extraLarge,
+            shape = MaterialTheme.shapes.large,
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -66,12 +66,12 @@ fun MoniCard(
 
         MoniCardVariant.Outlined -> OutlinedCard(
             modifier = cardModifier,
-            shape = MaterialTheme.shapes.extraLarge
+            shape = MaterialTheme.shapes.large
         ) { content() }
 
         MoniCardVariant.Elevated -> Card(
             modifier = cardModifier,
-            shape = MaterialTheme.shapes.extraLarge,
+            shape = MaterialTheme.shapes.large,
             elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow

@@ -177,11 +177,17 @@ private fun MonthSummaryCarousel(
             .height(180.dp)
     ) { index ->
         val summary = summaries[index]
-        HeroSummaryCard(
-            summary = summary,
-            currencySymbol = currencySymbol,
-            modifier = Modifier.fillMaxSize()
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .maskClip(MaterialTheme.shapes.large)
+        ) {
+            HeroSummaryCard(
+                summary = summary,
+                currencySymbol = currencySymbol,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
     }
 }
 

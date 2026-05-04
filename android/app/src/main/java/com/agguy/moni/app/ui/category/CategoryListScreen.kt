@@ -76,7 +76,7 @@ fun CategoryListScreen(
                 title = {
                     Text(
                         text = "分类管理",
-                        style = MaterialTheme.typography.titleLargeEmphasized
+                        style = MaterialTheme.typography.headlineSmall
                     )
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0),

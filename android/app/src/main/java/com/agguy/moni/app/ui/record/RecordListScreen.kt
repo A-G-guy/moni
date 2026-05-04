@@ -59,7 +59,7 @@ import java.time.format.DateTimeFormatter
  * 账单列表主屏。
  *
  * Material 3 Expressive 改造点：
- * - 标题用 [androidx.compose.material3.Typography.titleLargeEmphasized] 强化 hero moment；
+ * - 标题用 [androidx.compose.material3.Typography.headlineSmall] 强化 hero moment；
  * - FAB + AppBar action 收敛到底部 [HorizontalFloatingToolbar]，分类入口与「记一笔」并列；
  * - 删除确认对话框的 scale 动画接入 [androidx.compose.material3.MotionScheme]，统一动效曲线。
  */
@@ -83,7 +83,7 @@ fun RecordListScreen(
                 title = {
                     Text(
                         "账单",
-                        style = MaterialTheme.typography.titleLargeEmphasized
+                        style = MaterialTheme.typography.headlineSmall
                     )
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0),

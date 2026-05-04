@@ -39,7 +39,7 @@ import com.agguy.moni.core.CoreIntent
  * 设置页面。
  *
  * Material 3 Expressive 改造点：
- * - 标题用 [androidx.compose.material3.Typography.titleLargeEmphasized]，强化 hero 字号；
+ * - 标题用 [androidx.compose.material3.Typography.headlineSmall]，强化 hero 字号；
  * - 4 个 dialog 的 scale 动画统一接入 [androidx.compose.material3.MotionScheme.defaultSpatialSpec]，
  *   消除手写 `spring()` 与项目 motion 主题的不一致。
  */
@@ -76,7 +76,7 @@ fun SettingsScreen(
                 title = {
                     Text(
                         "设置",
-                        style = MaterialTheme.typography.titleLargeEmphasized
+                        style = MaterialTheme.typography.headlineSmall
                     )
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0),

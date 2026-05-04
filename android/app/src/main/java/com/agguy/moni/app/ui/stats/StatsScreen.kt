@@ -51,7 +51,7 @@ import java.time.format.DateTimeFormatter
  * 统计仪表盘页面。
  *
  * Material 3 Expressive 改造点：
- * - 标题用 [androidx.compose.material3.Typography.titleLargeEmphasized]，强化 hero 字号；
+ * - 标题用 [androidx.compose.material3.Typography.headlineSmall]，强化 hero 字号；
  * - 顶部月度概览改为 [HorizontalCenteredHeroCarousel]：用户左右滑动浏览近 N 个月的概览，
  *   居中项的高亮 + mask 的"翻页感"是 Expressive 的招牌 hero 元素；
  * - 选中月份会自动驱动下方饼图重载（通过 [androidx.compose.material3.carousel.CarouselState.currentItem] +
@@ -82,7 +82,7 @@ fun StatsScreen(
                 title = {
                     Text(
                         "统计",
-                        style = MaterialTheme.typography.titleLargeEmphasized
+                        style = MaterialTheme.typography.headlineSmall
                     )
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0),

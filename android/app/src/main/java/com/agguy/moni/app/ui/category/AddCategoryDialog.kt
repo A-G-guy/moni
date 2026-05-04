@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.toColorInt
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.AvailableCategoryIcons

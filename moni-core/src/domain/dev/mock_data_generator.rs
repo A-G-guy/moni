@@ -30,7 +30,9 @@ pub fn generate(
     let now = chrono::Utc::now().timestamp();
 
     for i in 0..count {
-        let category = categories.choose(&mut rng).unwrap();
+        let category = categories
+            .choose(&mut rng)
+            .ok_or_else(|| "分类列表为空，无法生成 Mock 记录".to_string())?;
         let (amount_cents, note, record_type) = match preset {
             MockPreset::Normal => generate_normal(&mut rng, category, i),
             MockPreset::Stress => generate_stress(&mut rng, category, i),

@@ -11,9 +11,11 @@ fn test_stats_monthly_summary_empty() {
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
         assert!(state["ui"]["errorMessage"].is_null());
         let summaries = state["monthlySummaries"].as_array().unwrap();
-        // 无记录时可能为空或只有当前月（取决于 SQL 查询）
-        // 由于 created_at 默认为当前时间，查询会包含当前月
-        assert!(!state["ui"]["errorMessage"].is_null() || summaries.is_empty() || !summaries.is_empty());
+        // 无任何 record 时 SQL 查询不会回填零值月份，应直接为空数组。
+        assert!(
+            summaries.is_empty(),
+            "无任何 record 时月度汇总应为空，实际: {summaries:?}"
+        );
     });
 }
 

@@ -146,6 +146,15 @@ fun StatsScreen(
  * 用户左右拖动后 [androidx.compose.material3.carousel.CarouselState.currentItem] 会更新，
  * 通过 [snapshotFlow] + [distinctUntilChanged] 节流后回调 [onMonthChanged]，
  * 用于驱动下方饼图重载。
+ *
+ * **边缘态（stuck state）设计**：
+ * 滑到首/末月时，Material 3 内部会通过 keyline 移位生成
+ * `[anchor, large, small, small, anchor]`，大卡片自然贴到容器边缘，另一侧露出两张完整小卡。
+ * 由于移位仅搬动 keyline 位置而不改 size，边缘态的 small 与居中态左右两侧的 small **尺寸完全一致**。
+ *
+ * 为避免 Material 3 在默认 40-56dp 区间内根据 viewport 自适应、导致
+ * 不同设备宽度上 small 尺寸有微小差异，这里显式锁定 minSmallItemWidth = maxSmallItemWidth = [SmallItemWidth]，
+ * 跨设备视觉一致。
  */
 @Composable
 private fun MonthSummaryCarousel(
@@ -170,8 +179,12 @@ private fun MonthSummaryCarousel(
 
     HorizontalCenteredHeroCarousel(
         state = carouselState,
-        itemSpacing = 8.dp,
-        contentPadding = PaddingValues(horizontal = 16.dp),
+        itemSpacing = CarouselItemSpacing,
+        contentPadding = PaddingValues(horizontal = CarouselContentPadding),
+        // 显式锁定 small 尺寸：Material 3 在 stuck state 下通过 move 重排 keyline 但不改 size，
+        // min == max 进一步避免 Material 在默认区间内做 viewport 适配，使中间态与边缘态严格相等。
+        minSmallItemWidth = SmallItemWidth,
+        maxSmallItemWidth = SmallItemWidth,
         modifier = modifier
             .fillMaxWidth()
             .height(180.dp)
@@ -190,6 +203,10 @@ private fun MonthSummaryCarousel(
         }
     }
 }
+
+private val SmallItemWidth = 56.dp
+private val CarouselItemSpacing = 8.dp
+private val CarouselContentPadding = 16.dp
 
 /**
  * Hero 月度概览卡片：carousel 居中项的视觉主角。

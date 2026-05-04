@@ -1,9 +1,9 @@
 package com.agguy.moni.app.ui.record
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.components.MoniCard
@@ -34,7 +33,6 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import android.util.Log
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -128,12 +126,10 @@ private fun CategoryIndicator(isExpense: Boolean, iconName: String) {
     }
 }
 
-private fun formatTime(timestamp: Long): String {
-    return try {
-        LocalDateTime.ofInstant(Instant.ofEpochSecond(timestamp), ZoneId.systemDefault())
-            .format(DateTimeFormatter.ofPattern("HH:mm"))
-    } catch (e: Exception) {
-        Log.w("Moni", "时间格式化失败: timestamp=$timestamp, ${e.message}")
-        ""
-    }
+private fun formatTime(timestamp: Long): String = try {
+    LocalDateTime.ofInstant(Instant.ofEpochSecond(timestamp), ZoneId.systemDefault())
+        .format(DateTimeFormatter.ofPattern("HH:mm"))
+} catch (e: Exception) {
+    Log.w("Moni", "时间格式化失败: timestamp=$timestamp, ${e.message}")
+    ""
 }

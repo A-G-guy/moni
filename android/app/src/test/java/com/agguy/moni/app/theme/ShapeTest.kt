@@ -32,35 +32,43 @@ class ShapeTest {
         // 这里通过 isSameCorner 做弱等值断言（Compose 内部 toString 输出含 px 值，不可靠，
         // 故直接构造对照对象比较类行为）。
         assertShapesEqual(
-            RoundedCornerShape(4.dp), MoniShapes.extraSmall,
+            RoundedCornerShape(4.dp),
+            MoniShapes.extraSmall,
             "extraSmall should be 4dp"
         )
         assertShapesEqual(
-            RoundedCornerShape(8.dp), MoniShapes.small,
+            RoundedCornerShape(8.dp),
+            MoniShapes.small,
             "small should be 8dp"
         )
         assertShapesEqual(
-            RoundedCornerShape(12.dp), MoniShapes.medium,
+            RoundedCornerShape(12.dp),
+            MoniShapes.medium,
             "medium should be 12dp"
         )
         assertShapesEqual(
-            RoundedCornerShape(20.dp), MoniShapes.large,
+            RoundedCornerShape(20.dp),
+            MoniShapes.large,
             "large should be 20dp (expressive)"
         )
         assertShapesEqual(
-            RoundedCornerShape(32.dp), MoniShapes.extraLarge,
+            RoundedCornerShape(32.dp),
+            MoniShapes.extraLarge,
             "extraLarge should be 32dp (expressive)"
         )
         assertShapesEqual(
-            RoundedCornerShape(24.dp), MoniShapes.largeIncreased,
+            RoundedCornerShape(24.dp),
+            MoniShapes.largeIncreased,
             "largeIncreased should be 24dp"
         )
         assertShapesEqual(
-            RoundedCornerShape(40.dp), MoniShapes.extraLargeIncreased,
+            RoundedCornerShape(40.dp),
+            MoniShapes.extraLargeIncreased,
             "extraLargeIncreased should be 40dp"
         )
         assertShapesEqual(
-            RoundedCornerShape(48.dp), MoniShapes.extraExtraLarge,
+            RoundedCornerShape(48.dp),
+            MoniShapes.extraExtraLarge,
             "extraExtraLarge should be 48dp (expressive)"
         )
     }

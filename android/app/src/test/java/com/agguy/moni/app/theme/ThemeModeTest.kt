@@ -40,20 +40,29 @@ class ThemeModeTest {
 
     @Test
     fun `deserialize returns correct mode for each valid string`() {
-        assertEquals(ThemeMode.LIGHT, when ("light") {
-            "light" -> ThemeMode.LIGHT
-            "dark" -> ThemeMode.DARK
-            else -> ThemeMode.SYSTEM
-        })
-        assertEquals(ThemeMode.DARK, when ("dark") {
-            "light" -> ThemeMode.LIGHT
-            "dark" -> ThemeMode.DARK
-            else -> ThemeMode.SYSTEM
-        })
-        assertEquals(ThemeMode.SYSTEM, when ("system") {
-            "light" -> ThemeMode.LIGHT
-            "dark" -> ThemeMode.DARK
-            else -> ThemeMode.SYSTEM
-        })
+        assertEquals(
+            ThemeMode.LIGHT,
+            when ("light") {
+                "light" -> ThemeMode.LIGHT
+                "dark" -> ThemeMode.DARK
+                else -> ThemeMode.SYSTEM
+            }
+        )
+        assertEquals(
+            ThemeMode.DARK,
+            when ("dark") {
+                "light" -> ThemeMode.LIGHT
+                "dark" -> ThemeMode.DARK
+                else -> ThemeMode.SYSTEM
+            }
+        )
+        assertEquals(
+            ThemeMode.SYSTEM,
+            when ("system") {
+                "light" -> ThemeMode.LIGHT
+                "dark" -> ThemeMode.DARK
+                else -> ThemeMode.SYSTEM
+            }
+        )
     }
 }

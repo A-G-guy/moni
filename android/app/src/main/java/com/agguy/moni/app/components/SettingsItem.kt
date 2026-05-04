@@ -19,13 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.icons.MoniIcon
 
 @Composable
-fun SettingsItem(
-    icon: Int,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun SettingsItem(icon: Int, title: String, subtitle: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     MoniCard(
         modifier = modifier.fillMaxWidth(),
         onClick = onClick

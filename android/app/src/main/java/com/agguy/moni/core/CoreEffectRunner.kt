@@ -12,6 +12,7 @@ class CoreEffectRunner {
     fun runEffect(effect: CoreEffect) {
         when (effect.kind) {
             "log" -> LogCollector.d("MoniEffect", effect.payloadJson)
+
             "show_snackbar" -> {
                 val message = try {
                     kotlinx.serialization.json.Json.parseToJsonElement(effect.payloadJson)
@@ -23,6 +24,7 @@ class CoreEffectRunner {
                 LogCollector.i("CoreEffectRunner", "显示 Snackbar: $message")
                 onShowSnackbar?.invoke(message)
             }
+
             "navigate" -> {
                 val screen = try {
                     kotlinx.serialization.json.Json.parseToJsonElement(effect.payloadJson)
@@ -34,6 +36,7 @@ class CoreEffectRunner {
                 LogCollector.i("CoreEffectRunner", "导航到: $screen")
                 onNavigate?.invoke(screen)
             }
+
             "export_file" -> {
                 val json = try {
                     kotlinx.serialization.json.Json.parseToJsonElement(effect.payloadJson).jsonObject
@@ -46,6 +49,7 @@ class CoreEffectRunner {
                 LogCollector.i("CoreEffectRunner", "导出文件: format=$format, contentLength=${content.length}")
                 onExportFile?.invoke(format, content)
             }
+
             else -> LogCollector.w("MoniEffect", "未知的 effect 类型: ${effect.kind}")
         }
     }

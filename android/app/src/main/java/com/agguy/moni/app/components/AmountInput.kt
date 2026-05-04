@@ -60,13 +60,17 @@ fun AmountInput(
                 val integerPart = parts[0].filter { it.isDigit() }
                 val decimalPart = if (parts.size > 1) {
                     parts[1].filter { it.isDigit() }.take(2)
-                } else ""
+                } else {
+                    ""
+                }
 
                 val cents = if (integerPart.isEmpty() && decimalPart.isEmpty()) {
                     0L
                 } else {
                     val integer = integerPart.toLongOrNull() ?: 0L
-                    val decimal = if (decimalPart.isEmpty()) 0L else {
+                    val decimal = if (decimalPart.isEmpty()) {
+                        0L
+                    } else {
                         when (decimalPart.length) {
                             1 -> decimalPart.toLong() * 10
                             else -> decimalPart.toLong()
@@ -94,17 +98,18 @@ fun AmountInput(
         Text(
             text = if (value > 0) "${currencySymbol}${formatAmount(value)}" else "${currencySymbol}0.00",
             style = MaterialTheme.typography.displayMediumEmphasized,
-            color = if (value > 0) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+            color = if (value > 0) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+            },
             modifier = Modifier.padding(top = 12.dp)
         )
     }
 }
 
-private fun formatDisplay(integer: String, decimal: String, symbol: String): String {
-    return if (decimal.isEmpty()) {
-        if (integer.isEmpty()) "" else "$symbol$integer"
-    } else {
-        "$symbol$integer.$decimal"
-    }
+private fun formatDisplay(integer: String, decimal: String, symbol: String): String = if (decimal.isEmpty()) {
+    if (integer.isEmpty()) "" else "$symbol$integer"
+} else {
+    "$symbol$integer.$decimal"
 }

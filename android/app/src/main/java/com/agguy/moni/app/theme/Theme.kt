@@ -19,7 +19,9 @@ import com.materialkolor.dynamicColorScheme
  * 主题模式枚举。
  */
 enum class ThemeMode {
-    LIGHT, DARK, SYSTEM
+    LIGHT,
+    DARK,
+    SYSTEM
 }
 
 /**
@@ -48,6 +50,7 @@ fun MoniTheme(
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
+
         else -> remember(seedColor.value, darkTheme) {
             dynamicColorScheme(seedColor = seedColor, isDark = darkTheme)
         }

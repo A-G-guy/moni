@@ -48,11 +48,7 @@ import com.agguy.moni.app.theme.IconGroup
  * @param modifier 修饰符
  */
 @Composable
-fun IconPicker(
-    selectedIconName: String,
-    onIconSelected: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun IconPicker(selectedIconName: String, onIconSelected: (String) -> Unit, modifier: Modifier = Modifier) {
     var searchQuery by remember { mutableStateOf("") }
 
     val filteredGroups = remember(searchQuery) {
@@ -126,11 +122,7 @@ fun IconPicker(
  * @param onIconSelected 图标选中回调
  */
 @Composable
-private fun IconGroupSection(
-    group: IconGroup,
-    selectedIconName: String,
-    onIconSelected: (String) -> Unit
-) {
+private fun IconGroupSection(group: IconGroup, selectedIconName: String, onIconSelected: (String) -> Unit) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -212,7 +204,9 @@ private fun IconPickerOption(
             modifier = Modifier.fillMaxWidth().height(48.dp),
             border = if (isSelected) {
                 BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-            } else null
+            } else {
+                null
+            }
         ) {
             Box(
                 modifier = Modifier.fillMaxWidth(),

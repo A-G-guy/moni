@@ -39,10 +39,7 @@ private const val EXPORT_VISUAL_FEEDBACK_MS = 600L
  * - shape 升级到 [androidx.compose.material3.Shapes.extraLarge] (32dp)，与 dialog 视觉体系协同。
  */
 @Composable
-fun ExportDataDialog(
-    onConfirm: (ExportFormat) -> Unit,
-    onDismiss: () -> Unit
-) {
+fun ExportDataDialog(onConfirm: (ExportFormat) -> Unit, onDismiss: () -> Unit) {
     val formats = listOf(
         ExportFormat.CSV to "CSV 格式（表格）",
         ExportFormat.JSON to "JSON 格式（原始数据）"

@@ -15,14 +15,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -42,11 +41,7 @@ import com.agguy.moni.core.CoreMonthlySummary
  * @param modifier 修饰符
  */
 @Composable
-fun MonthlyBarChart(
-    summaries: List<CoreMonthlySummary>,
-    currencySymbol: String,
-    modifier: Modifier = Modifier
-) {
+fun MonthlyBarChart(summaries: List<CoreMonthlySummary>, currencySymbol: String, modifier: Modifier = Modifier) {
     if (summaries.isEmpty()) {
         EmptyChartPlaceholder("暂无月度数据")
         return

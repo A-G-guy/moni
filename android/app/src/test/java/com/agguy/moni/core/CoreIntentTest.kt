@@ -1,7 +1,6 @@
 package com.agguy.moni.core
 
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
@@ -43,7 +42,11 @@ class CoreIntentTest {
     @Test
     fun `all intent types have correct discriminator`() {
         val cases = listOf(
-            CoreIntent.RecordCreate(amountCents = 100, recordType = RecordType.EXPENSE, categoryId = 1) to "record_create",
+            CoreIntent.RecordCreate(
+                amountCents = 100,
+                recordType = RecordType.EXPENSE,
+                categoryId = 1
+            ) to "record_create",
             CoreIntent.RecordUpdate(id = 1) to "record_update",
             CoreIntent.RecordDelete(id = 1) to "record_delete",
             CoreIntent.RecordList() to "record_list",

@@ -17,7 +17,10 @@ import androidx.compose.ui.unit.dp
  * Outlined 用于"轻量"分组，Elevated 是 expressive 推荐 hero 卡片。
  */
 enum class MoniCardVariant {
-    Filled, Tonal, Outlined, Elevated
+    Filled,
+    Tonal,
+    Outlined,
+    Elevated
 }
 
 /**

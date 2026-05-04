@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -20,7 +21,6 @@ import com.agguy.moni.app.components.MoniBottomBar
 import com.agguy.moni.app.navigation.MoniNavHost
 import com.agguy.moni.app.navigation.Screen
 import com.agguy.moni.app.theme.MoniTheme
-import androidx.compose.ui.graphics.Color
 import com.agguy.moni.di.AppModule
 import kotlinx.coroutines.launch
 
@@ -64,9 +64,9 @@ fun MoniApp() {
             bottomBar = {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
-                val showBottomBar = currentRoute?.contains("RecordList") == true
-                        || currentRoute?.contains("Stats") == true
-                        || currentRoute?.contains("Settings") == true
+                val showBottomBar = currentRoute?.contains("RecordList") == true ||
+                    currentRoute?.contains("Stats") == true ||
+                    currentRoute?.contains("Settings") == true
 
                 if (showBottomBar) {
                     val activeTab = when {

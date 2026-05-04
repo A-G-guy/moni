@@ -3,10 +3,7 @@ package com.agguy.moni.core
 import kotlinx.serialization.encodeToString
 import uniffi.moni_core.MoniCore
 
-data class CoreMutation(
-    val state: CoreAppState,
-    val effects: List<CoreEffect>
-)
+data class CoreMutation(val state: CoreAppState, val effects: List<CoreEffect>)
 
 class RustCoreController {
     private val core = MoniCore()
@@ -26,9 +23,8 @@ class RustCoreController {
         return decodeMutation(update)
     }
 
-    private fun decodeMutation(update: uniffi.moni_core.CoreUpdate): CoreMutation =
-        CoreMutation(
-            state = BridgeJson.decodeFromString(CoreAppState.serializer(), update.stateJson),
-            effects = update.effects.map { CoreEffect(it.kind, it.payloadJson) }
-        )
+    private fun decodeMutation(update: uniffi.moni_core.CoreUpdate): CoreMutation = CoreMutation(
+        state = BridgeJson.decodeFromString(CoreAppState.serializer(), update.stateJson),
+        effects = update.effects.map { CoreEffect(it.kind, it.payloadJson) }
+    )
 }

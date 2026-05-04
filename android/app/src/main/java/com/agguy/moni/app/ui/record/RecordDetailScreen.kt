@@ -9,7 +9,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,7 +42,6 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntSize
@@ -94,7 +92,9 @@ fun RecordDetailScreen(
     var selectedCategoryId by remember { mutableLongStateOf(existingRecord?.categoryId ?: -1L) }
     var note by remember { mutableStateOf(existingRecord?.note ?: "") }
     var timestamp by remember {
-        mutableLongStateOf(existingRecord?.createdAt ?: LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toEpochSecond())
+        mutableLongStateOf(
+            existingRecord?.createdAt ?: LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toEpochSecond()
+        )
     }
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
@@ -347,11 +347,7 @@ private fun CategorySelector(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CategoryChip(
-    category: CoreCategory,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
+private fun CategoryChip(category: CoreCategory, isSelected: Boolean, onClick: () -> Unit) {
     FilterChip(
         selected = isSelected,
         onClick = onClick,
@@ -364,7 +360,9 @@ private fun CategoryChip(
                     modifier = Modifier.size(18.dp)
                 )
             }
-        } else null,
+        } else {
+            null
+        },
         colors = FilterChipDefaults.filterChipColors(
             containerColor = Color.Transparent,
             labelColor = MaterialTheme.colorScheme.onSurface,

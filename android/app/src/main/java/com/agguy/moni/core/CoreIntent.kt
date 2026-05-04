@@ -5,20 +5,29 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class RecordType {
-    @SerialName("income") INCOME,
-    @SerialName("expense") EXPENSE
+    @SerialName("income")
+    INCOME,
+
+    @SerialName("expense")
+    EXPENSE
 }
 
 @Serializable
 enum class ExportFormat {
-    @SerialName("csv") CSV,
-    @SerialName("json") JSON
+    @SerialName("csv")
+    CSV,
+
+    @SerialName("json")
+    JSON
 }
 
 @Serializable
 enum class MockPreset {
-    @SerialName("normal") NORMAL,
-    @SerialName("stress") STRESS
+    @SerialName("normal")
+    NORMAL,
+
+    @SerialName("stress")
+    STRESS
 }
 
 @Serializable

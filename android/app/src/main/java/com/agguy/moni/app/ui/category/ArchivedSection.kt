@@ -27,7 +27,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.icons.MoniIcon
@@ -76,12 +75,7 @@ fun ArchivedSection(
 }
 
 @Composable
-private fun ArchivedSectionHeader(
-    count: Int,
-    expanded: Boolean,
-    onToggle: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+private fun ArchivedSectionHeader(count: Int, expanded: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -143,11 +137,7 @@ private fun ArchivedCategoryList(
 }
 
 @Composable
-private fun ArchivedCategoryItem(
-    category: CoreCategory,
-    onUnarchiveClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+private fun ArchivedCategoryItem(category: CoreCategory, onUnarchiveClick: () -> Unit, modifier: Modifier = Modifier) {
     val categoryColor = if (category.categoryType == "expense") {
         MaterialTheme.colorScheme.expenseRed
     } else {

@@ -11,7 +11,7 @@ fn setup() -> rusqlite::Connection {
 }
 
 fn create_category(conn: &rusqlite::Connection, name: &str, ty: RecordType) -> i64 {
-    category_repo::insert(conn, name, ty, "icon", "#000", 1, false).unwrap()
+    category_repo::insert(conn, name, None, ty, "icon", 1, false).unwrap()
 }
 
 #[test]

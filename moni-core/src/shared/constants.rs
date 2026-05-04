@@ -1,6 +1,9 @@
 /// 自定义分类的默认排序值，确保排在预设分类之后。
 pub const CUSTOM_CATEGORY_SORT_ORDER: i32 = 999;
 
+/// 分类描述的最大字符长度。
+pub const CATEGORY_DESCRIPTION_MAX_LEN: usize = 200;
+
 /// 导出数据时单次查询的最大记录数。
 pub const EXPORT_MAX_RECORDS: i32 = 10000;
 

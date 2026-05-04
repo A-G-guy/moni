@@ -27,7 +27,37 @@ CREATE INDEX IF NOT EXISTS idx_records_created_at ON records(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_records_category ON records(category_id);
 "#;
 
-/// 执行数据库 Schema 初始化。
+/// 执行数据库 Schema 初始化与幂等迁移。
 pub fn init_schema(conn: &Connection) -> Result<(), rusqlite::Error> {
-    conn.execute_batch(SCHEMA_SQL)
+    conn.execute_batch(SCHEMA_SQL)?;
+
+    // 检查并添加 description 列（2026-05-04 迁移）
+    let has_description: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('categories') WHERE name = 'description'",
+            [],
+            |row| row.get(0),
+        )?;
+    if has_description == 0 {
+        conn.execute(
+            "ALTER TABLE categories ADD COLUMN description TEXT NULL",
+            [],
+        )?;
+    }
+
+    // 检查并添加 archived_at 列（2026-05-04 迁移）
+    let has_archived_at: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('categories') WHERE name = 'archived_at'",
+            [],
+            |row| row.get(0),
+        )?;
+    if has_archived_at == 0 {
+        conn.execute(
+            "ALTER TABLE categories ADD COLUMN archived_at INTEGER NULL",
+            [],
+        )?;
+    }
+
+    Ok(())
 }

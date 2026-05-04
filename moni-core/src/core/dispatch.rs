@@ -30,7 +30,9 @@ impl AppCoreRuntime {
             | CoreIntent::RecordList { .. }
             | CoreIntent::RecordGet { .. } => self.dispatch_record(intent),
             CoreIntent::CategoryCreate { .. }
-            | CoreIntent::CategoryDelete { .. }
+            | CoreIntent::CategoryUpdate { .. }
+            | CoreIntent::CategoryArchive { .. }
+            | CoreIntent::CategoryUnarchive { .. }
             | CoreIntent::CategoryList => self.dispatch_category(intent),
             CoreIntent::StatsMonthlySummary { .. }
             | CoreIntent::StatsCategoryBreakdown { .. } => self.dispatch_stats(intent),

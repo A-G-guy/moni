@@ -1,8 +1,6 @@
 package com.agguy.moni.app.ui.category
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
-import androidx.core.graphics.toColorInt
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -25,12 +23,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.theme.expenseRed
+import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreCategory
 
 @Composable
 fun CategoryListContent(
     categories: List<CoreCategory>,
-    onDeleteRequest: (CoreCategory) -> Unit,
+    onArchiveRequest: (CoreCategory) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -41,7 +41,7 @@ fun CategoryListContent(
         items(categories, key = { it.id }) { category ->
             CategoryListItem(
                 category = category,
-                onDeleteClick = { onDeleteRequest(category) }
+                onArchiveClick = { onArchiveRequest(category) }
             )
         }
     }
@@ -50,14 +50,13 @@ fun CategoryListContent(
 @Composable
 fun CategoryListItem(
     category: CoreCategory,
-    onDeleteClick: () -> Unit,
+    onArchiveClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val categoryColor = try {
-        Color(category.colorHex.toColorInt())
-    } catch (e: Exception) {
-        Log.w("Moni", "分类颜色解析失败: ${category.colorHex}, ${e.message}")
-        MaterialTheme.colorScheme.primary
+    val categoryColor = if (category.categoryType == "expense") {
+        MaterialTheme.colorScheme.expenseRed
+    } else {
+        MaterialTheme.colorScheme.incomeGreen
     }
 
     Card(
@@ -95,11 +94,11 @@ fun CategoryListItem(
             }
 
             if (!category.isPreset) {
-                IconButton(onClick = onDeleteClick) {
+                IconButton(onClick = onArchiveClick) {
                     MoniIcon(
                         icon = MoniIcons.Delete,
-                        contentDescription = "删除",
-                        tint = MaterialTheme.colorScheme.error
+                        contentDescription = "归档",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

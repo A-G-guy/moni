@@ -47,11 +47,12 @@ class BridgeJsonTest {
                     {
                         "id": 1,
                         "name": "餐饮",
+                        "description": "日常餐饮消费",
                         "categoryType": "expense",
                         "iconName": "restaurant",
-                        "colorHex": "#FF6B6B",
                         "sortOrder": 1,
                         "isPreset": true,
+                        "archivedAt": null,
                         "createdAt": 0,
                         "updatedAt": 0
                     }
@@ -66,6 +67,7 @@ class BridgeJsonTest {
         val state = BridgeJson.decodeFromString(CoreAppState.serializer(), json)
         assertEquals(1, state.categories.size)
         assertEquals("餐饮", state.categories[0].name)
+        assertEquals("日常餐饮消费", state.categories[0].description)
         assertEquals("expense", state.categories[0].categoryType)
         assertEquals("restaurant", state.categories[0].iconName)
         assertEquals("¥", state.settings.currencySymbol)
@@ -90,20 +92,20 @@ class BridgeJsonTest {
     }
 
     @Test
-    fun `category create intent encodes color and icon`() {
+    fun `category create intent encodes without color`() {
         val intent: CoreIntent = CoreIntent.CategoryCreate(
             name = "测试",
+            description = "描述",
             categoryType = RecordType.INCOME,
-            iconName = "star",
-            colorHex = "#AABBCC"
+            iconName = "star"
         )
         val json = BridgeJsonEncode.encodeToString(intent)
         val obj = BridgeJson.parseToJsonElement(json).jsonObject
 
         assertEquals("category_create", obj["type"]?.jsonPrimitive?.content)
         assertEquals("测试", obj["name"]?.jsonPrimitive?.content)
+        assertEquals("描述", obj["description"]?.jsonPrimitive?.content)
         assertEquals("income", obj["category_type"]?.jsonPrimitive?.content)
         assertEquals("star", obj["icon_name"]?.jsonPrimitive?.content)
-        assertEquals("#AABBCC", obj["color_hex"]?.jsonPrimitive?.content)
     }
 }

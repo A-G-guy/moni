@@ -46,11 +46,18 @@ pub enum CoreIntent {
 
     CategoryCreate {
         name: String,
+        description: Option<String>,
         category_type: RecordType,
         icon_name: String,
-        color_hex: String,
     },
-    CategoryDelete { id: CategoryId },
+    CategoryUpdate {
+        id: CategoryId,
+        name: Option<String>,
+        description: Option<String>,
+        icon_name: Option<String>,
+    },
+    CategoryArchive { id: CategoryId },
+    CategoryUnarchive { id: CategoryId },
     CategoryList,
 
     StatsMonthlySummary { months: u8 },

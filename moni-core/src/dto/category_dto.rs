@@ -6,11 +6,12 @@ use moni_contracts::record::RecordType;
 pub struct CategoryDto {
     pub id: i64,
     pub name: String,
+    pub description: Option<String>,
     pub category_type: RecordType,
     pub icon_name: String,
-    pub color_hex: String,
     pub sort_order: i32,
     pub is_preset: bool,
+    pub archived_at: Option<i64>,
 }
 
 impl CategoryDto {
@@ -18,11 +19,12 @@ impl CategoryDto {
         Self {
             id: category.id,
             name: category.name.clone(),
+            description: category.description.clone(),
             category_type: category.category_type,
             icon_name: category.icon_name.clone(),
-            color_hex: category.color_hex.clone(),
             sort_order: category.sort_order,
             is_preset: category.is_preset,
+            archived_at: category.archived_at,
         }
     }
 }

@@ -13,6 +13,10 @@ pub enum CoreError {
     CategoryNotFound(i64),
     #[error("分类已被使用，无法删除")]
     CategoryInUse,
+    #[error("分类已被归档")]
+    CategoryAlreadyArchived,
+    #[error("分类未归档")]
+    CategoryNotArchived,
 }
 
 impl From<rusqlite::Error> for CoreError {

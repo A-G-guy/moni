@@ -1,7 +1,6 @@
 package com.agguy.moni.app.ui.stats
 
 import android.util.Log
-import androidx.core.graphics.toColorInt
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -85,11 +84,20 @@ fun formatShortAmount(cents: Long, symbol: String): String {
     }
 }
 
-fun parseColor(colorHex: String): Color {
-    return try {
-        Color(colorHex.toColorInt())
-    } catch (e: Exception) {
-        Log.w("Moni", "饼图颜色解析失败: $colorHex, ${e.message}")
-        Color.Gray
-    }
-}
+/** 饼图色板：按索引循环取色，供分类占比图使用。 */
+val PieColors: List<Color> = listOf(
+    Color(0xFFB33A3A),
+    Color(0xFFD4684A),
+    Color(0xFFE89A5A),
+    Color(0xFFF5C26A),
+    Color(0xFF7BA85A),
+    Color(0xFF4A8C7A),
+    Color(0xFF3A6A9A),
+    Color(0xFF5A4A8A),
+    Color(0xFF8A4A6A),
+    Color(0xFF9A6A4A),
+    Color(0xFF6A8A5A),
+    Color(0xFF4A7A8A),
+)
+
+fun pieColorAt(index: Int): Color = PieColors[index % PieColors.size]

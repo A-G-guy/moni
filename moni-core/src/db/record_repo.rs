@@ -164,12 +164,11 @@ pub fn monthly_aggregates(
 pub fn category_aggregates(
     conn: &Connection,
     year_month: &str,
-) -> Result<Vec<(CategoryId, String, String, AmountCents)>, rusqlite::Error> {
+) -> Result<Vec<(CategoryId, String, AmountCents)>, rusqlite::Error> {
     let mut stmt = conn.prepare(
         "SELECT
             c.id,
             c.name,
-            c.color_hex,
             SUM(r.amount_cents) as total
          FROM records r
          JOIN categories c ON r.category_id = c.id
@@ -182,8 +181,7 @@ pub fn category_aggregates(
         Ok((
             row.get::<_, i64>(0)?,
             row.get::<_, String>(1)?,
-            row.get::<_, String>(2)?,
-            row.get::<_, Option<AmountCents>>(3)?.unwrap_or(0),
+            row.get::<_, Option<AmountCents>>(2)?.unwrap_or(0),
         ))
     })?;
     rows.collect()

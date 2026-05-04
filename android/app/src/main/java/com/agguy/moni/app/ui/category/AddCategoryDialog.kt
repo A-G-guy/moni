@@ -40,22 +40,10 @@ import android.util.Log
 @Composable
 fun AddCategoryDialog(
     categoryType: RecordType,
-    onConfirm: (String, String, String) -> Unit,
+    onConfirm: (String, String) -> Unit,
     onDismiss: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
-    val colorOptions = listOf(
-        "#FF6B6B" to "红色",
-        "#4ECDC4" to "青色",
-        "#45B7D1" to "蓝色",
-        "#96CEB4" to "绿色",
-        "#FFEAA7" to "黄色",
-        "#DDA0DD" to "紫色",
-        "#98D8C8" to "薄荷",
-        "#FDCB6E" to "橙色",
-        "#B2BEC3" to "灰色"
-    )
-    var selectedColorIndex by remember { mutableIntStateOf(0) }
     var selectedIconIndex by remember { mutableIntStateOf(0) }
 
     AlertDialog(
@@ -91,41 +79,14 @@ fun AddCategoryDialog(
                         )
                     }
                 }
-
-                Text(
-                    text = "选择颜色",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    colorOptions.forEachIndexed { index, (colorHex, _) ->
-                        val color = try {
-                            Color(colorHex.toColorInt())
-                        } catch (e: Exception) {
-                            Log.w("Moni", "颜色选项解析失败: $colorHex, ${e.message}")
-                            Color.Gray
-                        }
-                        ColorOption(
-                            color = color,
-                            isSelected = selectedColorIndex == index,
-                            onClick = { selectedColorIndex = index }
-                        )
-                    }
-                }
             }
         },
         confirmButton = {
             TextButton(
                 onClick = {
                     if (name.isNotBlank()) {
-                        val (colorHex, _) = colorOptions[selectedColorIndex]
                         val (iconName, _) = AvailableCategoryIcons[selectedIconIndex]
-                        onConfirm(name.trim(), iconName, colorHex)
+                        onConfirm(name.trim(), iconName)
                     }
                 },
                 enabled = name.isNotBlank()
@@ -181,45 +142,6 @@ fun IconOption(
                         MaterialTheme.colorScheme.onSurfaceVariant
                     }
                 )
-            }
-        }
-    }
-}
-
-@Composable
-fun ColorOption(
-    color: Color,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .size(36.dp)
-            .padding(2.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Surface(
-            onClick = onClick,
-            shape = CircleShape,
-            color = color,
-            modifier = Modifier.size(32.dp),
-            border = if (isSelected) {
-                BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-            } else null
-        ) {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                if (isSelected) {
-                    MoniIcon(
-                        icon = MoniIcons.Check,
-                        contentDescription = null,
-                        tint = if (color.luminance() > 0.5f) Color.Black else Color.White,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
             }
         }
     }

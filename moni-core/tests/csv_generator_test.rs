@@ -16,11 +16,12 @@ fn test_generate_csv() {
     let categories = vec![Category {
         id: 1,
         name: "餐饮".to_string(),
+        description: Some("日常餐饮消费".to_string()),
         category_type: RecordType::Expense,
         icon_name: "restaurant".to_string(),
-        color_hex: "#FF6B6B".to_string(),
         sort_order: 1,
         is_preset: true,
+        archived_at: None,
         created_at: 0,
         updated_at: 0,
     }];
@@ -29,4 +30,5 @@ fn test_generate_csv() {
     assert!(csv.contains("午餐"));
     assert!(csv.contains("餐饮"));
     assert!(csv.contains("支出"));
+    assert!(csv.contains("日常餐饮消费"));
 }

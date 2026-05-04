@@ -15,8 +15,8 @@ fn test_monthly_summary() {
 #[test]
 fn test_category_breakdown() {
     let input = vec![
-        (1, "餐饮".to_string(), "#FF6B6B".to_string(), 6000),
-        (2, "交通".to_string(), "#4ECDC4".to_string(), 4000),
+        (1, "餐饮".to_string(), 6000),
+        (2, "交通".to_string(), 4000),
     ];
     let result = calculator::calculate_category_breakdown(input);
     assert_eq!(result.len(), 2);
@@ -33,7 +33,7 @@ fn test_category_breakdown_empty() {
 #[test]
 fn test_category_breakdown_zero_total() {
     let input = vec![
-        (1, "餐饮".to_string(), "#FF6B6B".to_string(), 0),
+        (1, "餐饮".to_string(), 0),
     ];
     let result = calculator::calculate_category_breakdown(input);
     assert!(result.is_empty());

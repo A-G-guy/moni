@@ -14,8 +14,8 @@ impl AppCoreRuntime {
             return Err(CoreError::Internal("意图类型不匹配".to_string()));
         };
 
-        if page_size < crate::shared::constants::MIN_PAGE_SIZE
-            || page_size > crate::shared::constants::MAX_PAGE_SIZE
+        if !(crate::shared::constants::MIN_PAGE_SIZE..=crate::shared::constants::MAX_PAGE_SIZE)
+            .contains(&page_size)
         {
             log::warn!("分页查询失败: 页大小越界, 收到: {page_size}");
             return Err(CoreError::InvalidInput(format!(

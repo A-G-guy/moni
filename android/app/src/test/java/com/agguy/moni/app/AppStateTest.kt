@@ -22,7 +22,6 @@ class AppStateTest {
                     recordType = "expense",
                     categoryId = 1,
                     categoryName = "餐饮",
-                    categoryColor = "#FF6B6B",
                     note = "测试",
                     createdAt = 1000
                 )
@@ -31,9 +30,9 @@ class AppStateTest {
                 CoreCategory(
                     id = 1,
                     name = "餐饮",
+                    description = "日常餐饮",
                     categoryType = "expense",
                     iconName = "restaurant",
-                    colorHex = "#FF6B6B",
                     sortOrder = 1,
                     isPreset = true,
                     createdAt = 0,
@@ -50,6 +49,7 @@ class AppStateTest {
         assertEquals(1234, appState.records[0].amountCents)
         assertEquals(1, appState.categories.size)
         assertEquals("餐饮", appState.categories[0].name)
+        assertEquals("日常餐饮", appState.categories[0].description)
         assertEquals("$", appState.currencySymbol)
         assertEquals("some error", appState.errorMessage)
     }

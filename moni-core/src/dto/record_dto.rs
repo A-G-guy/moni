@@ -11,7 +11,6 @@ pub struct RecordDto {
     pub record_type: RecordType,
     pub category_id: i64,
     pub category_name: String,
-    pub category_color: String,
     pub note: String,
     pub created_at: i64,
 }
@@ -21,11 +20,11 @@ impl RecordDto {
         record: &moni_contracts::record::Record,
         categories: &[CategoryDto],
     ) -> Self {
-        let (cat_name, cat_color) = categories
+        let cat_name = categories
             .iter()
             .find(|c| c.id == record.category_id)
-            .map(|c| (c.name.clone(), c.color_hex.clone()))
-            .unwrap_or_else(|| ("未知分类".to_string(), "#808080".to_string()));
+            .map(|c| c.name.clone())
+            .unwrap_or_else(|| "未知分类".to_string());
 
         Self {
             id: record.id,
@@ -33,7 +32,6 @@ impl RecordDto {
             record_type: record.record_type,
             category_id: record.category_id,
             category_name: cat_name,
-            category_color: cat_color,
             note: record.note.clone(),
             created_at: record.created_at,
         }

@@ -45,7 +45,7 @@ import com.agguy.moni.core.serialName
  *
  * Material 3 Expressive 改造点：
  * - [TopAppBar] 替代 [androidx.compose.material3.TopAppBar]，强化 hero moment；
- * - 添加/删除对话框接入 motion token；
+ * - 添加/归档对话框接入 motion token；
  * - FAB 圆角与新的 corner token 体系（large=20）保持一致；
  * - 移除 `material-icons-extended` 依赖，统一使用项目内 [MoniIcons] (Material Symbols Rounded vectors)。
  */
@@ -59,7 +59,7 @@ fun CategoryListScreen(
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var showAddDialog by remember { mutableStateOf(false) }
-    var categoryToDelete by remember { mutableStateOf<CoreCategory?>(null) }
+    var categoryToArchive by remember { mutableStateOf<CoreCategory?>(null) }
 
     val dialogSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -117,7 +117,7 @@ fun CategoryListScreen(
 
             val categoryType = if (selectedTab == 0) RecordType.EXPENSE else RecordType.INCOME
             val filteredCategories = appState.categories.filter {
-                it.categoryType == categoryType.serialName
+                it.categoryType == categoryType.serialName && it.archivedAt == null
             }
 
             if (filteredCategories.isEmpty()) {
@@ -125,7 +125,7 @@ fun CategoryListScreen(
             } else {
                 CategoryListContent(
                     categories = filteredCategories,
-                    onDeleteRequest = { categoryToDelete = it }
+                    onArchiveRequest = { categoryToArchive = it }
                 )
             }
         }
@@ -139,13 +139,12 @@ fun CategoryListScreen(
         if (showAddDialog) {
             AddCategoryDialog(
                 categoryType = if (selectedTab == 0) RecordType.EXPENSE else RecordType.INCOME,
-                onConfirm = { name, iconName, colorHex ->
+                onConfirm = { name, iconName ->
                     onDispatch(
                         CoreIntent.CategoryCreate(
                             name = name,
                             categoryType = if (selectedTab == 0) RecordType.EXPENSE else RecordType.INCOME,
-                            iconName = iconName,
-                            colorHex = colorHex
+                            iconName = iconName
                         )
                     )
                     showAddDialog = false
@@ -156,28 +155,28 @@ fun CategoryListScreen(
     }
 
     AnimatedVisibility(
-        visible = categoryToDelete != null,
+        visible = categoryToArchive != null,
         enter = scaleIn(animationSpec = dialogSpec),
         exit = scaleOut(animationSpec = dialogSpec)
     ) {
-        categoryToDelete?.let { category ->
+        categoryToArchive?.let { category ->
             AlertDialog(
-                onDismissRequest = { categoryToDelete = null },
+                onDismissRequest = { categoryToArchive = null },
                 shape = MaterialTheme.shapes.extraLarge,
-                title = { Text("确认删除") },
-                text = { Text("确定要删除「${category.name}」吗？\n如果该分类已被使用，将无法删除。") },
+                title = { Text("确认归档") },
+                text = { Text("确定要归档「${category.name}」吗？\n归档后该分类将不再出现在新建记录的选择中，但历史记录依然保留。") },
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            onDispatch(CoreIntent.CategoryDelete(category.id))
-                            categoryToDelete = null
+                            onDispatch(CoreIntent.CategoryArchive(category.id))
+                            categoryToArchive = null
                         }
                     ) {
-                        Text("删除")
+                        Text("归档")
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { categoryToDelete = null }) {
+                    TextButton(onClick = { categoryToArchive = null }) {
                         Text("取消")
                     }
                 }

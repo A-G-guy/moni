@@ -61,14 +61,27 @@ sealed class CoreIntent {
     @SerialName("category_create")
     data class CategoryCreate(
         val name: String,
+        val description: String? = null,
         val categoryType: RecordType,
-        val iconName: String,
-        val colorHex: String
+        val iconName: String
     ) : CoreIntent()
 
     @Serializable
-    @SerialName("category_delete")
-    data class CategoryDelete(val id: Long) : CoreIntent()
+    @SerialName("category_update")
+    data class CategoryUpdate(
+        val id: Long,
+        val name: String? = null,
+        val description: String? = null,
+        val iconName: String? = null
+    ) : CoreIntent()
+
+    @Serializable
+    @SerialName("category_archive")
+    data class CategoryArchive(val id: Long) : CoreIntent()
+
+    @Serializable
+    @SerialName("category_unarchive")
+    data class CategoryUnarchive(val id: Long) : CoreIntent()
 
     @Serializable
     @SerialName("category_list")

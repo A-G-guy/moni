@@ -20,7 +20,6 @@ data class CoreRecord(
     val recordType: String,
     val categoryId: Long,
     val categoryName: String,
-    val categoryColor: String,
     val note: String,
     val createdAt: Long,
 )
@@ -37,11 +36,12 @@ data class CoreRecordGroup(
 data class CoreCategory(
     val id: Long,
     val name: String,
+    val description: String? = null,
     val categoryType: String,
     val iconName: String,
-    val colorHex: String,
     val sortOrder: Int,
     val isPreset: Boolean,
+    val archivedAt: Long? = null,
     val createdAt: Long = 0,
     val updatedAt: Long = 0
 )
@@ -58,7 +58,6 @@ data class CoreMonthlySummary(
 data class CoreCategoryBreakdown(
     val categoryId: Long,
     val categoryName: String,
-    val colorHex: String,
     val amountCents: Long,
     val percentage: Double
 )

@@ -95,9 +95,9 @@ fun CategoryPieChart(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                breakdowns.take(6).forEach { item ->
+                breakdowns.take(6).forEachIndexed { index, item ->
                     PieLegendItem(
-                        color = parseColor(item.colorHex),
+                        color = pieColorAt(index),
                         label = item.categoryName,
                         percentage = item.percentage,
                         amountText = "${currencySymbol}${formatAmount(item.amountCents)}"
@@ -148,10 +148,10 @@ private fun PieChartCanvas(
         val gapAngle = 2f
         var startAngle = -90f
 
-        breakdowns.forEach { item ->
+        breakdowns.forEachIndexed { index, item ->
             val rawSweep = (item.percentage / total * 360f).toFloat() * animationProgress.value
             val sweepAngle = (rawSweep - gapAngle).coerceAtLeast(0f)
-            val color = parseColor(item.colorHex)
+            val color = pieColorAt(index)
 
             drawArc(
                 color = color,

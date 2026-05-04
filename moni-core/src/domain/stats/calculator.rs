@@ -18,19 +18,18 @@ pub fn calculate_monthly_summary(
 
 /// 计算分类支出占比。
 pub fn calculate_category_breakdown(
-    aggregates: Vec<(i64, String, String, AmountCents)>,
+    aggregates: Vec<(i64, String, AmountCents)>,
 ) -> Vec<CategoryBreakdown> {
-    let total: AmountCents = aggregates.iter().map(|(_, _, _, amount)| amount).sum();
+    let total: AmountCents = aggregates.iter().map(|(_, _, amount)| amount).sum();
     if total == 0 {
         return Vec::new();
     }
 
     aggregates
         .into_iter()
-        .map(|(category_id, category_name, color_hex, amount_cents)| CategoryBreakdown {
+        .map(|(category_id, category_name, amount_cents)| CategoryBreakdown {
             category_id,
             category_name,
-            color_hex,
             amount_cents,
             percentage: (amount_cents as f64 / total as f64) * 100.0,
         })

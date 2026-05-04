@@ -22,21 +22,21 @@ impl AppCoreRuntime {
             return Err(CoreError::Internal("意图类型不匹配".to_string()));
         };
 
-        if let Some(amt) = amount_cents {
-            if amt <= 0 {
-                log::warn!("更新记录失败: 金额必须大于0, 收到: {amt}");
-                return Err(CoreError::InvalidInput("金额必须大于0".to_string()));
-            }
+        if let Some(amt) = amount_cents
+            && amt <= 0
+        {
+            log::warn!("更新记录失败: 金额必须大于0, 收到: {amt}");
+            return Err(CoreError::InvalidInput("金额必须大于0".to_string()));
         }
         if record_repo::get_by_id(&self.conn, id)?.is_none() {
             log::warn!("更新记录失败: 记录不存在, id={id}");
             return Err(CoreError::RecordNotFound(id));
         }
-        if let Some(cid) = category_id {
-            if crate::db::category_repo::get_by_id(&self.conn, cid)?.is_none() {
-                log::warn!("更新记录失败: 分类不存在, category_id={cid}");
-                return Err(CoreError::CategoryNotFound(cid));
-            }
+        if let Some(cid) = category_id
+            && crate::db::category_repo::get_by_id(&self.conn, cid)?.is_none()
+        {
+            log::warn!("更新记录失败: 分类不存在, category_id={cid}");
+            return Err(CoreError::CategoryNotFound(cid));
         }
 
         record_repo::update(

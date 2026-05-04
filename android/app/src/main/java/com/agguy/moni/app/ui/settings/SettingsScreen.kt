@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -39,7 +39,7 @@ import com.agguy.moni.core.CoreIntent
  * 设置页面。
  *
  * Material 3 Expressive 改造点：
- * - 标题用 [androidx.compose.material3.Typography.displaySmallEmphasized]，强化 hero 字号；
+ * - 标题用 [androidx.compose.material3.Typography.titleLargeEmphasized]，强化 hero 字号；
  * - 4 个 dialog 的 scale 动画统一接入 [androidx.compose.material3.MotionScheme.defaultSpatialSpec]，
  *   消除手写 `spring()` 与项目 motion 主题的不一致。
  */
@@ -72,11 +72,11 @@ fun SettingsScreen(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = {
                     Text(
                         "设置",
-                        style = MaterialTheme.typography.displaySmallEmphasized
+                        style = MaterialTheme.typography.titleLargeEmphasized
                     )
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0),

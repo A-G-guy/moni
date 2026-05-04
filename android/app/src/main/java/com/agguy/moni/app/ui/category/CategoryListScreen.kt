@@ -14,7 +14,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
@@ -44,7 +44,7 @@ import com.agguy.moni.core.serialName
  * 分类管理屏。
  *
  * Material 3 Expressive 改造点：
- * - [LargeTopAppBar] 替代 [androidx.compose.material3.TopAppBar]，强化 hero moment；
+ * - [TopAppBar] 替代 [androidx.compose.material3.TopAppBar]，强化 hero moment；
  * - 添加/删除对话框接入 motion token；
  * - FAB 圆角与新的 corner token 体系（large=20）保持一致；
  * - 移除 `material-icons-extended` 依赖，统一使用项目内 [MoniIcons] (Material Symbols Rounded vectors)。
@@ -72,11 +72,11 @@ fun CategoryListScreen(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = {
                     Text(
                         text = "分类管理",
-                        style = MaterialTheme.typography.displaySmallEmphasized
+                        style = MaterialTheme.typography.titleLargeEmphasized
                     )
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0),

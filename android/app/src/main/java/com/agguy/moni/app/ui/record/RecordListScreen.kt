@@ -26,7 +26,7 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -59,7 +59,7 @@ import java.time.format.DateTimeFormatter
  * 账单列表主屏。
  *
  * Material 3 Expressive 改造点：
- * - 标题用 [androidx.compose.material3.Typography.displaySmallEmphasized] 强化 hero moment；
+ * - 标题用 [androidx.compose.material3.Typography.titleLargeEmphasized] 强化 hero moment；
  * - FAB + AppBar action 收敛到底部 [HorizontalFloatingToolbar]，分类入口与「记一笔」并列；
  * - 删除确认对话框的 scale 动画接入 [androidx.compose.material3.MotionScheme]，统一动效曲线。
  */
@@ -79,11 +79,11 @@ fun RecordListScreen(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = {
                     Text(
                         "账单",
-                        style = MaterialTheme.typography.displaySmallEmphasized
+                        style = MaterialTheme.typography.titleLargeEmphasized
                     )
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0),

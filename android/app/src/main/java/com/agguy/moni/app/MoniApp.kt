@@ -106,6 +106,9 @@ fun MoniApp() {
                 onUpdateThemeMode = viewModel::updateThemeMode,
                 onUpdateDynamicColor = viewModel::updateDynamicColor,
                 onUpdateSeedColor = viewModel::updateSeedColor,
+                onNavigateToDeveloperOptions = viewModel::navigateToDeveloperOptions,
+                onNavigateToDevLog = viewModel::navigateToDevLog,
+                onClearAllData = viewModel::clearAllData,
                 modifier = Modifier.padding(innerPadding)
             )
         }

@@ -18,4 +18,10 @@ sealed class Screen {
 
     @Serializable
     data object Settings : Screen()
+
+    @Serializable
+    data object DeveloperOptions : Screen()
+
+    @Serializable
+    data object DevLog : Screen()
 }

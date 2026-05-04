@@ -105,4 +105,13 @@ object DataStoreHelper {
             preferences[SEED_COLOR_KEY] = colorValue
         }
     }
+
+    /**
+     * 清空所有设置数据。
+     */
+    suspend fun clearAll(context: Context) {
+        context.dataStore.edit { preferences ->
+            preferences.clear()
+        }
+    }
 }

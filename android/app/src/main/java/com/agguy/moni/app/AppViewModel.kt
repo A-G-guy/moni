@@ -11,7 +11,9 @@ import com.agguy.moni.app.theme.ThemeMode
 import com.agguy.moni.core.CoreEffectRunner
 import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.RustCoreController
+import com.agguy.moni.core.platform.AppRestarter
 import com.agguy.moni.core.platform.DataStoreHelper
+import com.agguy.moni.core.platform.LogCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -58,20 +60,22 @@ class AppViewModel(
 
     init {
         effectRunner.onNavigate = { screen ->
-            Log.d("MoniNavigate", screen)
+            LogCollector.d("MoniNavigate", "Navigate to: $screen")
         }
 
         viewModelScope.launch {
             try {
+                LogCollector.i("AppViewModel", "开始初始化数据库")
                 val dbPath = application.filesDir.absolutePath + "/moni.db"
                 val mutation = rustCore.initializeWithDb(dbPath)
                 applyMutation(mutation)
+                LogCollector.i("AppViewModel", "数据库初始化完成: $dbPath")
                 dispatch(CoreIntent.CategoryList)
                 dispatch(CoreIntent.RecordList(page = 0, pageSize = 50))
                 syncCurrencySymbolFromDataStore()
                 syncThemeSettingsFromDataStore()
             } catch (e: Exception) {
-                Log.e("MoniInit", "数据库初始化失败，回退到内存模式", e)
+                LogCollector.e("AppViewModel", "数据库初始化失败，回退到内存模式", e)
                 val mutation = rustCore.initialize()
                 applyMutation(mutation)
             }
@@ -80,6 +84,7 @@ class AppViewModel(
 
     fun dispatch(intent: CoreIntent) {
         viewModelScope.launch {
+            LogCollector.i("AppViewModel", "Dispatch intent: ${intent::class.simpleName}")
             if (intent is CoreIntent.SettingsUpdateCurrency) {
                 DataStoreHelper.saveCurrencySymbol(
                     getApplication(), intent.symbol
@@ -88,6 +93,25 @@ class AppViewModel(
             val mutation = rustCore.dispatch(intent)
             applyMutation(mutation)
         }
+    }
+
+    fun clearAllData() {
+        viewModelScope.launch {
+            LogCollector.w("AppViewModel", "执行清空所有数据")
+            try {
+                val mutation = rustCore.dispatch(CoreIntent.DevClearAllData)
+                applyMutation(mutation)
+                DataStoreHelper.clearAll(getApplication())
+                LogCollector.i("AppViewModel", "数据已清空，即将重启应用")
+                AppRestarter.restartApp(getApplication())
+            } catch (e: Exception) {
+                LogCollector.e("AppViewModel", "清空数据失败", e)
+            }
+        }
+    }
+
+    fun navigateToDeveloperOptions() {
+        _navController?.navigate(Screen.DeveloperOptions)
     }
 
     private suspend fun syncCurrencySymbolFromDataStore() {
@@ -133,6 +157,10 @@ class AppViewModel(
 
     fun navigateToCategoryList() {
         _navController?.navigate(Screen.CategoryList)
+    }
+
+    fun navigateToDevLog() {
+        _navController?.navigate(Screen.DevLog)
     }
 
     fun navigateBack() {

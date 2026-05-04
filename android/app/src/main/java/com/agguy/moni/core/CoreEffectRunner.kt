@@ -1,6 +1,6 @@
 package com.agguy.moni.core
 
-import android.util.Log
+import com.agguy.moni.core.platform.LogCollector
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -11,15 +11,16 @@ class CoreEffectRunner {
 
     fun runEffect(effect: CoreEffect) {
         when (effect.kind) {
-            "log" -> Log.d("MoniEffect", effect.payloadJson)
+            "log" -> LogCollector.d("MoniEffect", effect.payloadJson)
             "show_snackbar" -> {
                 val message = try {
                     kotlinx.serialization.json.Json.parseToJsonElement(effect.payloadJson)
                         .jsonObject["message"]?.jsonPrimitive?.content ?: effect.payloadJson
                 } catch (e: Exception) {
-                    Log.w("Moni", "Effect 消息解析失败，使用原始 payload: ${e.message}")
+                    LogCollector.w("Moni", "Effect 消息解析失败，使用原始 payload: ${e.message}")
                     effect.payloadJson
                 }
+                LogCollector.i("CoreEffectRunner", "显示 Snackbar: $message")
                 onShowSnackbar?.invoke(message)
             }
             "navigate" -> {
@@ -27,23 +28,25 @@ class CoreEffectRunner {
                     kotlinx.serialization.json.Json.parseToJsonElement(effect.payloadJson)
                         .jsonObject["screen"]?.jsonPrimitive?.content ?: ""
                 } catch (e: Exception) {
-                    Log.w("Moni", "导航目标解析失败: ${e.message}")
+                    LogCollector.w("Moni", "导航目标解析失败: ${e.message}")
                     ""
                 }
+                LogCollector.i("CoreEffectRunner", "导航到: $screen")
                 onNavigate?.invoke(screen)
             }
             "export_file" -> {
                 val json = try {
                     kotlinx.serialization.json.Json.parseToJsonElement(effect.payloadJson).jsonObject
                 } catch (e: Exception) {
-                    Log.w("Moni", "导出参数解析失败: ${e.message}")
+                    LogCollector.w("Moni", "导出参数解析失败: ${e.message}")
                     null
                 }
                 val format = json?.get("format")?.jsonPrimitive?.content ?: "csv"
                 val content = json?.get("content")?.jsonPrimitive?.content ?: ""
+                LogCollector.i("CoreEffectRunner", "导出文件: format=$format, contentLength=${content.length}")
                 onExportFile?.invoke(format, content)
             }
-            else -> Log.w("MoniEffect", "未知的 effect 类型: ${effect.kind}")
+            else -> LogCollector.w("MoniEffect", "未知的 effect 类型: ${effect.kind}")
         }
     }
 }

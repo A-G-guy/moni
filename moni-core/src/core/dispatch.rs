@@ -36,6 +36,9 @@ impl AppCoreRuntime {
             | CoreIntent::StatsCategoryBreakdown { .. } => self.dispatch_stats(intent),
             CoreIntent::SettingsUpdateCurrency { .. }
             | CoreIntent::SettingsExportData { .. } => self.dispatch_settings(intent),
+            CoreIntent::DevClearAllData | CoreIntent::DevGenerateMockData { .. } => {
+                self.dispatch_dev(intent)
+            }
             CoreIntent::NavigateTo { screen } => {
                 self.state.ui.active_tab = screen;
                 self.finish(Vec::new())

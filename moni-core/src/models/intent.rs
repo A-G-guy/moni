@@ -41,6 +41,9 @@ pub enum CoreIntent {
     SettingsUpdateCurrency { symbol: String },
     SettingsExportData { format: ExportFormat },
 
+    DevClearAllData,
+    DevGenerateMockData { count: u32, preset: String },
+
     NavigateTo { screen: String },
     DismissError,
 }

@@ -86,6 +86,15 @@ sealed class CoreIntent {
     @SerialName("settings_export_data")
     data class SettingsExportData(val format: ExportFormat) : CoreIntent()
 
+    // 开发者选项
+    @Serializable
+    @SerialName("dev_clear_all_data")
+    data object DevClearAllData : CoreIntent()
+
+    @Serializable
+    @SerialName("dev_generate_mock_data")
+    data class DevGenerateMockData(val count: Int, val preset: String) : CoreIntent()
+
     // UI 相关
     @Serializable
     @SerialName("navigate_to")

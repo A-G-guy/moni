@@ -51,8 +51,9 @@ fun SettingsScreen(
     onDispatch: (CoreIntent) -> Unit,
     onUpdateThemeMode: (ThemeMode) -> Unit,
     onUpdateDynamicColor: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-    onUpdateSeedColor: (Long) -> Unit = {}
+    onUpdateSeedColor: (Long) -> Unit = {},
+    onNavigateToDeveloperOptions: () -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
     var showCurrencyDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
@@ -125,6 +126,13 @@ fun SettingsScreen(
                 title = "导出数据",
                 subtitle = "导出为 CSV 或 JSON 格式",
                 onClick = { showExportDialog = true }
+            )
+
+            SettingsItem(
+                icon = MoniIcons.Tune,
+                title = "开发者选项",
+                subtitle = "日志、Mock 数据、清空数据",
+                onClick = onNavigateToDeveloperOptions
             )
 
             SettingsItem(

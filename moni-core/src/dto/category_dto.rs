@@ -1,7 +1,5 @@
 use moni_contracts::record::RecordType;
 
-use crate::db::category_repo;
-
 /// 前端消费用的分类 DTO，不包含内部时间戳字段。
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]

@@ -1,5 +1,6 @@
 pub mod dispatch;
 pub mod dispatch_category;
+pub mod dispatch_dev;
 pub mod dispatch_record;
 pub mod dispatch_settings;
 pub mod dispatch_stats;

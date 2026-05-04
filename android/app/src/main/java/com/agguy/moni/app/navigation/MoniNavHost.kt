@@ -22,6 +22,8 @@ import com.agguy.moni.app.AppState
 import com.agguy.moni.app.ThemeSettings
 import com.agguy.moni.app.theme.ThemeMode
 import com.agguy.moni.app.ui.category.CategoryListScreen
+import com.agguy.moni.app.ui.dev.DevLogScreen
+import com.agguy.moni.app.ui.dev.DeveloperOptionsScreen
 import com.agguy.moni.app.ui.record.RecordDetailScreen
 import com.agguy.moni.app.ui.record.RecordListScreen
 import com.agguy.moni.app.ui.settings.SettingsScreen
@@ -76,6 +78,9 @@ fun MoniNavHost(
     onUpdateThemeMode: (ThemeMode) -> Unit,
     onUpdateDynamicColor: (Boolean) -> Unit,
     onUpdateSeedColor: (Long) -> Unit,
+    onNavigateToDeveloperOptions: () -> Unit,
+    onNavigateToDevLog: () -> Unit,
+    onClearAllData: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val slideSpec = MaterialTheme.motionScheme.defaultSpatialSpec<IntOffset>()
@@ -143,7 +148,21 @@ fun MoniNavHost(
                 onDispatch = onDispatch,
                 onUpdateThemeMode = onUpdateThemeMode,
                 onUpdateDynamicColor = onUpdateDynamicColor,
-                onUpdateSeedColor = onUpdateSeedColor
+                onUpdateSeedColor = onUpdateSeedColor,
+                onNavigateToDeveloperOptions = onNavigateToDeveloperOptions
+            )
+        }
+        composable<Screen.DeveloperOptions> {
+            DeveloperOptionsScreen(
+                onNavigateToDevLog = onNavigateToDevLog,
+                onNavigateBack = onNavigateBack,
+                onDispatch = onDispatch,
+                onClearAllData = onClearAllData
+            )
+        }
+        composable<Screen.DevLog> {
+            DevLogScreen(
+                onNavigateBack = onNavigateBack
             )
         }
     }

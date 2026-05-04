@@ -26,8 +26,8 @@ import com.agguy.moni.app.icons.MoniIcons
 fun MoniBottomBar(
     activeTab: String,
     onTabSelected: (String) -> Unit,
-    visible: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    visible: Boolean = true
 ) {
     val effectsSpec = MaterialTheme.motionScheme.defaultEffectsSpec<IntOffset>()
     AnimatedVisibility(

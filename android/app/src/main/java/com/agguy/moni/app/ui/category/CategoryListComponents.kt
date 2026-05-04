@@ -2,6 +2,7 @@ package com.agguy.moni.app.ui.category
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
+import androidx.core.graphics.toColorInt
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -53,7 +54,7 @@ fun CategoryListItem(
     modifier: Modifier = Modifier
 ) {
     val categoryColor = try {
-        Color(android.graphics.Color.parseColor(category.colorHex))
+        Color(category.colorHex.toColorInt())
     } catch (e: Exception) {
         Log.w("Moni", "分类颜色解析失败: ${category.colorHex}, ${e.message}")
         MaterialTheme.colorScheme.primary

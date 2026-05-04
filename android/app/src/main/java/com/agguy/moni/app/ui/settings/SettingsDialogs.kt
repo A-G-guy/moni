@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -47,7 +48,7 @@ fun SeedColorPickerDialog(
     onConfirm: (Long) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var selected by remember { mutableStateOf(currentSeed) }
+    var selected by remember { mutableLongStateOf(currentSeed) }
 
     AlertDialog(
         onDismissRequest = onDismiss,

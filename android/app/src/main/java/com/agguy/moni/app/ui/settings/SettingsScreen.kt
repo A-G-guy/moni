@@ -51,8 +51,8 @@ fun SettingsScreen(
     onDispatch: (CoreIntent) -> Unit,
     onUpdateThemeMode: (ThemeMode) -> Unit,
     onUpdateDynamicColor: (Boolean) -> Unit,
-    onUpdateSeedColor: (Long) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onUpdateSeedColor: (Long) -> Unit = {}
 ) {
     var showCurrencyDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }

@@ -35,6 +35,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import android.util.Log
+import androidx.core.graphics.toColorInt
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -42,8 +43,8 @@ fun RecordListItem(
     record: CoreRecord,
     currencySymbol: String,
     onClick: () -> Unit,
-    onLongClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onLongClick: (() -> Unit)? = null
 ) {
     val isExpense = record.recordType == "expense"
     val amountColor = if (isExpense) MaterialTheme.colorScheme.expenseRed else MaterialTheme.colorScheme.incomeGreen
@@ -111,7 +112,7 @@ fun RecordListItem(
 @Composable
 private fun CategoryIndicator(colorHex: String, iconName: String) {
     val color = try {
-        Color(android.graphics.Color.parseColor(colorHex))
+        Color(colorHex.toColorInt())
     } catch (e: Exception) {
         Log.w("Moni", "颜色解析失败: $colorHex, ${e.message}")
         MaterialTheme.colorScheme.primary

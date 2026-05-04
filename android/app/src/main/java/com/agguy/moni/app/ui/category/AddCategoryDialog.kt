@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.AvailableCategoryIcons
@@ -104,7 +105,7 @@ fun AddCategoryDialog(
                 ) {
                     colorOptions.forEachIndexed { index, (colorHex, _) ->
                         val color = try {
-                            Color(android.graphics.Color.parseColor(colorHex))
+                            Color(colorHex.toColorInt())
                         } catch (e: Exception) {
                             Log.w("Moni", "颜色选项解析失败: $colorHex, ${e.message}")
                             Color.Gray

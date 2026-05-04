@@ -1,6 +1,7 @@
 package com.agguy.moni.app.ui.stats
 
 import android.util.Log
+import androidx.core.graphics.toColorInt
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -86,7 +87,7 @@ fun formatShortAmount(cents: Long, symbol: String): String {
 
 fun parseColor(colorHex: String): Color {
     return try {
-        Color(android.graphics.Color.parseColor(colorHex))
+        Color(colorHex.toColorInt())
     } catch (e: Exception) {
         Log.w("Moni", "饼图颜色解析失败: $colorHex, ${e.message}")
         Color.Gray

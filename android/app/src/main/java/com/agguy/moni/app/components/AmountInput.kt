@@ -40,8 +40,8 @@ import com.agguy.moni.core.util.formatAmount
 fun AmountInput(
     value: Long,
     onValueChange: (Long) -> Unit,
-    currencySymbol: String = "¥",
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    currencySymbol: String = "¥"
 ) {
     var textValue by remember(value) {
         mutableStateOf(if (value > 0) formatAmount(value) else "")

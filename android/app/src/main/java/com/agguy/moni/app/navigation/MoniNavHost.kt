@@ -1,14 +1,16 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.agguy.moni.app.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -18,15 +20,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.ThemeSettings
+import com.agguy.moni.app.theme.ThemeMode
 import com.agguy.moni.app.ui.category.CategoryListScreen
 import com.agguy.moni.app.ui.record.RecordDetailScreen
 import com.agguy.moni.app.ui.record.RecordListScreen
 import com.agguy.moni.app.ui.settings.SettingsScreen
 import com.agguy.moni.app.ui.stats.StatsScreen
-import com.agguy.moni.app.theme.ThemeMode
 import com.agguy.moni.core.CoreIntent
-
-private const val TRANSITION_DURATION_MS = 300
 
 /**
  * 底部栏页面的左右顺序索引，用于决定切换时动画方向。
@@ -57,6 +57,13 @@ private fun AnimatedContentTransitionScope<NavBackStackEntry>.resolveSlideDirect
     }
 }
 
+/**
+ * 应用主导航宿主。
+ *
+ * Material 3 Expressive 改造点：移除写死的 [androidx.compose.animation.core.tween] 时长，
+ * 改为读取 [MaterialTheme.motionScheme] 提供的 default spatial/effects spec，让页面切换的曲线
+ * 与全局 motion 主题保持一致，未来可通过切换 [androidx.compose.material3.MotionScheme] 整体调速。
+ */
 @Composable
 fun MoniNavHost(
     navController: NavHostController,
@@ -71,29 +78,32 @@ fun MoniNavHost(
     onUpdateSeedColor: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val slideSpec = MaterialTheme.motionScheme.defaultSpatialSpec<IntOffset>()
+    val fadeSpec = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
+
     NavHost(
         navController = navController,
         startDestination = Screen.RecordList,
         modifier = modifier,
         enterTransition = {
             val direction = resolveSlideDirection(SlideDirection.Start)
-            fadeIn(animationSpec = tween(TRANSITION_DURATION_MS)) +
-                slideIntoContainer(towards = direction, animationSpec = tween(TRANSITION_DURATION_MS))
+            fadeIn(animationSpec = fadeSpec) +
+                slideIntoContainer(towards = direction, animationSpec = slideSpec)
         },
         exitTransition = {
             val direction = resolveSlideDirection(SlideDirection.Start)
-            fadeOut(animationSpec = tween(TRANSITION_DURATION_MS)) +
-                slideOutOfContainer(towards = direction, animationSpec = tween(TRANSITION_DURATION_MS))
+            fadeOut(animationSpec = fadeSpec) +
+                slideOutOfContainer(towards = direction, animationSpec = slideSpec)
         },
         popEnterTransition = {
             val direction = resolveSlideDirection(SlideDirection.End)
-            fadeIn(animationSpec = tween(TRANSITION_DURATION_MS)) +
-                slideIntoContainer(towards = direction, animationSpec = tween(TRANSITION_DURATION_MS))
+            fadeIn(animationSpec = fadeSpec) +
+                slideIntoContainer(towards = direction, animationSpec = slideSpec)
         },
         popExitTransition = {
             val direction = resolveSlideDirection(SlideDirection.End)
-            fadeOut(animationSpec = tween(TRANSITION_DURATION_MS)) +
-                slideOutOfContainer(towards = direction, animationSpec = tween(TRANSITION_DURATION_MS))
+            fadeOut(animationSpec = fadeSpec) +
+                slideOutOfContainer(towards = direction, animationSpec = slideSpec)
         }
     ) {
         composable<Screen.RecordList> {

@@ -3,8 +3,6 @@
 package com.agguy.moni.app.ui.settings
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
@@ -37,9 +35,12 @@ import com.agguy.moni.core.CoreIntent
 /**
  * 设置页面。
  *
- * 提供货币符号设置、主题模式、主题色、动态颜色、数据导出、关于应用等功能入口。
+ * Material 3 Expressive 改造点：
+ * - 标题用 [androidx.compose.material3.Typography.displaySmallEmphasized]，强化 hero 字号；
+ * - 4 个 dialog 的 scale 动画统一接入 [androidx.compose.material3.MotionScheme.defaultSpatialSpec]，
+ *   消除手写 `spring()` 与项目 motion 主题的不一致。
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     appState: AppState,
@@ -55,6 +56,8 @@ fun SettingsScreen(
     var showThemeModeDialog by remember { mutableStateOf(false) }
     var showSeedColorDialog by remember { mutableStateOf(false) }
 
+    val dialogSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
+
     val themeModeLabel = when (themeSettings.themeMode) {
         ThemeMode.LIGHT -> "浅色"
         ThemeMode.DARK -> "深色"
@@ -69,7 +72,7 @@ fun SettingsScreen(
                 title = {
                     Text(
                         "设置",
-                        style = MaterialTheme.typography.displaySmall
+                        style = MaterialTheme.typography.displaySmallEmphasized
                     )
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0)
@@ -130,13 +133,8 @@ fun SettingsScreen(
 
     AnimatedVisibility(
         visible = showCurrencyDialog,
-        enter = scaleIn(
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow
-            )
-        ),
-        exit = scaleOut(animationSpec = spring())
+        enter = scaleIn(animationSpec = dialogSpec),
+        exit = scaleOut(animationSpec = dialogSpec)
     ) {
         if (showCurrencyDialog) {
             CurrencyPickerDialog(
@@ -152,13 +150,8 @@ fun SettingsScreen(
 
     AnimatedVisibility(
         visible = showExportDialog,
-        enter = scaleIn(
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow
-            )
-        ),
-        exit = scaleOut(animationSpec = spring())
+        enter = scaleIn(animationSpec = dialogSpec),
+        exit = scaleOut(animationSpec = dialogSpec)
     ) {
         if (showExportDialog) {
             ExportDataDialog(
@@ -173,13 +166,8 @@ fun SettingsScreen(
 
     AnimatedVisibility(
         visible = showThemeModeDialog,
-        enter = scaleIn(
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow
-            )
-        ),
-        exit = scaleOut(animationSpec = spring())
+        enter = scaleIn(animationSpec = dialogSpec),
+        exit = scaleOut(animationSpec = dialogSpec)
     ) {
         if (showThemeModeDialog) {
             ThemeModePickerDialog(
@@ -195,13 +183,8 @@ fun SettingsScreen(
 
     AnimatedVisibility(
         visible = showSeedColorDialog,
-        enter = scaleIn(
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow
-            )
-        ),
-        exit = scaleOut(animationSpec = spring())
+        enter = scaleIn(animationSpec = dialogSpec),
+        exit = scaleOut(animationSpec = dialogSpec)
     ) {
         if (showSeedColorDialog) {
             SeedColorPickerDialog(

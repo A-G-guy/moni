@@ -1,11 +1,13 @@
 package com.agguy.moni.app.components
 
+import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -17,16 +19,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
+import com.agguy.moni.app.icons.MoniIcon
+import com.agguy.moni.app.icons.MoniIcons
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import android.util.Log
-import com.agguy.moni.app.icons.MoniIcon
-import com.agguy.moni.app.icons.MoniIcons
 
 /**
  * 日期选择字段。
+ *
+ * 升级到 Material 3 Expressive：使用 medium 圆角与 [FilledTonalIconButton] trailing icon，
+ * 视觉上与新的 corner token 体系（large=20、extraLarge=32）保持一致。
  *
  * @param timestamp 当前日期时间戳（Unix 秒）
  * @param onTimestampChange 日期变化回调（Unix 秒）
@@ -48,9 +52,10 @@ fun DatePickerField(
         label = { Text("日期") },
         readOnly = true,
         singleLine = true,
+        shape = MaterialTheme.shapes.medium,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         trailingIcon = {
-            IconButton(onClick = { showDialog = true }) {
+            FilledTonalIconButton(onClick = { showDialog = true }) {
                 MoniIcon(MoniIcons.Event, contentDescription = "选择日期")
             }
         },

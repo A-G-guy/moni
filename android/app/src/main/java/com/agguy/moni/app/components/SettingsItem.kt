@@ -11,14 +11,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.icons.MoniIcon
-import com.agguy.moni.app.icons.MoniIcons
 
 @Composable
 fun SettingsItem(
@@ -111,16 +109,7 @@ fun SettingsToggleItem(
             }
             Switch(
                 checked = checked,
-                onCheckedChange = onCheckedChange,
-                thumbContent = if (checked) {
-                    {
-                        MoniIcon(
-                            MoniIcons.Check,
-                            contentDescription = null,
-                            modifier = Modifier.size(SwitchDefaults.IconSize)
-                        )
-                    }
-                } else null
+                onCheckedChange = onCheckedChange
             )
         }
     }

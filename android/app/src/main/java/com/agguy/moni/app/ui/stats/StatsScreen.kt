@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.agguy.moni.app.ui.stats
 
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -20,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.components.MoniCard
@@ -35,7 +37,10 @@ import java.time.format.DateTimeFormatter
 /**
  * 统计仪表盘页面。
  *
- * 展示本月收支结余概览、月度趋势柱状图和支出分类饼图。
+ * Material 3 Expressive 改造点：
+ * - 标题用 [androidx.compose.material3.Typography.displaySmallEmphasized]，强化 hero 字号；
+ * - 概览卡片金额用 [androidx.compose.material3.Typography.displayMediumEmphasized]，
+ *   利用 emphasized typography 自带的 weight 与 letter spacing，替代手写 FontWeight。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +64,7 @@ fun StatsScreen(
                 title = {
                     Text(
                         "统计",
-                        style = MaterialTheme.typography.displaySmall
+                        style = MaterialTheme.typography.displaySmallEmphasized
                     )
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0)
@@ -74,14 +79,12 @@ fun StatsScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // 本月概览卡片
             MonthSummaryCards(
                 summaries = appState.monthlySummaries,
                 currentYearMonth = currentYearMonth,
                 currencySymbol = appState.currencySymbol
             )
 
-            // 月度柱状图
             MoniCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     MonthlyBarChart(
@@ -91,7 +94,6 @@ fun StatsScreen(
                 }
             }
 
-            // 分类饼图
             MoniCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     CategoryPieChart(
@@ -170,9 +172,8 @@ private fun SummaryCard(
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "${currencySymbol}${formatAmount(amount)}",
-                style = MaterialTheme.typography.displayMedium,
-                color = color,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.displayMediumEmphasized,
+                color = color
             )
         }
     }

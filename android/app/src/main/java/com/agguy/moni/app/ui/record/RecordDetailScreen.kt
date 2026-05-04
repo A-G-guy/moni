@@ -4,43 +4,34 @@ package com.agguy.moni.app.ui.record
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -55,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.components.AmountInput
@@ -64,12 +56,21 @@ import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreIntent
-import com.agguy.moni.core.CoreRecord
 import com.agguy.moni.core.RecordType
 import com.agguy.moni.core.serialName
 import java.time.LocalDate
 import java.time.ZoneId
 
+/**
+ * 记账详情屏（新增/编辑）。
+ *
+ * Material 3 Expressive 改造点：
+ * - 收入/支出切换：[androidx.compose.material3.SegmentedButton] 替换为 [ButtonGroup] + [ToggleButton]，
+ *   按下时邻居 squish 形变，是 Expressive 招牌交互；
+ * - 保存按钮升级到 Large size（56dp）：用 [ButtonDefaults.LargeContentPadding] + [ButtonDefaults.LargeContainerHeight]；
+ * - 备注 [OutlinedTextField] 加 medium 圆角，与新的 corner token 体系协同；
+ * - 删除确认 [AlertDialog] 改用 [androidx.compose.material3.Shapes.extraLarge] (32dp) 圆角并接入 motion token。
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecordDetailScreen(
@@ -84,7 +85,6 @@ fun RecordDetailScreen(
     }
     val isEditMode = existingRecord != null
 
-    // 表单状态
     var amountCents by remember { mutableLongStateOf(existingRecord?.amountCents ?: 0L) }
     var recordType by remember {
         mutableStateOf(
@@ -100,7 +100,9 @@ fun RecordDetailScreen(
 
     val isSaveEnabled = amountCents > 0 && selectedCategoryId != -1L
 
-    // 当编辑已有记录时，确保状态同步
+    val contentSpec = MaterialTheme.motionScheme.fastSpatialSpec<IntSize>()
+    val dialogSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
+
     LaunchedEffect(existingRecord) {
         existingRecord?.let {
             amountCents = it.amountCents
@@ -138,8 +140,8 @@ fun RecordDetailScreen(
         },
         bottomBar = {
             Surface(
-                tonalElevation = 2.dp,
-                shadowElevation = 4.dp
+                tonalElevation = 3.dp,
+                shadowElevation = 0.dp
             ) {
                 Button(
                     onClick = {
@@ -169,15 +171,20 @@ fun RecordDetailScreen(
                         }
                     },
                     enabled = isSaveEnabled,
+                    contentPadding = ButtonDefaults.LargeContentPadding,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(16.dp)
+                        .heightIn(min = ButtonDefaults.LargeContainerHeight),
                     colors = ButtonDefaults.buttonColors(
                         disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                         disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 ) {
-                    Text("保存")
+                    Text(
+                        text = "保存",
+                        style = MaterialTheme.typography.titleMediumEmphasized
+                    )
                 }
             }
         }
@@ -188,50 +195,41 @@ fun RecordDetailScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
                 .padding(16.dp)
-                .animateContentSize(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    )
-                ),
+                .animateContentSize(animationSpec = contentSpec),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // 收入/支出切换
             RecordTypeSelector(
                 selectedType = recordType,
                 onTypeSelected = {
                     recordType = it
-                    selectedCategoryId = -1L // 切换时重置分类选择
+                    selectedCategoryId = -1L
                 }
             )
 
-            // 金额输入
             AmountInput(
                 value = amountCents,
                 onValueChange = { amountCents = it },
                 currencySymbol = appState.currencySymbol
             )
 
-            // 日期选择
             DatePickerField(
                 timestamp = timestamp,
                 onTimestampChange = { timestamp = it }
             )
 
-            // 分类选择
             CategorySelector(
                 categories = appState.categories.filter { it.categoryType == recordType.serialName },
                 selectedCategoryId = selectedCategoryId,
                 onCategorySelected = { selectedCategoryId = it }
             )
 
-            // 备注
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
                 label = { Text("备注") },
                 placeholder = { Text("可选，最多50字") },
                 singleLine = true,
+                shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -239,16 +237,12 @@ fun RecordDetailScreen(
 
     AnimatedVisibility(
         visible = showDeleteConfirm,
-        enter = scaleIn(
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow
-            )
-        ),
-        exit = scaleOut(animationSpec = spring())
+        enter = scaleIn(animationSpec = dialogSpec),
+        exit = scaleOut(animationSpec = dialogSpec)
     ) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
+            shape = MaterialTheme.shapes.extraLarge,
             title = { Text("确认删除") },
             text = { Text("确定要删除这条记录吗？") },
             confirmButton = {
@@ -271,38 +265,45 @@ fun RecordDetailScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * 收入/支出切换器。
+ *
+ * 升级为 Material 3 Expressive [ButtonGroup] + 声明式 [androidx.compose.material3.ButtonGroupScope.toggleableItem]：
+ * 选中时邻居自动 squish 形变（M3 Expressive 招牌"挤压"交互），并由 ButtonGroup 自动管理 overflow，
+ * 与按钮族 motion 风格统一。
+ */
 @Composable
 private fun RecordTypeSelector(
     selectedType: RecordType,
     onTypeSelected: (RecordType) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    SingleChoiceSegmentedButtonRow(modifier = modifier.fillMaxWidth()) {
-        SegmentedButton(
-            selected = selectedType == RecordType.EXPENSE,
-            onClick = { onTypeSelected(RecordType.EXPENSE) },
-            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+    ButtonGroup(
+        overflowIndicator = { /* 仅 2 个固定项，永不溢出 */ },
+        modifier = modifier.fillMaxWidth()
+    ) {
+        toggleableItem(
+            checked = selectedType == RecordType.EXPENSE,
+            label = "支出",
+            onCheckedChange = { if (it) onTypeSelected(RecordType.EXPENSE) },
             icon = {
                 if (selectedType == RecordType.EXPENSE) {
-                    MoniIcon(MoniIcons.Check, contentDescription = null)
+                    MoniIcon(MoniIcons.Check, contentDescription = null, modifier = Modifier.size(18.dp))
                 }
-            }
-        ) {
-            Text("支出")
-        }
-        SegmentedButton(
-            selected = selectedType == RecordType.INCOME,
-            onClick = { onTypeSelected(RecordType.INCOME) },
-            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+            },
+            weight = 1f
+        )
+        toggleableItem(
+            checked = selectedType == RecordType.INCOME,
+            label = "收入",
+            onCheckedChange = { if (it) onTypeSelected(RecordType.INCOME) },
             icon = {
                 if (selectedType == RecordType.INCOME) {
-                    MoniIcon(MoniIcons.Check, contentDescription = null)
+                    MoniIcon(MoniIcons.Check, contentDescription = null, modifier = Modifier.size(18.dp))
                 }
-            }
-        ) {
-            Text("收入")
-        }
+            },
+            weight = 1f
+        )
     }
 }
 

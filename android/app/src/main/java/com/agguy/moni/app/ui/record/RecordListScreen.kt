@@ -3,11 +3,10 @@
 package com.agguy.moni.app.ui.record
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -21,11 +20,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.HorizontalFloatingToolbar
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -52,6 +52,14 @@ import com.agguy.moni.core.util.formatAmount
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+/**
+ * 账单列表主屏。
+ *
+ * Material 3 Expressive 改造点：
+ * - 标题用 [androidx.compose.material3.Typography.displaySmallEmphasized] 强化 hero moment；
+ * - FAB + AppBar action 收敛到底部 [HorizontalFloatingToolbar]，分类入口与「记一笔」并列；
+ * - 删除确认对话框的 scale 动画接入 [androidx.compose.material3.MotionScheme]，统一动效曲线。
+ */
 @Composable
 fun RecordListScreen(
     appState: AppState,
@@ -61,6 +69,7 @@ fun RecordListScreen(
     modifier: Modifier = Modifier
 ) {
     var recordToDelete by remember { mutableLongStateOf(-1L) }
+    val dialogSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
 
     Scaffold(
         modifier = modifier,
@@ -70,33 +79,33 @@ fun RecordListScreen(
                 title = {
                     Text(
                         "账单",
-                        style = MaterialTheme.typography.displaySmall
+                        style = MaterialTheme.typography.displaySmallEmphasized
                     )
                 },
-                windowInsets = WindowInsets(0, 0, 0, 0),
-                actions = {
-                    TextButton(onClick = onNavigateToCategoryList) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("分类")
-                            Spacer(modifier = Modifier.width(4.dp))
-                            MoniIcon(
-                                icon = MoniIcons.FilterList,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    }
-                }
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onNavigateToRecordDetail(null) },
-                shape = RoundedCornerShape(20.dp),
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            HorizontalFloatingToolbar(
+                expanded = true
             ) {
-                MoniIcon(MoniIcons.AddFilled, contentDescription = "记一笔")
+                IconButton(onClick = onNavigateToCategoryList) {
+                    MoniIcon(
+                        icon = MoniIcons.FilterList,
+                        contentDescription = "分类管理"
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                FilledIconButton(
+                    onClick = { onNavigateToRecordDetail(null) },
+                    shape = MaterialTheme.shapes.large,
+                    modifier = Modifier.size(56.dp)
+                ) {
+                    MoniIcon(
+                        icon = MoniIcons.AddFilled,
+                        contentDescription = "记一笔"
+                    )
+                }
             }
         }
     ) { innerPadding ->
@@ -119,16 +128,12 @@ fun RecordListScreen(
 
     AnimatedVisibility(
         visible = recordToDelete != -1L,
-        enter = scaleIn(
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow
-            )
-        ),
-        exit = scaleOut(animationSpec = spring())
+        enter = scaleIn(animationSpec = dialogSpec),
+        exit = scaleOut(animationSpec = dialogSpec)
     ) {
         AlertDialog(
             onDismissRequest = { recordToDelete = -1L },
+            shape = MaterialTheme.shapes.extraLarge,
             title = { Text("确认删除") },
             text = { Text("确定要删除这条记录吗？此操作不可撤销。") },
             confirmButton = {
@@ -230,22 +235,25 @@ private fun DayHeader(
 
 @Composable
 private fun EmptyRecordList(modifier: Modifier = Modifier) {
-    Column(
+    Box(
         modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "暂无记账记录",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "点击右下角按钮记一笔",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "暂无记账记录",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "点击右下角按钮记一笔",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 

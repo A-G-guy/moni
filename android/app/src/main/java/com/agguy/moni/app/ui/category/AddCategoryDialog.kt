@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -60,6 +59,7 @@ fun AddCategoryDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        shape = MaterialTheme.shapes.extraLarge,
         title = { Text("添加分类") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -67,6 +67,7 @@ fun AddCategoryDialog(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("分类名称") },
+                    shape = MaterialTheme.shapes.medium,
                     singleLine = true
                 )
 
@@ -146,15 +147,16 @@ fun IconOption(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val optionShape = MaterialTheme.shapes.medium
     Box(
         modifier = modifier
             .size(48.dp)
-            .clip(RoundedCornerShape(12.dp)),
+            .clip(optionShape),
         contentAlignment = Alignment.Center
     ) {
         Surface(
             onClick = onClick,
-            shape = RoundedCornerShape(12.dp),
+            shape = optionShape,
             color = if (isSelected) {
                 MaterialTheme.colorScheme.primaryContainer
             } else {

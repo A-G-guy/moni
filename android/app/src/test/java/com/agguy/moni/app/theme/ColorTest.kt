@@ -1,6 +1,6 @@
 package com.agguy.moni.app.theme
 
-import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -41,98 +41,15 @@ class ColorTest {
 
     @Test
     fun `isLight returns true for light background`() {
-        val lightScheme = ColorScheme(
-            primary = Color.Unspecified,
-            onPrimary = Color.Unspecified,
-            primaryContainer = Color.Unspecified,
-            onPrimaryContainer = Color.Unspecified,
-            secondary = Color.Unspecified,
-            onSecondary = Color.Unspecified,
-            secondaryContainer = Color.Unspecified,
-            onSecondaryContainer = Color.Unspecified,
-            tertiary = Color.Unspecified,
-            onTertiary = Color.Unspecified,
-            tertiaryContainer = Color.Unspecified,
-            onTertiaryContainer = Color.Unspecified,
-            error = Color.Unspecified,
-            onError = Color.Unspecified,
-            errorContainer = Color.Unspecified,
-            onErrorContainer = Color.Unspecified,
-            background = Color(0xFFFBFDF8),
-            onBackground = Color.Unspecified,
-            surface = Color.Unspecified,
-            onSurface = Color.Unspecified,
-            surfaceVariant = Color.Unspecified,
-            onSurfaceVariant = Color.Unspecified,
-            outline = Color.Unspecified,
-            outlineVariant = Color.Unspecified,
-            scrim = Color.Unspecified,
-            inverseSurface = Color.Unspecified,
-            inverseOnSurface = Color.Unspecified,
-            inversePrimary = Color.Unspecified,
-            surfaceTint = Color.Unspecified,
-            surfaceBright = Color.Unspecified,
-            surfaceContainer = Color.Unspecified,
-            surfaceContainerHigh = Color.Unspecified,
-            surfaceContainerHighest = Color.Unspecified,
-            surfaceContainerLow = Color.Unspecified,
-            surfaceContainerLowest = Color.Unspecified,
-            surfaceDim = Color.Unspecified
-        )
+        // 仅校验 isLight() 与 background 的关系，故用工厂函数填充其余槽位（含 Expressive 'fixed' 容器）
+        val lightScheme = lightColorScheme(background = Color(0xFFFBFDF8))
         assertTrue(lightScheme.isLight())
     }
 
     @Test
     fun `isLight returns false for dark background`() {
-        val darkScheme = ColorScheme(
-            primary = Color.Unspecified,
-            onPrimary = Color.Unspecified,
-            primaryContainer = Color.Unspecified,
-            onPrimaryContainer = Color.Unspecified,
-            secondary = Color.Unspecified,
-            onSecondary = Color.Unspecified,
-            secondaryContainer = Color.Unspecified,
-            onSecondaryContainer = Color.Unspecified,
-            tertiary = Color.Unspecified,
-            onTertiary = Color.Unspecified,
-            tertiaryContainer = Color.Unspecified,
-            onTertiaryContainer = Color.Unspecified,
-            error = Color.Unspecified,
-            onError = Color.Unspecified,
-            errorContainer = Color.Unspecified,
-            onErrorContainer = Color.Unspecified,
-            background = Color(0xFF0F1511),
-            onBackground = Color.Unspecified,
-            surface = Color.Unspecified,
-            onSurface = Color.Unspecified,
-            surfaceVariant = Color.Unspecified,
-            onSurfaceVariant = Color.Unspecified,
-            outline = Color.Unspecified,
-            outlineVariant = Color.Unspecified,
-            scrim = Color.Unspecified,
-            inverseSurface = Color.Unspecified,
-            inverseOnSurface = Color.Unspecified,
-            inversePrimary = Color.Unspecified,
-            surfaceTint = Color.Unspecified,
-            surfaceBright = Color.Unspecified,
-            surfaceContainer = Color.Unspecified,
-            surfaceContainerHigh = Color.Unspecified,
-            surfaceContainerHighest = Color.Unspecified,
-            surfaceContainerLow = Color.Unspecified,
-            surfaceContainerLowest = Color.Unspecified,
-            surfaceDim = Color.Unspecified
-        )
+        val darkScheme = lightColorScheme(background = Color(0xFF0F1511))
         assertFalse(darkScheme.isLight())
-    }
-
-    @Test
-    fun `incomeGreen light variant is correct`() {
-        assertEquals(Color(0xFF00B894), IncomeGreen)
-    }
-
-    @Test
-    fun `expenseRed light variant is correct`() {
-        assertEquals(Color(0xFFFF6B6B), ExpenseRed)
     }
 
     @Test

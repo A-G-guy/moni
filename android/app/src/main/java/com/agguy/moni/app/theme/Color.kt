@@ -48,11 +48,3 @@ val ColorScheme.incomeGreen: Color
 val ColorScheme.expenseRed: Color
     @Composable
     get() = if (isLight()) Color(0xFFB33A3A) else Color(0xFFE89999)
-
-// === 向后兼容的硬编码常量（已弃用，请使用 ColorScheme 扩展属性） ===
-
-@Deprecated("使用 MaterialTheme.colorScheme.incomeGreen 替代", ReplaceWith("MaterialTheme.colorScheme.incomeGreen"))
-val IncomeGreen = Color(0xFF3A8A6E)
-
-@Deprecated("使用 MaterialTheme.colorScheme.expenseRed 替代", ReplaceWith("MaterialTheme.colorScheme.expenseRed"))
-val ExpenseRed = Color(0xFFB33A3A)

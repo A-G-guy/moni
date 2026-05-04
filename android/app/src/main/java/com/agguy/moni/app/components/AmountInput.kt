@@ -1,13 +1,14 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.agguy.moni.app.components
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -18,14 +19,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.core.util.formatAmount
 
 /**
  * 金额输入组件。
+ *
+ * 升级到 Material 3 Expressive：[animateContentSize] 接入 motionScheme.defaultSpatialSpec()，
+ * 大额预览用 displayMediumEmphasized 凸显 hero moment。
  *
  * @param value 金额，单位为分
  * @param onValueChange 金额变化回调，单位为分
@@ -43,13 +47,9 @@ fun AmountInput(
         mutableStateOf(if (value > 0) formatAmount(value) else "")
     }
 
+    val sizeAnimSpec = MaterialTheme.motionScheme.defaultSpatialSpec<IntSize>()
     Column(
-        modifier = modifier.animateContentSize(
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioNoBouncy,
-                stiffness = Spring.StiffnessMedium
-            )
-        ),
+        modifier = modifier.animateContentSize(animationSpec = sizeAnimSpec),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
@@ -81,6 +81,7 @@ fun AmountInput(
             label = { Text("金额") },
             placeholder = { Text("${currencySymbol}0.00") },
             singleLine = true,
+            shape = MaterialTheme.shapes.medium,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Decimal,
                 imeAction = ImeAction.Next
@@ -92,10 +93,9 @@ fun AmountInput(
 
         Text(
             text = if (value > 0) "${currencySymbol}${formatAmount(value)}" else "${currencySymbol}0.00",
-            style = MaterialTheme.typography.displayMedium,
+            style = MaterialTheme.typography.displayMediumEmphasized,
             color = if (value > 0) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-            fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(top = 12.dp)
         )
     }

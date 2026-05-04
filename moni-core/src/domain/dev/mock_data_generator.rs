@@ -4,20 +4,7 @@ use moni_contracts::types::{AmountCents, TimestampSec};
 use rand::seq::SliceRandom;
 use rand::Rng;
 
-/// Mock 数据预设类型。
-pub enum MockPreset {
-    Normal,
-    Stress,
-}
-
-impl MockPreset {
-    pub fn from_str(s: &str) -> Self {
-        match s {
-            "stress" => MockPreset::Stress,
-            _ => MockPreset::Normal,
-        }
-    }
-}
+use crate::models::intent::MockPreset;
 
 /// 待插入的 Mock 记录。
 pub struct MockRecord {
@@ -32,13 +19,12 @@ pub struct MockRecord {
 pub fn generate(
     categories: &[Category],
     count: u32,
-    preset_str: &str,
+    preset: MockPreset,
 ) -> Result<Vec<MockRecord>, String> {
     if categories.is_empty() {
         return Err("没有可用分类".to_string());
     }
 
-    let preset = MockPreset::from_str(preset_str);
     let mut rng = rand::thread_rng();
     let mut records = Vec::with_capacity(count as usize);
     let now = chrono::Utc::now().timestamp();

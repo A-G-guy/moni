@@ -16,6 +16,12 @@ enum class ExportFormat {
 }
 
 @Serializable
+enum class MockPreset {
+    @SerialName("normal") NORMAL,
+    @SerialName("stress") STRESS
+}
+
+@Serializable
 sealed class CoreIntent {
     // 记录相关
     @Serializable
@@ -93,7 +99,7 @@ sealed class CoreIntent {
 
     @Serializable
     @SerialName("dev_generate_mock_data")
-    data class DevGenerateMockData(val count: Int, val preset: String) : CoreIntent()
+    data class DevGenerateMockData(val count: Int, val preset: MockPreset) : CoreIntent()
 
     // UI 相关
     @Serializable

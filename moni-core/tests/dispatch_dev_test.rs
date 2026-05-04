@@ -1,6 +1,6 @@
 mod common;
 
-use moni_core::models::intent::CoreIntent;
+use moni_core::models::intent::{CoreIntent, MockPreset};
 
 /// 测试清空所有数据后数据库回到初始状态。
 #[test]
@@ -48,7 +48,7 @@ fn test_dev_generate_mock_data() {
         core.dispatch(
             serde_json::to_string(&CoreIntent::DevGenerateMockData {
                 count: 10,
-                preset: "normal".to_string(),
+                preset: MockPreset::Normal,
             }).unwrap()
         ).await
     });
@@ -71,7 +71,7 @@ fn test_dev_generate_mock_data_stress() {
         core.dispatch(
             serde_json::to_string(&CoreIntent::DevGenerateMockData {
                 count: 20,
-                preset: "stress".to_string(),
+                preset: MockPreset::Stress,
             }).unwrap()
         ).await
     });
@@ -100,7 +100,7 @@ fn test_dev_generate_mock_data_no_categories() {
         core.dispatch(
             serde_json::to_string(&CoreIntent::DevGenerateMockData {
                 count: 10,
-                preset: "normal".to_string(),
+                preset: MockPreset::Normal,
             }).unwrap()
         ).await
     });

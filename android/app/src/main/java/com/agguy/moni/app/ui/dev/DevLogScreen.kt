@@ -98,7 +98,7 @@ fun DevLogScreen(
             ) {
                 TextButton(
                     onClick = {
-                        val content = snapshot + "\n\n" + LogCollector.formatLogs()
+                        val content = buildExportContent(snapshot)
                         copyToClipboard(context, content)
                     },
                     modifier = Modifier.weight(1f)
@@ -107,7 +107,7 @@ fun DevLogScreen(
                 }
                 TextButton(
                     onClick = {
-                        val content = snapshot + "\n\n" + LogCollector.formatLogs()
+                        val content = buildExportContent(snapshot)
                         shareAsText(context, content)
                     },
                     modifier = Modifier.weight(1f)
@@ -164,6 +164,20 @@ fun DevLogScreen(
                 }
             }
         }
+    }
+}
+
+private fun buildExportContent(snapshot: String): String {
+    val kotlinLogs = LogCollector.formatLogs()
+    val systemLogs = LogCollector.collectProcessLogcat()
+    return buildString {
+        appendLine(snapshot)
+        appendLine()
+        appendLine("===== Kotlin 层日志 =====")
+        appendLine(kotlinLogs)
+        appendLine()
+        appendLine("===== 系统日志（含 Rust 层） =====")
+        appendLine(systemLogs)
     }
 }
 

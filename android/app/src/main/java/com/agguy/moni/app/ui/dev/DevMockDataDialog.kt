@@ -24,17 +24,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.core.MockPreset
 
 /**
  * Mock 数据生成对话框。
  */
 @Composable
 fun DevMockDataDialog(
-    onConfirm: (count: Int, preset: String) -> Unit,
+    onConfirm: (count: Int, preset: MockPreset) -> Unit,
     onDismiss: () -> Unit
 ) {
     var selectedCount by remember { mutableIntStateOf(10) }
-    var selectedPreset by remember { mutableStateOf("normal") }
+    var selectedPreset by remember { mutableStateOf(MockPreset.NORMAL) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -71,13 +72,13 @@ fun DevMockDataDialog(
                 Spacer(modifier = Modifier.height(8.dp))
                 PresetOption(
                     label = "正常数据",
-                    selected = selectedPreset == "normal",
-                    onClick = { selectedPreset = "normal" }
+                    selected = selectedPreset == MockPreset.NORMAL,
+                    onClick = { selectedPreset = MockPreset.NORMAL }
                 )
                 PresetOption(
                     label = "极限溢出（超长文本、超大金额等）",
-                    selected = selectedPreset == "stress",
-                    onClick = { selectedPreset = "stress" }
+                    selected = selectedPreset == MockPreset.STRESS,
+                    onClick = { selectedPreset = MockPreset.STRESS }
                 )
             }
         },

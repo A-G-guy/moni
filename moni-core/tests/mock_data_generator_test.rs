@@ -1,6 +1,7 @@
 use moni_contracts::category::Category;
 use moni_contracts::record::RecordType;
 use moni_core::domain::dev::mock_data_generator;
+use moni_core::models::intent::MockPreset;
 
 fn create_test_categories() -> Vec<Category> {
     vec![
@@ -33,7 +34,7 @@ fn create_test_categories() -> Vec<Category> {
 #[test]
 fn test_generate_normal() {
     let categories = create_test_categories();
-    let records = mock_data_generator::generate(&categories, 50, "normal"
+    let records = mock_data_generator::generate(&categories, 50, MockPreset::Normal
     ).expect("生成应成功");
 
     assert_eq!(records.len(), 50);
@@ -52,7 +53,7 @@ fn test_generate_normal() {
 fn test_generate_stress() {
     let categories = create_test_categories();
     let records = mock_data_generator::generate(
-        &categories, 20, "stress"
+        &categories, 20, MockPreset::Stress
     ).expect("生成应成功");
 
     assert_eq!(records.len(), 20);
@@ -73,7 +74,7 @@ fn test_generate_stress() {
 #[test]
 fn test_generate_empty_categories() {
     let categories: Vec<Category> = vec![];
-    let result = mock_data_generator::generate(&categories, 10, "normal"
+    let result = mock_data_generator::generate(&categories, 10, MockPreset::Normal
     );
 
     assert!(result.is_err(), "空分类应返回错误");
@@ -84,7 +85,7 @@ fn test_generate_empty_categories() {
 fn test_generate_sorted_descending() {
     let categories = create_test_categories();
     let records = mock_data_generator::generate(
-        &categories, 30, "normal"
+        &categories, 30, MockPreset::Normal
     ).expect("生成应成功");
 
     for i in 1..records.len() {
@@ -95,13 +96,18 @@ fn test_generate_sorted_descending() {
     }
 }
 
-/// 测试未知预设回退到 Normal。
+/// 测试 MockPreset 序列化反序列化。
 #[test]
-fn test_generate_unknown_preset_fallback() {
-    let categories = create_test_categories();
-    let records = mock_data_generator::generate(
-        &categories, 5, "unknown_preset"
-    ).expect("未知预设应回退到 normal 并成功");
+fn test_mock_preset_serde() {
+    let normal = serde_json::to_string(&MockPreset::Normal).unwrap();
+    assert_eq!(normal, "\"normal\"");
 
-    assert_eq!(records.len(), 5);
+    let stress = serde_json::to_string(&MockPreset::Stress).unwrap();
+    assert_eq!(stress, "\"stress\"");
+
+    let parsed: MockPreset = serde_json::from_str("\"normal\"").unwrap();
+    assert!(matches!(parsed, MockPreset::Normal));
+
+    let parsed: MockPreset = serde_json::from_str("\"stress\"").unwrap();
+    assert!(matches!(parsed, MockPreset::Stress));
 }

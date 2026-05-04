@@ -54,7 +54,7 @@ impl AppCoreRuntime {
                 let records = crate::domain::dev::mock_data_generator::generate(
                     &categories,
                     count,
-                    &preset,
+                    preset,
                 )
                 .map_err(|e| CoreError::Internal(format!("生成 Mock 数据失败: {e}")))?;
 

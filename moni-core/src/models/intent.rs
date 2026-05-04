@@ -4,6 +4,24 @@ use moni_contracts::export::ExportFormat;
 use moni_contracts::record::RecordType;
 use moni_contracts::types::{AmountCents, CategoryId, RecordId, TimestampSec};
 
+/// Mock 数据预设类型。
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum MockPreset {
+    #[serde(rename = "normal")]
+    Normal,
+    #[serde(rename = "stress")]
+    Stress,
+}
+
+impl std::fmt::Display for MockPreset {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MockPreset::Normal => write!(f, "normal"),
+            MockPreset::Stress => write!(f, "stress"),
+        }
+    }
+}
+
 /// 核心意图枚举
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -42,7 +60,7 @@ pub enum CoreIntent {
     SettingsExportData { format: ExportFormat },
 
     DevClearAllData,
-    DevGenerateMockData { count: u32, preset: String },
+    DevGenerateMockData { count: u32, preset: MockPreset },
 
     NavigateTo { screen: String },
     DismissError,

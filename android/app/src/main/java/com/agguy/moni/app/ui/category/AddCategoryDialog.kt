@@ -35,6 +35,16 @@ import com.agguy.moni.app.theme.luminance
 import com.agguy.moni.core.RecordType
 import android.util.Log
 
+/**
+ * 添加分类对话框。
+ *
+ * @deprecated 已被 [CategoryEditorSheet] 取代。请使用 BottomSheet 形式的分类编辑器，
+ *             该组件统一支持新增与编辑两种模式，交互体验更佳。
+ */
+@Deprecated(
+    message = "使用 CategoryEditorSheet 替代",
+    replaceWith = ReplaceWith("CategoryEditorSheet")
+)
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddCategoryDialog(

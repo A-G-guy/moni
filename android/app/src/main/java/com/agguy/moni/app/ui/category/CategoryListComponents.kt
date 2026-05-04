@@ -1,5 +1,8 @@
 package com.agguy.moni.app.ui.category
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,11 +13,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,6 +36,7 @@ import com.agguy.moni.core.CoreCategory
 fun CategoryListContent(
     categories: List<CoreCategory>,
     onArchiveRequest: (CoreCategory) -> Unit,
+    onEditRequest: (CoreCategory) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -41,7 +47,8 @@ fun CategoryListContent(
         items(categories, key = { it.id }) { category ->
             CategoryListItem(
                 category = category,
-                onArchiveClick = { onArchiveRequest(category) }
+                onArchiveClick = { onArchiveRequest(category) },
+                onEditClick = { onEditRequest(category) }
             )
         }
     }
@@ -51,6 +58,7 @@ fun CategoryListContent(
 fun CategoryListItem(
     category: CoreCategory,
     onArchiveClick: () -> Unit,
+    onEditClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val categoryColor = if (category.categoryType == "expense") {
@@ -93,6 +101,14 @@ fun CategoryListItem(
                 }
             }
 
+            IconButton(onClick = onEditClick) {
+                MoniIcon(
+                    icon = MoniIcons.Edit,
+                    contentDescription = "编辑",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
             if (!category.isPreset) {
                 IconButton(onClick = onArchiveClick) {
                     MoniIcon(
@@ -123,6 +139,46 @@ fun EmptyCategoryList(modifier: Modifier = Modifier) {
             text = "点击右下角添加",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+/**
+ * 归档确认对话框。
+ */
+@Composable
+fun ArchiveConfirmDialog(
+    category: CoreCategory,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val dialogSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
+
+    AnimatedVisibility(
+        visible = true,
+        enter = scaleIn(animationSpec = dialogSpec),
+        exit = scaleOut(animationSpec = dialogSpec)
+    ) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            shape = MaterialTheme.shapes.extraLarge,
+            title = { Text("确认归档") },
+            text = {
+                Text(
+                    "确定要归档「${category.name}」吗？\n" +
+                    "归档后该分类将不再出现在新建记录的选择中，但历史记录依然保留。"
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = onConfirm) {
+                    Text("归档")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("取消")
+                }
+            }
         )
     }
 }

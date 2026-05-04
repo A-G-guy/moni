@@ -80,6 +80,12 @@ impl AppCoreRuntime {
                 self.state.record_groups =
                     crate::dto::group_records_by_date(&self.state.records);
 
+                // 刷新月度统计
+                let aggregates = record_repo::monthly_aggregates(&self.conn, 6)
+                    .map_err(|e| CoreError::Internal(format!("刷新月度统计失败: {e}")))?;
+                self.state.monthly_summaries =
+                    crate::domain::stats::calculator::calculate_monthly_summary(aggregates);
+
                 log::info!("Mock 数据生成完成: {} 条", records.len());
                 self.finish(vec![crate::models::effects::CoreEffect {
                     kind: "show_snackbar".to_string(),

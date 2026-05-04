@@ -1,9 +1,9 @@
 package com.agguy.moni.core.platform
 
 import android.util.Log
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /**
  * 日志等级。
@@ -42,7 +42,9 @@ data class LogFilter(
 object LogCollector {
     private const val MAX_SIZE = 500
     private val buffer = ArrayDeque<LogEntry>(MAX_SIZE)
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
+    private val dateFormatter = DateTimeFormatter
+        .ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
+        .withZone(ZoneId.systemDefault())
 
     @Synchronized
     fun d(tag: String, message: String) {
@@ -86,7 +88,7 @@ object LogCollector {
         val logs = getLogs(filter)
         val sb = StringBuilder()
         logs.forEach { entry ->
-            val time = dateFormat.format(Date(entry.timestamp))
+            val time = dateFormatter.format(Instant.ofEpochMilli(entry.timestamp))
             val level = entry.level.name.first()
             sb.append("[$time] $level/${entry.tag}: ${entry.message}")
             entry.throwable?.let {

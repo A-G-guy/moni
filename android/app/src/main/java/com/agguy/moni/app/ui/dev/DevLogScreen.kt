@@ -30,6 +30,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -40,8 +41,9 @@ import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.core.platform.LogCollector
 import com.agguy.moni.core.platform.LogLevel
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
@@ -54,9 +56,13 @@ fun DevLogScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val logs = LogCollector.getLogs()
+    val logs = remember { LogCollector.getLogs() }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-    val snapshot = buildSnapshot(context)
+    val snapshot = remember(context) { buildSnapshot(context) }
+    val timeFormatter = remember {
+        DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
+            .withZone(ZoneId.systemDefault())
+    }
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -143,8 +149,7 @@ fun DevLogScreen(
                 }
             } else {
                 items(logs) { entry ->
-                    val time = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
-                        .format(Date(entry.timestamp))
+                    val time = timeFormatter.format(java.time.Instant.ofEpochMilli(entry.timestamp))
                     val levelColor = when (entry.level) {
                         LogLevel.DEBUG -> MaterialTheme.colorScheme.onSurfaceVariant
                         LogLevel.INFO -> MaterialTheme.colorScheme.primary

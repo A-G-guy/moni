@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.agguy.moni.app.ui.settings
 
 import androidx.compose.animation.AnimatedVisibility
@@ -5,61 +7,37 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Help
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.FormatPaint
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.BuildConfig
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.ThemeSettings
+import com.agguy.moni.app.components.SettingsItem
+import com.agguy.moni.app.components.SettingsToggleItem
+import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.ThemeMode
 import com.agguy.moni.core.CoreIntent
 
 /**
  * 设置页面。
  *
- * 提供货币符号设置、主题模式、动态颜色、数据导出、关于应用等功能入口。
+ * 提供货币符号设置、主题模式、主题色、动态颜色、数据导出、关于应用等功能入口。
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -69,86 +47,80 @@ fun SettingsScreen(
     onDispatch: (CoreIntent) -> Unit,
     onUpdateThemeMode: (ThemeMode) -> Unit,
     onUpdateDynamicColor: (Boolean) -> Unit,
+    onUpdateSeedColor: (Long) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showCurrencyDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
     var showThemeModeDialog by remember { mutableStateOf(false) }
+    var showSeedColorDialog by remember { mutableStateOf(false) }
+
+    val themeModeLabel = when (themeSettings.themeMode) {
+        ThemeMode.LIGHT -> "浅色"
+        ThemeMode.DARK -> "深色"
+        ThemeMode.SYSTEM -> "跟随系统"
+    }
 
     Scaffold(
         modifier = modifier,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            TopAppBar(
-                title = { Text("设置") },
+            LargeTopAppBar(
+                title = {
+                    Text(
+                        "设置",
+                        style = MaterialTheme.typography.displaySmall
+                    )
+                },
                 windowInsets = WindowInsets(0, 0, 0, 0)
             )
         }
     ) { innerPadding ->
-        val themeModeLabel = when (themeSettings.themeMode) {
-            ThemeMode.LIGHT -> "浅色"
-            ThemeMode.DARK -> "深色"
-            ThemeMode.SYSTEM -> "跟随系统"
-        }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             SettingsItem(
-                icon = Icons.Default.DarkMode,
+                icon = MoniIcons.DarkMode,
                 title = "主题模式",
                 subtitle = "当前: $themeModeLabel",
                 onClick = { showThemeModeDialog = true }
             )
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
+
+            SettingsItem(
+                icon = MoniIcons.Palette,
+                title = "主题色",
+                subtitle = "选择应用主色调",
+                onClick = { showSeedColorDialog = true }
             )
 
             SettingsToggleItem(
-                icon = Icons.Default.Palette,
+                icon = MoniIcons.Tune,
                 title = "动态颜色",
                 subtitle = "使用系统壁纸颜色（Android 12+）",
                 checked = themeSettings.dynamicColor,
                 onCheckedChange = { onUpdateDynamicColor(it) }
             )
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
-            )
 
             SettingsItem(
-                icon = Icons.Default.AttachMoney,
+                icon = MoniIcons.AttachMoney,
                 title = "货币符号",
                 subtitle = "当前: ${appState.currencySymbol}",
                 onClick = { showCurrencyDialog = true }
             )
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
-            )
 
             SettingsItem(
-                icon = Icons.AutoMirrored.Filled.Send,
+                icon = MoniIcons.ArrowBack,
                 title = "导出数据",
                 subtitle = "导出为 CSV 或 JSON 格式",
                 onClick = { showExportDialog = true }
             )
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
-            )
 
             SettingsItem(
-                icon = Icons.AutoMirrored.Filled.Help,
+                icon = MoniIcons.Help,
                 title = "关于",
                 subtitle = "Moni v${BuildConfig.VERSION_NAME}",
                 onClick = { }
@@ -220,203 +192,26 @@ fun SettingsScreen(
             )
         }
     }
-}
 
-@Composable
-private fun SettingsItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    AnimatedVisibility(
+        visible = showSeedColorDialog,
+        enter = scaleIn(
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        ),
+        exit = scaleOut(animationSpec = spring())
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier.size(32.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SettingsToggleItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) },
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier.size(32.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                )
-            }
-            Switch(
-                checked = checked,
-                onCheckedChange = onCheckedChange
+        if (showSeedColorDialog) {
+            SeedColorPickerDialog(
+                currentSeed = themeSettings.seedColor,
+                onConfirm = { seedColor ->
+                    onUpdateSeedColor(seedColor)
+                    showSeedColorDialog = false
+                },
+                onDismiss = { showSeedColorDialog = false }
             )
         }
     }
-}
-
-@Composable
-private fun CurrencyPickerDialog(
-    currentSymbol: String,
-    onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val options = listOf("¥" to "人民币", "$" to "美元", "€" to "欧元", "£" to "英镑")
-    var selected by remember { mutableStateOf(currentSymbol) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("选择货币符号") },
-        text = {
-            Column {
-                options.forEach { (symbol, name) ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { selected = symbol }
-                            .padding(vertical = 8.dp)
-                    ) {
-                        RadioButton(
-                            selected = selected == symbol,
-                            onClick = { selected = symbol }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("$symbol ($name)")
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(selected) }) {
-                Text("确定")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("取消")
-            }
-        }
-    )
-}
-
-@Composable
-private fun ThemeModePickerDialog(
-    currentMode: ThemeMode,
-    onConfirm: (ThemeMode) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val options = listOf(
-        ThemeMode.LIGHT to "浅色",
-        ThemeMode.DARK to "深色",
-        ThemeMode.SYSTEM to "跟随系统"
-    )
-    var selected by remember { mutableStateOf(currentMode) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("选择主题模式") },
-        text = {
-            Column {
-                options.forEach { (mode, label) ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { selected = mode }
-                            .padding(vertical = 8.dp)
-                    ) {
-                        RadioButton(
-                            selected = selected == mode,
-                            onClick = { selected = mode }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(label)
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(selected) }) {
-                Text("确定")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("取消")
-            }
-        }
-    )
 }

@@ -2,12 +2,9 @@ package com.agguy.moni.app.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -25,6 +22,8 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import android.util.Log
+import com.agguy.moni.app.icons.MoniIcon
+import com.agguy.moni.app.icons.MoniIcons
 
 /**
  * 日期选择字段。
@@ -52,7 +51,7 @@ fun DatePickerField(
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         trailingIcon = {
             IconButton(onClick = { showDialog = true }) {
-                Icon(Icons.Default.DateRange, contentDescription = "选择日期")
+                MoniIcon(MoniIcons.Event, contentDescription = "选择日期")
             }
         },
         modifier = modifier.fillMaxWidth()

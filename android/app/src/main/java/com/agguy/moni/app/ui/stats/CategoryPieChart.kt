@@ -5,6 +5,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,15 +24,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.core.CoreCategoryBreakdown
 import com.agguy.moni.core.util.formatAmount
-import android.util.Log
 
 /**
  * 分类支出饼图。
@@ -52,6 +54,9 @@ fun CategoryPieChart(
         return
     }
 
+    val totalExpense = breakdowns.sumOf { it.amountCents }
+    val totalText = "${currencySymbol}${formatAmount(totalExpense)}"
+
     Column(modifier = modifier) {
         Text(
             text = "支出构成",
@@ -65,10 +70,22 @@ fun CategoryPieChart(
         ) {
             // 饼图
             Box(
-                modifier = Modifier.size(120.dp),
+                modifier = Modifier.size(140.dp),
                 contentAlignment = Alignment.Center
             ) {
                 PieChartCanvas(breakdowns = breakdowns)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = totalText,
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "本月支出",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -76,7 +93,7 @@ fun CategoryPieChart(
             // 图例列表
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 breakdowns.take(6).forEach { item ->
                     PieLegendItem(
@@ -118,39 +135,34 @@ private fun PieChartCanvas(
         }
     }
 
-    val surfaceColor = MaterialTheme.colorScheme.surface
-
-    Canvas(modifier = modifier.size(120.dp)) {
+    Canvas(modifier = modifier.size(140.dp)) {
         val total = breakdowns.sumOf { it.percentage }
         if (total <= 0) return@Canvas
 
         val canvasSize = size.minDimension
         val radius = canvasSize / 2 - 4f
         val center = Offset(size.width / 2, size.height / 2)
-        var startAngle = -90f // 从顶部开始
+        val strokeWidth = radius * 0.35f
+        val gapAngle = 2f
+        var startAngle = -90f
 
         breakdowns.forEach { item ->
-            val sweepAngle = (item.percentage / total * 360f).toFloat() * animationProgress.value
+            val rawSweep = (item.percentage / total * 360f).toFloat() * animationProgress.value
+            val sweepAngle = (rawSweep - gapAngle).coerceAtLeast(0f)
             val color = parseColor(item.colorHex)
 
             drawArc(
                 color = color,
                 startAngle = startAngle,
                 sweepAngle = sweepAngle,
-                useCenter = true,
+                useCenter = false,
                 topLeft = Offset(center.x - radius, center.y - radius),
-                size = Size(radius * 2, radius * 2)
+                size = Size(radius * 2, radius * 2),
+                style = Stroke(width = strokeWidth)
             )
 
-            startAngle += sweepAngle
+            startAngle += rawSweep
         }
-
-        // 中心圆形（使用 surface 色，适配暗色主题）
-        drawCircle(
-            color = surfaceColor,
-            radius = radius * 0.5f,
-            center = center
-        )
     }
 }
 
@@ -165,9 +177,12 @@ private fun PieLegendItem(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Canvas(modifier = Modifier.size(10.dp)) {
-            drawCircle(color = color, radius = size.minDimension / 2)
-        }
+        Box(
+            modifier = Modifier
+                .size(12.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(color)
+        )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = label,
@@ -189,32 +204,3 @@ private fun PieLegendItem(
         )
     }
 }
-
-@Composable
-fun EmptyChartPlaceholder(
-    message: String,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(120.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-fun parseColor(colorHex: String): Color {
-    return try {
-        Color(android.graphics.Color.parseColor(colorHex))
-    } catch (e: Exception) {
-        Log.w("Moni", "饼图颜色解析失败: $colorHex, ${e.message}")
-        Color.Gray
-    }
-}
-

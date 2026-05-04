@@ -6,13 +6,9 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,10 +16,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -59,6 +57,8 @@ fun MonthlyBarChart(
     val valueStyle = TextStyle(fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     val incomeColor = MaterialTheme.colorScheme.incomeGreen
     val expenseColor = MaterialTheme.colorScheme.expenseRed
+    val zeroLineColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+    val guideLineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
 
     val context = LocalContext.current
     val animationProgress = remember { Animatable(0f) }
@@ -109,52 +109,84 @@ fun MonthlyBarChart(
             val barWidth = barGroupWidth * 0.30f
             val gap = barGroupWidth * 0.20f
 
-            // 绘制零线
             val zeroY = paddingTop + chartHeight
+
+            // 绘制零线
             drawLine(
-                color = Color.Gray.copy(alpha = 0.3f),
+                color = zeroLineColor,
                 start = Offset(paddingStart, zeroY),
                 end = Offset(size.width - paddingEnd, zeroY),
                 strokeWidth = 1f
             )
 
-            // 绘制 Y 轴水平辅助线
-            val guideLineColor = Color.Gray.copy(alpha = 0.15f)
+            // 绘制 Y 轴水平虚线辅助线
+            val dashPathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f), 0f)
             listOf(1f / 3f, 2f / 3f).forEach { ratio ->
                 val y = paddingTop + chartHeight * (1 - ratio)
                 drawLine(
                     color = guideLineColor,
                     start = Offset(paddingStart, y),
                     end = Offset(size.width - paddingEnd, y),
-                    strokeWidth = 1f
+                    strokeWidth = 1f,
+                    pathEffect = dashPathEffect
                 )
             }
+
+            val cornerRadius = 4.dp.toPx()
 
             // 绘制柱状图
             summaries.forEachIndexed { index, summary ->
                 val groupX = paddingStart + index * barGroupWidth
                 val centerX = groupX + barGroupWidth / 2
 
-                // 收入柱
+                // 收入柱（顶部圆角）
                 val incomeHeight = (summary.incomeCents.toFloat() / maxAmount) * chartHeight * animationProgress.value
                 val incomeX = centerX - barWidth - gap / 2
-                drawRect(
-                    color = incomeColor,
-                    topLeft = Offset(incomeX, zeroY - incomeHeight),
-                    size = Size(barWidth, incomeHeight)
-                )
+                if (incomeHeight > 0) {
+                    val incomePath = Path().apply {
+                        addRoundRect(
+                            RoundRect(
+                                rect = Rect(
+                                    left = incomeX,
+                                    top = zeroY - incomeHeight,
+                                    right = incomeX + barWidth,
+                                    bottom = zeroY
+                                ),
+                                topLeft = CornerRadius(cornerRadius, cornerRadius),
+                                topRight = CornerRadius(cornerRadius, cornerRadius),
+                                bottomLeft = CornerRadius.Zero,
+                                bottomRight = CornerRadius.Zero
+                            )
+                        )
+                    }
+                    drawPath(path = incomePath, color = incomeColor)
+                }
 
-                // 支出柱
+                // 支出柱（顶部圆角）
                 val expenseHeight = (summary.expenseCents.toFloat() / maxAmount) * chartHeight * animationProgress.value
                 val expenseX = centerX + gap / 2
-                drawRect(
-                    color = expenseColor,
-                    topLeft = Offset(expenseX, zeroY - expenseHeight),
-                    size = Size(barWidth, expenseHeight)
-                )
+                if (expenseHeight > 0) {
+                    val expensePath = Path().apply {
+                        addRoundRect(
+                            RoundRect(
+                                rect = Rect(
+                                    left = expenseX,
+                                    top = zeroY - expenseHeight,
+                                    right = expenseX + barWidth,
+                                    bottom = zeroY
+                                ),
+                                topLeft = CornerRadius(cornerRadius, cornerRadius),
+                                topRight = CornerRadius(cornerRadius, cornerRadius),
+                                bottomLeft = CornerRadius.Zero,
+                                bottomRight = CornerRadius.Zero
+                            )
+                        )
+                    }
+                    drawPath(path = expensePath, color = expenseColor)
+                }
 
                 // 月份标签
-                val monthLabel = summary.yearMonth.substring(5) + "月" // "2026-04" -> "04月"
+                val monthLabel = summary.yearMonth.substring(5) + "月"
                 val labelResult = textMeasurer.measure(monthLabel, labelStyle)
                 drawText(
                     textMeasurer = textMeasurer,
@@ -166,7 +198,7 @@ fun MonthlyBarChart(
                     )
                 )
 
-                // 收入数值标签（仅当柱子够高时显示）
+                // 收入数值标签
                 if (incomeHeight > 20f && summary.incomeCents > 0) {
                     val incomeText = formatShortAmount(summary.incomeCents, currencySymbol)
                     val valueResult = textMeasurer.measure(incomeText, valueStyle)
@@ -197,7 +229,7 @@ fun MonthlyBarChart(
                 }
             }
 
-            // 绘制 Y 轴最大值标签
+            // Y 轴最大值标签
             val maxLabel = formatShortAmount(maxAmount, currencySymbol)
             val maxResult = textMeasurer.measure(maxLabel, valueStyle)
             drawText(
@@ -208,56 +240,11 @@ fun MonthlyBarChart(
             )
         }
 
-        // 图例
         ChartLegend(
             items = listOf(
                 LegendItem("收入", incomeColor),
                 LegendItem("支出", expenseColor)
             )
         )
-    }
-}
-
-/**
- * 饼图旁或底部的图例。
- */
-@Composable
-private fun ChartLegend(
-    items: List<LegendItem>,
-    modifier: Modifier = Modifier
-) {
-    androidx.compose.foundation.layout.Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center
-    ) {
-        items.forEach { item ->
-            androidx.compose.foundation.layout.Row(
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 12.dp)
-            ) {
-                Canvas(modifier = Modifier.size(10.dp)) {
-                    drawRect(color = item.color, size = this.size)
-                }
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = item.label,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
-private data class LegendItem(val label: String, val color: Color)
-
-private fun formatShortAmount(cents: Long, symbol: String): String {
-    val yuan = cents / 100
-    return when {
-        yuan >= 10000 -> "${symbol}${yuan / 10000}w"
-        yuan >= 1000 -> "${symbol}${yuan / 1000}k"
-        else -> "${symbol}${yuan}"
     }
 }

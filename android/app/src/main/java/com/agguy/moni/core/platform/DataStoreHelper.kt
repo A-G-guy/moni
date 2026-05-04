@@ -5,8 +5,10 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.agguy.moni.app.theme.DefaultSeedColor
 import com.agguy.moni.app.theme.ThemeMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -22,6 +24,7 @@ object DataStoreHelper {
     private val CURRENCY_SYMBOL_KEY = stringPreferencesKey("currency_symbol")
     private val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
     private val DYNAMIC_COLOR_KEY = booleanPreferencesKey("dynamic_color")
+    private val SEED_COLOR_KEY = longPreferencesKey("seed_color")
 
     /**
      * 获取货币符号流。
@@ -82,6 +85,24 @@ object DataStoreHelper {
     suspend fun saveDynamicColor(context: Context, enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[DYNAMIC_COLOR_KEY] = enabled
+        }
+    }
+
+    /**
+     * 获取种子色流。
+     */
+    fun seedColorFlow(context: Context): Flow<Long> {
+        return context.dataStore.data.map { preferences ->
+            preferences[SEED_COLOR_KEY] ?: DefaultSeedColor.value.toLong()
+        }
+    }
+
+    /**
+     * 保存种子色。
+     */
+    suspend fun saveSeedColor(context: Context, colorValue: Long) {
+        context.dataStore.edit { preferences ->
+            preferences[SEED_COLOR_KEY] = colorValue
         }
     }
 }

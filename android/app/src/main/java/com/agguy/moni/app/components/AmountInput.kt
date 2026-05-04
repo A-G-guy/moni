@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -48,7 +49,8 @@ fun AmountInput(
                 dampingRatio = Spring.DampingRatioNoBouncy,
                 stiffness = Spring.StiffnessMedium
             )
-        )
+        ),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
             value = textValue,
@@ -88,15 +90,14 @@ fun AmountInput(
                 .heightIn(min = 64.dp)
         )
 
-        if (value > 0) {
-            Text(
-                text = "${currencySymbol}${formatAmount(value)}",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        }
+        Text(
+            text = if (value > 0) "${currencySymbol}${formatAmount(value)}" else "${currencySymbol}0.00",
+            style = MaterialTheme.typography.displayMedium,
+            color = if (value > 0) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(top = 12.dp)
+        )
     }
 }
 
@@ -107,4 +108,3 @@ private fun formatDisplay(integer: String, decimal: String, symbol: String): Str
         "$symbol$integer.$decimal"
     }
 }
-

@@ -68,6 +68,7 @@ fun MoniNavHost(
     onNavigateBack: () -> Unit,
     onUpdateThemeMode: (ThemeMode) -> Unit,
     onUpdateDynamicColor: (Boolean) -> Unit,
+    onUpdateSeedColor: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -131,7 +132,8 @@ fun MoniNavHost(
                 themeSettings = themeSettings,
                 onDispatch = onDispatch,
                 onUpdateThemeMode = onUpdateThemeMode,
-                onUpdateDynamicColor = onUpdateDynamicColor
+                onUpdateDynamicColor = onUpdateDynamicColor,
+                onUpdateSeedColor = onUpdateSeedColor
             )
         }
     }

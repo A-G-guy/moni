@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -37,6 +38,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -55,6 +59,8 @@ import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.components.AmountInput
 import com.agguy.moni.app.components.DatePickerField
+import com.agguy.moni.app.icons.MoniIcon
+import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreIntent
@@ -114,13 +120,17 @@ fun RecordDetailScreen(
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        MoniIcon(MoniIcons.ArrowBack, contentDescription = "返回")
                     }
                 },
                 actions = {
                     if (isEditMode) {
                         IconButton(onClick = { showDeleteConfirm = true }) {
-                            Icon(Icons.Filled.Delete, contentDescription = "删除", tint = MaterialTheme.colorScheme.expenseRed)
+                            MoniIcon(
+                                MoniIcons.Delete,
+                                contentDescription = "删除",
+                                tint = MaterialTheme.colorScheme.expenseRed
+                            )
                         }
                     }
                 }
@@ -184,7 +194,7 @@ fun RecordDetailScreen(
                         stiffness = Spring.StiffnessMedium
                     )
                 ),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // 收入/支出切换
             RecordTypeSelector(
@@ -261,28 +271,38 @@ fun RecordDetailScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RecordTypeSelector(
     selectedType: RecordType,
     onTypeSelected: (RecordType) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        FilterChip(
+    SingleChoiceSegmentedButtonRow(modifier = modifier.fillMaxWidth()) {
+        SegmentedButton(
             selected = selectedType == RecordType.EXPENSE,
             onClick = { onTypeSelected(RecordType.EXPENSE) },
-            label = { Text("支出") },
-            modifier = Modifier.weight(1f)
-        )
-        FilterChip(
+            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+            icon = {
+                if (selectedType == RecordType.EXPENSE) {
+                    MoniIcon(MoniIcons.Check, contentDescription = null)
+                }
+            }
+        ) {
+            Text("支出")
+        }
+        SegmentedButton(
             selected = selectedType == RecordType.INCOME,
             onClick = { onTypeSelected(RecordType.INCOME) },
-            label = { Text("收入") },
-            modifier = Modifier.weight(1f)
-        )
+            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+            icon = {
+                if (selectedType == RecordType.INCOME) {
+                    MoniIcon(MoniIcons.Check, contentDescription = null)
+                }
+            }
+        ) {
+            Text("收入")
+        }
     }
 }
 
@@ -310,7 +330,7 @@ private fun CategorySelector(
         } else {
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp)
+                contentPadding = PaddingValues(horizontal = 0.dp)
             ) {
                 items(categories) { category ->
                     CategoryChip(
@@ -335,11 +355,20 @@ private fun CategoryChip(
         selected = isSelected,
         onClick = onClick,
         label = { Text(category.name) },
+        leadingIcon = if (isSelected) {
+            {
+                MoniIcon(
+                    MoniIcons.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        } else null,
         colors = FilterChipDefaults.filterChipColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-            labelColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
-            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+            containerColor = Color.Transparent,
+            labelColor = MaterialTheme.colorScheme.onSurface,
+            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
         )
     )
 }

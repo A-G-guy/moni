@@ -22,7 +22,8 @@ import kotlinx.coroutines.launch
  */
 data class ThemeSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
-    val dynamicColor: Boolean = false
+    val dynamicColor: Boolean = false,
+    val seedColor: Long = 0xFF0F5C5E
 )
 
 class AppViewModel(
@@ -100,7 +101,8 @@ class AppViewModel(
     private suspend fun syncThemeSettingsFromDataStore() {
         val themeMode = DataStoreHelper.themeModeFlow(getApplication()).first()
         val dynamicColor = DataStoreHelper.dynamicColorFlow(getApplication()).first()
-        _themeSettings.value = ThemeSettings(themeMode, dynamicColor)
+        val seedColor = DataStoreHelper.seedColorFlow(getApplication()).first()
+        _themeSettings.value = ThemeSettings(themeMode, dynamicColor, seedColor)
     }
 
     fun updateThemeMode(mode: ThemeMode) {
@@ -114,6 +116,13 @@ class AppViewModel(
         viewModelScope.launch {
             DataStoreHelper.saveDynamicColor(getApplication(), enabled)
             _themeSettings.value = _themeSettings.value.copy(dynamicColor = enabled)
+        }
+    }
+
+    fun updateSeedColor(colorValue: Long) {
+        viewModelScope.launch {
+            DataStoreHelper.saveSeedColor(getApplication(), colorValue)
+            _themeSettings.value = _themeSettings.value.copy(seedColor = colorValue)
         }
     }
 

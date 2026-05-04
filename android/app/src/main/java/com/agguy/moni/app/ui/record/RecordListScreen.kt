@@ -21,19 +21,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -45,6 +42,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
+import com.agguy.moni.app.icons.MoniIcon
+import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreIntent
@@ -67,16 +66,21 @@ fun RecordListScreen(
         modifier = modifier,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            TopAppBar(
-                title = { Text("账单") },
+            LargeTopAppBar(
+                title = {
+                    Text(
+                        "账单",
+                        style = MaterialTheme.typography.displaySmall
+                    )
+                },
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 actions = {
                     TextButton(onClick = onNavigateToCategoryList) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("分类")
                             Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                imageVector = Icons.Default.FilterList,
+                            MoniIcon(
+                                icon = MoniIcons.FilterList,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -88,9 +92,11 @@ fun RecordListScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { onNavigateToRecordDetail(null) },
-                shape = androidx.compose.foundation.shape.CircleShape
+                shape = RoundedCornerShape(20.dp),
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "记一笔")
+                MoniIcon(MoniIcons.AddFilled, contentDescription = "记一笔")
             }
         }
     ) { innerPadding ->
@@ -154,8 +160,8 @@ private fun RecordListContent(
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         recordGroups.forEach { group ->
             item(key = "header_${group.date}") {

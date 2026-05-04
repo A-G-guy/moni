@@ -20,6 +20,7 @@ import com.agguy.moni.app.components.MoniBottomBar
 import com.agguy.moni.app.navigation.MoniNavHost
 import com.agguy.moni.app.navigation.Screen
 import com.agguy.moni.app.theme.MoniTheme
+import androidx.compose.ui.graphics.Color
 import com.agguy.moni.di.AppModule
 import kotlinx.coroutines.launch
 
@@ -56,6 +57,7 @@ fun MoniApp() {
 
     MoniTheme(
         themeMode = themeSettings.themeMode,
+        seedColor = Color(themeSettings.seedColor),
         dynamicColor = themeSettings.dynamicColor
     ) {
         Scaffold(
@@ -103,6 +105,7 @@ fun MoniApp() {
                 onNavigateBack = viewModel::navigateBack,
                 onUpdateThemeMode = viewModel::updateThemeMode,
                 onUpdateDynamicColor = viewModel::updateDynamicColor,
+                onUpdateSeedColor = viewModel::updateSeedColor,
                 modifier = Modifier.padding(innerPadding)
             )
         }

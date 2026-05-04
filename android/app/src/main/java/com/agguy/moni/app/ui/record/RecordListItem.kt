@@ -1,8 +1,10 @@
 package com.agguy.moni.app.ui.record
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,13 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,7 +23,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.app.components.MoniCard
+import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.theme.expenseRed
+import com.agguy.moni.app.theme.iconForCategory
 import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreRecord
 import com.agguy.moni.core.util.formatAmount
@@ -51,19 +50,14 @@ fun RecordListItem(
     val sign = if (isExpense) "-" else "+"
     val amountText = "${sign}${currencySymbol}${formatAmount(record.amountCents)}"
 
-    Card(
+    MoniCard(
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick
             ),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp,
-            pressedElevation = 4.dp
-        ),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        onClick = null
     ) {
         Row(
             modifier = Modifier
@@ -71,8 +65,11 @@ fun RecordListItem(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 分类颜色指示器
-            CategoryIndicator(colorHex = record.categoryColor)
+            // 分类图标指示器（浅色圆角方框 + 分类图标）
+            CategoryIndicator(
+                colorHex = record.categoryColor,
+                iconName = record.categoryName
+            )
 
             Spacer(modifier = Modifier.width(12.dp))
 
@@ -86,7 +83,7 @@ fun RecordListItem(
                 if (record.note.isNotBlank()) {
                     Text(
                         text = record.note,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -112,7 +109,7 @@ fun RecordListItem(
 }
 
 @Composable
-private fun CategoryIndicator(colorHex: String) {
+private fun CategoryIndicator(colorHex: String, iconName: String) {
     val color = try {
         Color(android.graphics.Color.parseColor(colorHex))
     } catch (e: Exception) {
@@ -120,14 +117,20 @@ private fun CategoryIndicator(colorHex: String) {
         MaterialTheme.colorScheme.primary
     }
 
-    Icon(
-        imageVector = Icons.AutoMirrored.Filled.List,
-        contentDescription = null,
-        tint = color,
+    Box(
         modifier = Modifier
             .size(40.dp)
-            .clip(CircleShape)
-    )
+            .clip(RoundedCornerShape(12.dp))
+            .background(color.copy(alpha = 0.15f)),
+        contentAlignment = Alignment.Center
+    ) {
+        MoniIcon(
+            icon = iconForCategory(iconName),
+            contentDescription = null,
+            modifier = Modifier.size(22.dp),
+            tint = color
+        )
+    }
 }
 
 private fun formatTime(timestamp: Long): String {

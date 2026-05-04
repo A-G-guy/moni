@@ -7,9 +7,9 @@ use crate::models::intent::CoreIntent;
 impl AppCoreRuntime {
     pub(super) fn handle_record_get(
         &mut self,
-        intent: CoreIntent,
+        intent: &CoreIntent,
     ) -> Result<CoreUpdate, CoreError> {
-        let CoreIntent::RecordGet { id } = intent else {
+        let &CoreIntent::RecordGet { id } = intent else {
             return Err(CoreError::Internal("意图类型不匹配".to_string()));
         };
 

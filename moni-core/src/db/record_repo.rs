@@ -55,19 +55,18 @@ pub fn get_by_id(conn: &Connection, id: RecordId) -> Result<Option<Record>, rusq
         .optional()
 }
 
-/// 分页查询记录，按 created_at 降序。
+/// 分页查询记录，按 `created_at` 降序。
 pub fn list_paginated(
     conn: &Connection,
     page: u32,
     page_size: u32,
 ) -> Result<Vec<Record>, rusqlite::Error> {
-    let offset = (page as i64)
-        .checked_mul(page_size as i64)
+    let offset = i64::from(page)
+        .checked_mul(i64::from(page_size))
         .unwrap_or(i64::MAX);
-    let limit = page_size as i64;
-    let mut stmt = conn.prepare(
-        "SELECT * FROM records ORDER BY created_at DESC LIMIT ?1 OFFSET ?2"
-    )?;
+    let limit = i64::from(page_size);
+    let mut stmt =
+        conn.prepare("SELECT * FROM records ORDER BY created_at DESC LIMIT ?1 OFFSET ?2")?;
     let rows = stmt.query_map([limit, offset], map_record)?;
     rows.collect()
 }
@@ -128,7 +127,7 @@ pub fn monthly_aggregates(
     months: u8,
 ) -> Result<Vec<(String, AmountCents, AmountCents)>, rusqlite::Error> {
     let now = chrono::Utc::now();
-    let start = now - chrono::Months::new(months as u32 + 1);
+    let start = now - chrono::Months::new(u32::from(months) + 1);
     let start_date = chrono::NaiveDate::from_ymd_opt(start.year(), start.month(), 1)
         .ok_or_else(|| rusqlite::Error::InvalidParameterName("无效的日期参数".to_string()))?;
     let start_datetime = start_date
@@ -145,18 +144,15 @@ pub fn monthly_aggregates(
          WHERE created_at >= ?1
          GROUP BY year_month
          ORDER BY year_month ASC
-         LIMIT ?2"
+         LIMIT ?2",
     )?;
-    let rows = stmt.query_map(
-        (start_timestamp, months as i64),
-        |row| {
-            Ok((
-                row.get::<_, String>(0)?,
-                row.get::<_, Option<AmountCents>>(1)?.unwrap_or(0),
-                row.get::<_, Option<AmountCents>>(2)?.unwrap_or(0),
-            ))
-        },
-    )?;
+    let rows = stmt.query_map((start_timestamp, i64::from(months)), |row| {
+        Ok((
+            row.get::<_, String>(0)?,
+            row.get::<_, Option<AmountCents>>(1)?.unwrap_or(0),
+            row.get::<_, Option<AmountCents>>(2)?.unwrap_or(0),
+        ))
+    })?;
     rows.collect()
 }
 
@@ -175,7 +171,7 @@ pub fn category_aggregates(
          WHERE r.record_type = 'expense'
            AND strftime('%Y-%m', datetime(r.created_at, 'unixepoch')) = ?1
          GROUP BY c.id
-         ORDER BY total DESC"
+         ORDER BY total DESC",
     )?;
     let rows = stmt.query_map([year_month], |row| {
         Ok((
@@ -186,4 +182,3 @@ pub fn category_aggregates(
     })?;
     rows.collect()
 }
-

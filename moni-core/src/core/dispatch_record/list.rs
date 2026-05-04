@@ -8,9 +8,9 @@ use crate::models::intent::CoreIntent;
 impl AppCoreRuntime {
     pub(super) fn handle_record_list(
         &mut self,
-        intent: CoreIntent,
+        intent: &CoreIntent,
     ) -> Result<CoreUpdate, CoreError> {
-        let CoreIntent::RecordList { page, page_size } = intent else {
+        let &CoreIntent::RecordList { page, page_size } = intent else {
             return Err(CoreError::Internal("意图类型不匹配".to_string()));
         };
 
@@ -27,8 +27,7 @@ impl AppCoreRuntime {
 
         let list = record_repo::list_paginated(&self.conn, page, page_size)?;
         self.state.records = record_list_to_dto(&list, &self.state.categories);
-        self.state.record_groups =
-            crate::dto::group_records_by_date(&self.state.records);
+        self.state.record_groups = crate::dto::group_records_by_date(&self.state.records);
         self.finish(Vec::new())
     }
 }

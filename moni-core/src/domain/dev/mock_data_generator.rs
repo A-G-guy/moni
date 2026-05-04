@@ -1,12 +1,13 @@
 use moni_contracts::category::Category;
 use moni_contracts::record::RecordType;
 use moni_contracts::types::{AmountCents, TimestampSec};
-use rand::seq::SliceRandom;
 use rand::Rng;
+use rand::seq::SliceRandom;
 
 use crate::models::intent::MockPreset;
 
 /// 待插入的 Mock 记录。
+#[derive(Debug)]
 pub struct MockRecord {
     pub amount_cents: AmountCents,
     pub record_type: RecordType,
@@ -71,16 +72,16 @@ fn generate_stress(
     index: u32,
 ) -> (AmountCents, String, RecordType) {
     let amount_cents = match index % 4 {
-        0 => 99999999,           // 超大金额
-        1 => 1,                  // 极小金额
+        0 => 99_999_999, // 超大金额
+        1 => 1,          // 极小金额
         _ => rng.gen_range(10..10000),
     };
 
     let note = match index % 5 {
-        0 => "a".repeat(500),    // 超长无空格文本
+        0 => "a".repeat(500), // 超长无空格文本
         1 => "🎉💰🚀测试备注包含Emoji和特殊符号✨📝".to_string(),
         2 => "VeryLongEnglishWordWithoutAnySpace".repeat(20),
-        3 => String::new(),      // 空备注
+        3 => String::new(), // 空备注
         _ => format!("{}记录", category.name),
     };
 

@@ -36,8 +36,8 @@ fn create_test_categories() -> Vec<Category> {
 #[test]
 fn test_generate_normal() {
     let categories = create_test_categories();
-    let records = mock_data_generator::generate(&categories, 50, MockPreset::Normal
-    ).expect("生成应成功");
+    let records =
+        mock_data_generator::generate(&categories, 50, MockPreset::Normal).expect("生成应成功");
 
     assert_eq!(records.len(), 50);
 
@@ -54,14 +54,13 @@ fn test_generate_normal() {
 #[test]
 fn test_generate_stress() {
     let categories = create_test_categories();
-    let records = mock_data_generator::generate(
-        &categories, 20, MockPreset::Stress
-    ).expect("生成应成功");
+    let records =
+        mock_data_generator::generate(&categories, 20, MockPreset::Stress).expect("生成应成功");
 
     assert_eq!(records.len(), 20);
 
     // 验证 stress 特性
-    let has_large_amount = records.iter().any(|r| r.amount_cents == 99999999);
+    let has_large_amount = records.iter().any(|r| r.amount_cents == 99_999_999);
     let has_tiny_amount = records.iter().any(|r| r.amount_cents == 1);
     let has_long_note = records.iter().any(|r| r.note.len() > 100);
     let has_empty_note = records.iter().any(|r| r.note.is_empty());
@@ -76,8 +75,7 @@ fn test_generate_stress() {
 #[test]
 fn test_generate_empty_categories() {
     let categories: Vec<Category> = vec![];
-    let result = mock_data_generator::generate(&categories, 10, MockPreset::Normal
-    );
+    let result = mock_data_generator::generate(&categories, 10, MockPreset::Normal);
 
     assert!(result.is_err(), "空分类应返回错误");
 }
@@ -86,9 +84,8 @@ fn test_generate_empty_categories() {
 #[test]
 fn test_generate_sorted_descending() {
     let categories = create_test_categories();
-    let records = mock_data_generator::generate(
-        &categories, 30, MockPreset::Normal
-    ).expect("生成应成功");
+    let records =
+        mock_data_generator::generate(&categories, 30, MockPreset::Normal).expect("生成应成功");
 
     for i in 1..records.len() {
         assert!(
@@ -98,7 +95,7 @@ fn test_generate_sorted_descending() {
     }
 }
 
-/// 测试 MockPreset 序列化反序列化。
+/// 测试 `MockPreset` 序列化反序列化。
 #[test]
 fn test_mock_preset_serde() {
     let normal = serde_json::to_string(&MockPreset::Normal).unwrap();

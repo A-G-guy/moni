@@ -20,4 +20,3 @@ pub fn generate(records: &[Record], categories: &[Category]) -> Result<String, s
 
     serde_json::to_string_pretty(&data)
 }
-

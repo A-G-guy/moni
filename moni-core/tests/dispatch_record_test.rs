@@ -13,8 +13,7 @@ fn test_record_create_success() {
         let category_id = categories[0]["id"].as_i64().unwrap();
 
         let intent = format!(
-            r#"{{"type":"record_create","amount_cents":1234,"record_type":"expense","category_id":{},"note":"测试","timestamp":null}}"#,
-            category_id
+            r#"{{"type":"record_create","amount_cents":1234,"record_type":"expense","category_id":{category_id},"note":"测试","timestamp":null}}"#
         );
         let update = core.dispatch(intent).await.expect("dispatch 不应失败");
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
@@ -89,8 +88,7 @@ fn test_record_update_amount_validation() {
         let category_id = state["categories"][0]["id"].as_i64().unwrap();
 
         let create_intent = format!(
-            r#"{{"type":"record_create","amount_cents":1000,"record_type":"expense","category_id":{},"note":"","timestamp":null}}"#,
-            category_id
+            r#"{{"type":"record_create","amount_cents":1000,"record_type":"expense","category_id":{category_id},"note":"","timestamp":null}}"#
         );
         core.dispatch(create_intent).await.unwrap();
 
@@ -100,8 +98,7 @@ fn test_record_update_amount_validation() {
 
         // 测试更新为零金额
         let update_zero = format!(
-            r#"{{"type":"record_update","id":{},"amount_cents":0,"record_type":null,"category_id":null,"note":null}}"#,
-            record_id
+            r#"{{"type":"record_update","id":{record_id},"amount_cents":0,"record_type":null,"category_id":null,"note":null}}"#
         );
         let update = core.dispatch(update_zero).await.expect("dispatch 不应失败");
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
@@ -112,8 +109,7 @@ fn test_record_update_amount_validation() {
 
         // 测试更新为负金额
         let update_neg = format!(
-            r#"{{"type":"record_update","id":{},"amount_cents":-100,"record_type":null,"category_id":null,"note":null}}"#,
-            record_id
+            r#"{{"type":"record_update","id":{record_id},"amount_cents":-100,"record_type":null,"category_id":null,"note":null}}"#
         );
         let update = core.dispatch(update_neg).await.expect("dispatch 不应失败");
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
@@ -124,8 +120,7 @@ fn test_record_update_amount_validation() {
 
         // 测试正常更新
         let update_ok = format!(
-            r#"{{"type":"record_update","id":{},"amount_cents":2000,"record_type":null,"category_id":null,"note":"更新备注"}}"#,
-            record_id
+            r#"{{"type":"record_update","id":{record_id},"amount_cents":2000,"record_type":null,"category_id":null,"note":"更新备注"}}"#
         );
         let update = core.dispatch(update_ok).await.expect("正常更新应成功");
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
@@ -162,8 +157,7 @@ fn test_record_delete() {
         let category_id = state["categories"][0]["id"].as_i64().unwrap();
 
         let create_intent = format!(
-            r#"{{"type":"record_create","amount_cents":100,"record_type":"expense","category_id":{},"note":"","timestamp":null}}"#,
-            category_id
+            r#"{{"type":"record_create","amount_cents":100,"record_type":"expense","category_id":{category_id},"note":"","timestamp":null}}"#
         );
         core.dispatch(create_intent).await.unwrap();
 
@@ -172,7 +166,7 @@ fn test_record_delete() {
         let record_id = state["records"][0]["id"].as_i64().unwrap();
         assert_eq!(state["records"].as_array().unwrap().len(), 1);
 
-        let delete_intent = format!(r#"{{"type":"record_delete","id":{}}}"#, record_id);
+        let delete_intent = format!(r#"{{"type":"record_delete","id":{record_id}}}"#);
         core.dispatch(delete_intent).await.unwrap();
 
         let snapshot = core.snapshot_json().await.unwrap();
@@ -208,10 +202,7 @@ fn test_pagination_bounds() {
         let intent = r#"{"type":"record_list","page":0,"page_size":0}"#.to_string();
         let update = core.dispatch(intent).await.expect("dispatch 不应失败");
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
-        assert!(
-            !state["ui"]["errorMessage"].is_null(),
-            "页大小为0应失败"
-        );
+        assert!(!state["ui"]["errorMessage"].is_null(), "页大小为0应失败");
 
         // 页大小超过上限应返回业务错误
         let intent = r#"{"type":"record_list","page":0,"page_size":1001}"#.to_string();
@@ -275,8 +266,7 @@ fn test_record_get() {
         let category_id = state["categories"][0]["id"].as_i64().unwrap();
 
         let create_intent = format!(
-            r#"{{"type":"record_create","amount_cents":500,"record_type":"expense","category_id":{},"note":"测试获取","timestamp":null}}"#,
-            category_id
+            r#"{{"type":"record_create","amount_cents":500,"record_type":"expense","category_id":{category_id},"note":"测试获取","timestamp":null}}"#
         );
         core.dispatch(create_intent).await.unwrap();
 
@@ -284,7 +274,7 @@ fn test_record_get() {
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
         let record_id = state["records"][0]["id"].as_i64().unwrap();
 
-        let get_intent = format!(r#"{{"type":"record_get","id":{}}}"#, record_id);
+        let get_intent = format!(r#"{{"type":"record_get","id":{record_id}}}"#);
         let update = core.dispatch(get_intent).await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
         assert!(state["ui"]["errorMessage"].is_null());

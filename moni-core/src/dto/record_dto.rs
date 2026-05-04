@@ -23,8 +23,7 @@ impl RecordDto {
         let cat_name = categories
             .iter()
             .find(|c| c.id == record.category_id)
-            .map(|c| c.name.clone())
-            .unwrap_or_else(|| "未知分类".to_string());
+            .map_or_else(|| "未知分类".to_string(), |c| c.name.clone());
 
         Self {
             id: record.id,

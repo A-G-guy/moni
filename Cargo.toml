@@ -4,3 +4,23 @@ resolver = "2"
 
 [workspace.package]
 license = "Apache-2.0"
+
+[workspace.lints.rust]
+unsafe_code = "warn"
+unused = "warn"
+missing_debug_implementations = "warn"
+
+[workspace.lints.clippy]
+correctness = { level = "deny", priority = -1 }
+perf = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+complexity = { level = "warn", priority = -1 }
+style = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+# 项目针对性放宽（这些规则在 Compose/UniFFI 项目中误报较多）
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+must_use_candidate = "allow"
+return_self_not_must_use = "allow"
+multiple_crate_versions = "allow"

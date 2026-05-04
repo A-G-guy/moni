@@ -45,7 +45,7 @@ pub fn insert(
             },
             icon_name,
             sort_order,
-            if is_preset { 1 } else { 0 },
+            i32::from(is_preset),
             now,
             now,
         ),
@@ -55,24 +55,19 @@ pub fn insert(
 
 /// 根据 ID 查询分类。
 pub fn get_by_id(conn: &Connection, id: CategoryId) -> Result<Option<Category>, rusqlite::Error> {
-    conn.query_row(
-        "SELECT * FROM categories WHERE id = ?1",
-        [id],
-        map_category,
-    )
-    .optional()
+    conn.query_row("SELECT * FROM categories WHERE id = ?1", [id], map_category)
+        .optional()
 }
 
-/// 查询所有分类（含归档项），按 sort_order 排序。
+/// 查询所有分类（含归档项），按 `sort_order` 排序。
 pub fn list_all(conn: &Connection) -> Result<Vec<Category>, rusqlite::Error> {
-    let mut stmt = conn.prepare(
-        "SELECT * FROM categories ORDER BY sort_order ASC, created_at ASC"
-    )?;
+    let mut stmt =
+        conn.prepare("SELECT * FROM categories ORDER BY sort_order ASC, created_at ASC")?;
     let rows = stmt.query_map([], map_category)?;
     rows.collect()
 }
 
-/// 仅查询活跃分类（未归档），按 sort_order 排序。
+/// 仅查询活跃分类（未归档），按 `sort_order` 排序。
 pub fn list_active(conn: &Connection) -> Result<Vec<Category>, rusqlite::Error> {
     let mut stmt = conn.prepare(
         "SELECT * FROM categories WHERE archived_at IS NULL ORDER BY sort_order ASC, created_at ASC"
@@ -81,7 +76,7 @@ pub fn list_active(conn: &Connection) -> Result<Vec<Category>, rusqlite::Error> 
     rows.collect()
 }
 
-/// 更新分类（仅允许更新自定义分类的 name / description / icon_name）。
+/// 更新分类（仅允许更新自定义分类的 name / description / `icon_name`）。
 pub fn update(
     conn: &Connection,
     id: CategoryId,
@@ -101,7 +96,7 @@ pub fn update(
     )
 }
 
-/// 归档分类（设置 archived_at 为当前时间戳）。
+/// 归档分类（设置 `archived_at` 为当前时间戳）。
 pub fn archive(conn: &Connection, id: CategoryId) -> Result<usize, rusqlite::Error> {
     let now = chrono::Utc::now().timestamp();
     conn.execute(
@@ -110,7 +105,7 @@ pub fn archive(conn: &Connection, id: CategoryId) -> Result<usize, rusqlite::Err
     )
 }
 
-/// 取消归档分类（将 archived_at 设为 NULL）。
+/// 取消归档分类（将 `archived_at` 设为 NULL）。
 pub fn unarchive(conn: &Connection, id: CategoryId) -> Result<usize, rusqlite::Error> {
     let now = chrono::Utc::now().timestamp();
     conn.execute(
@@ -131,11 +126,7 @@ pub fn is_in_use(conn: &Connection, id: CategoryId) -> Result<bool, rusqlite::Er
 
 /// 插入预设分类（仅在表为空时执行）。
 pub fn seed_presets(conn: &Connection) -> Result<(), rusqlite::Error> {
-    let count: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM categories",
-        [],
-        |row| row.get(0),
-    )?;
+    let count: i64 = conn.query_row("SELECT COUNT(*) FROM categories", [], |row| row.get(0))?;
     if count > 0 {
         return Ok(());
     }

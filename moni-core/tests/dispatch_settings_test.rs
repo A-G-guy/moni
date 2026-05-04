@@ -30,8 +30,7 @@ fn test_settings_export_csv() {
 
         // 创建记录
         let intent = format!(
-            r#"{{"type":"record_create","amount_cents":1234,"record_type":"expense","category_id":{},"note":"午餐","timestamp":null}}"#,
-            category_id
+            r#"{{"type":"record_create","amount_cents":1234,"record_type":"expense","category_id":{category_id},"note":"午餐","timestamp":null}}"#
         );
         core.dispatch(intent).await.unwrap();
 
@@ -66,8 +65,7 @@ fn test_settings_export_json() {
 
         // 创建记录
         let intent = format!(
-            r#"{{"type":"record_create","amount_cents":5678,"record_type":"income","category_id":{},"note":"工资","timestamp":null}}"#,
-            category_id
+            r#"{{"type":"record_create","amount_cents":5678,"record_type":"income","category_id":{category_id},"note":"工资","timestamp":null}}"#
         );
         core.dispatch(intent).await.unwrap();
 

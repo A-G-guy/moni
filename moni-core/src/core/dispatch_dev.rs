@@ -5,10 +5,9 @@ use crate::models::effects::CoreUpdate;
 use crate::models::intent::CoreIntent;
 
 impl AppCoreRuntime {
-    pub(super) fn dispatch_dev(
-        &mut self,
-        intent: CoreIntent,
-    ) -> Result<CoreUpdate, CoreError> {
+    // 单元 enum 分支不消费 intent，但其他分支按值解构 String 字段，整体最直观签名仍为按值
+    #[allow(clippy::needless_pass_by_value)]
+    pub(super) fn dispatch_dev(&mut self, intent: CoreIntent) -> Result<CoreUpdate, CoreError> {
         match intent {
             CoreIntent::DevClearAllData => {
                 log::warn!("执行清空所有数据");
@@ -36,8 +35,10 @@ impl AppCoreRuntime {
                 self.state = crate::models::state::AppState::default();
                 let categories = category_repo::list_all(&self.conn)
                     .map_err(|e| CoreError::Internal(format!("加载分类失败: {e}")))?;
-                self.state.categories =
-                    categories.iter().map(crate::dto::CategoryDto::from_category).collect();
+                self.state.categories = categories
+                    .iter()
+                    .map(crate::dto::CategoryDto::from_category)
+                    .collect();
 
                 log::info!("所有数据已清空");
                 self.finish(Vec::new())
@@ -48,15 +49,14 @@ impl AppCoreRuntime {
                 let categories = category_repo::list_all(&self.conn)
                     .map_err(|e| CoreError::Internal(format!("加载分类失败: {e}")))?;
                 if categories.is_empty() {
-                    return Err(CoreError::Internal("没有可用分类，无法生成 Mock 数据".to_string()));
+                    return Err(CoreError::Internal(
+                        "没有可用分类，无法生成 Mock 数据".to_string(),
+                    ));
                 }
 
-                let records = crate::domain::dev::mock_data_generator::generate(
-                    &categories,
-                    count,
-                    preset,
-                )
-                .map_err(|e| CoreError::Internal(format!("生成 Mock 数据失败: {e}")))?;
+                let records =
+                    crate::domain::dev::mock_data_generator::generate(&categories, count, preset)
+                        .map_err(|e| CoreError::Internal(format!("生成 Mock 数据失败: {e}")))?;
 
                 for record in &records {
                     record_repo::insert(
@@ -73,12 +73,9 @@ impl AppCoreRuntime {
                 // 刷新记录列表到状态
                 let all_records = record_repo::list_paginated(&self.conn, 0, 50)
                     .map_err(|e| CoreError::Internal(format!("加载记录失败: {e}")))?;
-                self.state.records = crate::dto::record_list_to_dto(
-                    &all_records,
-                    &self.state.categories,
-                );
-                self.state.record_groups =
-                    crate::dto::group_records_by_date(&self.state.records);
+                self.state.records =
+                    crate::dto::record_list_to_dto(&all_records, &self.state.categories);
+                self.state.record_groups = crate::dto::group_records_by_date(&self.state.records);
 
                 // 刷新月度统计
                 let aggregates = record_repo::monthly_aggregates(&self.conn, 6)
@@ -89,10 +86,7 @@ impl AppCoreRuntime {
                 log::info!("Mock 数据生成完成: {} 条", records.len());
                 self.finish(vec![crate::models::effects::CoreEffect {
                     kind: "show_snackbar".to_string(),
-                    payload_json: format!(
-                        r#"{{"message":"已生成 {} 条测试数据"}}"#,
-                        records.len()
-                    ),
+                    payload_json: format!(r#"{{"message":"已生成 {} 条测试数据"}}"#, records.len()),
                 }])
             }
             _ => {

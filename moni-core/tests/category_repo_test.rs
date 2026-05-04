@@ -1,7 +1,7 @@
+use moni_contracts::record::RecordType;
 use moni_core::db::category_repo;
 use moni_core::db::connection::open_in_memory;
 use moni_core::db::schema::init_schema;
-use moni_contracts::record::RecordType;
 
 fn setup() -> rusqlite::Connection {
     let conn = open_in_memory().unwrap();
@@ -12,7 +12,16 @@ fn setup() -> rusqlite::Connection {
 #[test]
 fn test_insert_and_get() {
     let conn = setup();
-    let id = category_repo::insert(&conn, "测试分类", None, RecordType::Expense, "test", 1, false).unwrap();
+    let id = category_repo::insert(
+        &conn,
+        "测试分类",
+        None,
+        RecordType::Expense,
+        "test",
+        1,
+        false,
+    )
+    .unwrap();
     assert!(id > 0);
 
     let cat = category_repo::get_by_id(&conn, id).unwrap().unwrap();
@@ -27,8 +36,15 @@ fn test_insert_and_get() {
 fn test_insert_with_description() {
     let conn = setup();
     let id = category_repo::insert(
-        &conn, "测试分类", Some("描述内容"), RecordType::Income, "test", 1, false,
-    ).unwrap();
+        &conn,
+        "测试分类",
+        Some("描述内容"),
+        RecordType::Income,
+        "test",
+        1,
+        false,
+    )
+    .unwrap();
 
     let cat = category_repo::get_by_id(&conn, id).unwrap().unwrap();
     assert_eq!(cat.description, Some("描述内容".to_string()));
@@ -49,7 +65,8 @@ fn test_list_all_ordering() {
 #[test]
 fn test_list_active_excludes_archived() {
     let conn = setup();
-    let id = category_repo::insert(&conn, "活跃分类", None, RecordType::Expense, "a", 1, false).unwrap();
+    let id =
+        category_repo::insert(&conn, "活跃分类", None, RecordType::Expense, "a", 1, false).unwrap();
     category_repo::archive(&conn, id).unwrap();
 
     let all = category_repo::list_all(&conn).unwrap();
@@ -64,9 +81,15 @@ fn test_seed_presets() {
     let conn = setup();
     category_repo::seed_presets(&conn).unwrap();
     let list = category_repo::list_all(&conn).unwrap();
-    assert_eq!(list.len(), moni_core::shared::constants::PRESET_CATEGORY_COUNT);
+    assert_eq!(
+        list.len(),
+        moni_core::shared::constants::PRESET_CATEGORY_COUNT
+    );
     assert!(list.iter().all(|c| c.is_preset));
-    assert!(list.iter().all(|c| c.is_active()));
+    assert!(
+        list.iter()
+            .all(moni_contracts::category::Category::is_active)
+    );
 }
 
 #[test]
@@ -75,14 +98,19 @@ fn test_seed_presets_idempotent() {
     category_repo::seed_presets(&conn).unwrap();
     category_repo::seed_presets(&conn).unwrap();
     let list = category_repo::list_all(&conn).unwrap();
-    assert_eq!(list.len(), moni_core::shared::constants::PRESET_CATEGORY_COUNT);
+    assert_eq!(
+        list.len(),
+        moni_core::shared::constants::PRESET_CATEGORY_COUNT
+    );
 }
 
 #[test]
 fn test_update_custom_ok() {
     let conn = setup();
-    let id = category_repo::insert(&conn, "原名", None, RecordType::Expense, "x", 1, false).unwrap();
-    let affected = category_repo::update(&conn, id, Some("新名"), Some("新描述"), Some("new_icon")).unwrap();
+    let id =
+        category_repo::insert(&conn, "原名", None, RecordType::Expense, "x", 1, false).unwrap();
+    let affected =
+        category_repo::update(&conn, id, Some("新名"), Some("新描述"), Some("new_icon")).unwrap();
     assert_eq!(affected, 1);
 
     let cat = category_repo::get_by_id(&conn, id).unwrap().unwrap();
@@ -103,9 +131,15 @@ fn test_update_preset_fails() {
 #[test]
 fn test_archive_and_unarchive() {
     let conn = setup();
-    let id = category_repo::insert(&conn, "归档测试", None, RecordType::Expense, "x", 1, false).unwrap();
+    let id =
+        category_repo::insert(&conn, "归档测试", None, RecordType::Expense, "x", 1, false).unwrap();
 
-    assert!(category_repo::get_by_id(&conn, id).unwrap().unwrap().is_active());
+    assert!(
+        category_repo::get_by_id(&conn, id)
+            .unwrap()
+            .unwrap()
+            .is_active()
+    );
 
     let affected = category_repo::archive(&conn, id).unwrap();
     assert_eq!(affected, 1);
@@ -123,13 +157,15 @@ fn test_archive_and_unarchive() {
 #[test]
 fn test_is_in_use() {
     let conn = setup();
-    let cat_id = category_repo::insert(&conn, "分类", None, RecordType::Expense, "x", 1, false).unwrap();
+    let cat_id =
+        category_repo::insert(&conn, "分类", None, RecordType::Expense, "x", 1, false).unwrap();
     assert!(!category_repo::is_in_use(&conn, cat_id).unwrap());
 
     conn.execute(
         "INSERT INTO records (amount_cents, record_type, category_id, note, created_at, updated_at)
          VALUES (100, 'expense', ?1, '', 0, 0)",
         [cat_id],
-    ).unwrap();
+    )
+    .unwrap();
     assert!(category_repo::is_in_use(&conn, cat_id).unwrap());
 }

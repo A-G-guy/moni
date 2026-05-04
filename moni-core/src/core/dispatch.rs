@@ -34,10 +34,12 @@ impl AppCoreRuntime {
             | CoreIntent::CategoryArchive { .. }
             | CoreIntent::CategoryUnarchive { .. }
             | CoreIntent::CategoryList => self.dispatch_category(intent),
-            CoreIntent::StatsMonthlySummary { .. }
-            | CoreIntent::StatsCategoryBreakdown { .. } => self.dispatch_stats(intent),
-            CoreIntent::SettingsUpdateCurrency { .. }
-            | CoreIntent::SettingsExportData { .. } => self.dispatch_settings(intent),
+            CoreIntent::StatsMonthlySummary { .. } | CoreIntent::StatsCategoryBreakdown { .. } => {
+                self.dispatch_stats(intent)
+            }
+            CoreIntent::SettingsUpdateCurrency { .. } | CoreIntent::SettingsExportData { .. } => {
+                self.dispatch_settings(intent)
+            }
             CoreIntent::DevClearAllData | CoreIntent::DevGenerateMockData { .. } => {
                 self.dispatch_dev(intent)
             }

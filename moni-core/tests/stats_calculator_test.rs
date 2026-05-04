@@ -14,14 +14,11 @@ fn test_monthly_summary() {
 
 #[test]
 fn test_category_breakdown() {
-    let input = vec![
-        (1, "餐饮".to_string(), 6000),
-        (2, "交通".to_string(), 4000),
-    ];
+    let input = vec![(1, "餐饮".to_string(), 6000), (2, "交通".to_string(), 4000)];
     let result = calculator::calculate_category_breakdown(input);
     assert_eq!(result.len(), 2);
-    assert_eq!(result[0].percentage, 60.0);
-    assert_eq!(result[1].percentage, 40.0);
+    assert!((result[0].percentage - 60.0).abs() < f64::EPSILON);
+    assert!((result[1].percentage - 40.0).abs() < f64::EPSILON);
 }
 
 #[test]
@@ -32,9 +29,7 @@ fn test_category_breakdown_empty() {
 
 #[test]
 fn test_category_breakdown_zero_total() {
-    let input = vec![
-        (1, "餐饮".to_string(), 0),
-    ];
+    let input = vec![(1, "餐饮".to_string(), 0)];
     let result = calculator::calculate_category_breakdown(input);
     assert!(result.is_empty());
 }

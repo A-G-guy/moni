@@ -8,9 +8,9 @@ use crate::models::intent::CoreIntent;
 impl AppCoreRuntime {
     pub(super) fn handle_record_delete(
         &mut self,
-        intent: CoreIntent,
+        intent: &CoreIntent,
     ) -> Result<CoreUpdate, CoreError> {
-        let CoreIntent::RecordDelete { id } = intent else {
+        let &CoreIntent::RecordDelete { id } = intent else {
             return Err(CoreError::Internal("意图类型不匹配".to_string()));
         };
 
@@ -20,8 +20,7 @@ impl AppCoreRuntime {
         record_repo::delete(&self.conn, id)?;
         log::info!("记录删除成功: id={id}");
         self.state.records.retain(|r| r.id != id);
-        self.state.record_groups =
-            crate::dto::group_records_by_date(&self.state.records);
+        self.state.record_groups = crate::dto::group_records_by_date(&self.state.records);
 
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),

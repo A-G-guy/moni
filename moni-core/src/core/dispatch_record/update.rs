@@ -47,15 +47,13 @@ impl AppCoreRuntime {
             category_id,
             note.as_deref(),
         )?;
-        let updated = record_repo::get_by_id(&self.conn, id)?.ok_or_else(|| {
-            CoreError::Internal(format!("更新后查询记录失败: id={id}"))
-        })?;
+        let updated = record_repo::get_by_id(&self.conn, id)?
+            .ok_or_else(|| CoreError::Internal(format!("更新后查询记录失败: id={id}")))?;
         let dto = RecordDto::from_record(&updated, &self.state.categories);
         if let Some(idx) = self.state.records.iter().position(|r| r.id == id) {
             self.state.records[idx] = dto;
         }
-        self.state.record_groups =
-            crate::dto::group_records_by_date(&self.state.records);
+        self.state.record_groups = crate::dto::group_records_by_date(&self.state.records);
 
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),

@@ -6,10 +6,7 @@ use crate::models::effects::CoreUpdate;
 use crate::models::intent::CoreIntent;
 
 impl AppCoreRuntime {
-    pub(super) fn dispatch_stats(
-        &mut self,
-        intent: CoreIntent,
-    ) -> Result<CoreUpdate, CoreError> {
+    pub(super) fn dispatch_stats(&mut self, intent: CoreIntent) -> Result<CoreUpdate, CoreError> {
         match intent {
             CoreIntent::StatsMonthlySummary { months } => {
                 let aggregates = record_repo::monthly_aggregates(&self.conn, months)?;

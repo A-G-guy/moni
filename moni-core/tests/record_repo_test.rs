@@ -1,8 +1,8 @@
+use moni_contracts::record::RecordType;
 use moni_core::db::category_repo;
 use moni_core::db::connection::open_in_memory;
 use moni_core::db::record_repo;
 use moni_core::db::schema::init_schema;
-use moni_contracts::record::RecordType;
 
 fn setup() -> rusqlite::Connection {
     let conn = open_in_memory().unwrap();
@@ -46,8 +46,16 @@ fn test_list_paginated_ordering() {
 fn test_list_paginated_paging() {
     let conn = setup();
     let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
-    for i in 0..5 {
-        record_repo::insert(&conn, (i + 1) as i64 * 100, RecordType::Expense, cat_id, "", Some(i as i64 * 1000)).unwrap();
+    for i in 0..5_i32 {
+        record_repo::insert(
+            &conn,
+            i64::from(i + 1) * 100,
+            RecordType::Expense,
+            cat_id,
+            "",
+            Some(i64::from(i) * 1000),
+        )
+        .unwrap();
     }
 
     let page0 = record_repo::list_paginated(&conn, 0, 2).unwrap();

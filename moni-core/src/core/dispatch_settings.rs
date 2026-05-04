@@ -25,7 +25,9 @@ impl AppCoreRuntime {
                 let categories = category_repo::list_all(&self.conn)?;
 
                 let content = match format {
-                    moni_contracts::export::ExportFormat::Csv => csv_generator::generate(&records, &categories),
+                    moni_contracts::export::ExportFormat::Csv => {
+                        csv_generator::generate(&records, &categories)
+                    }
                     moni_contracts::export::ExportFormat::Json => {
                         json_generator::generate(&records, &categories)
                             .map_err(|e| CoreError::Internal(format!("JSON 序列化失败: {e}")))?

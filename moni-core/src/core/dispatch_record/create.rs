@@ -38,13 +38,11 @@ impl AppCoreRuntime {
             &note,
             timestamp,
         )?;
-        let record = record_repo::get_by_id(&self.conn, id)?.ok_or_else(|| {
-            CoreError::Internal("插入后查询失败".to_string())
-        })?;
+        let record = record_repo::get_by_id(&self.conn, id)?
+            .ok_or_else(|| CoreError::Internal("插入后查询失败".to_string()))?;
         let dto = RecordDto::from_record(&record, &self.state.categories);
         self.state.records.insert(0, dto);
-        self.state.record_groups =
-            crate::dto::group_records_by_date(&self.state.records);
+        self.state.record_groups = crate::dto::group_records_by_date(&self.state.records);
 
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),

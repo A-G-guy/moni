@@ -56,6 +56,7 @@ fun CategoryListScreen(
     var categoryToEdit by remember { mutableStateOf<CoreCategory?>(null) }
     var showAddSheet by remember { mutableStateOf(false) }
     var categoryToArchive by remember { mutableStateOf<CoreCategory?>(null) }
+    var categoryToUnarchive by remember { mutableStateOf<CoreCategory?>(null) }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
@@ -124,6 +125,16 @@ fun CategoryListScreen(
                     onEditRequest = { categoryToEdit = it }
                 )
             }
+
+            val archivedCategories = appState.categories.filter {
+                it.categoryType == categoryType.serialName && it.archivedAt != null
+            }
+            if (archivedCategories.isNotEmpty()) {
+                ArchivedSection(
+                    categories = archivedCategories,
+                    onUnarchiveRequest = { categoryToUnarchive = it }
+                )
+            }
         }
     }
 
@@ -149,6 +160,18 @@ fun CategoryListScreen(
                 categoryToArchive = null
             },
             onDismiss = { categoryToArchive = null }
+        )
+    }
+
+    // 恢复确认对话框
+    categoryToUnarchive?.let { category ->
+        UnarchiveConfirmDialog(
+            category = category,
+            onConfirm = {
+                onDispatch(CoreIntent.CategoryUnarchive(category.id))
+                categoryToUnarchive = null
+            },
+            onDismiss = { categoryToUnarchive = null }
         )
     }
 }

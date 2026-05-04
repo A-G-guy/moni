@@ -74,6 +74,12 @@ object MoniIcons {
     val InfoFilled = R.drawable.ic_info_filled
     val Help = R.drawable.ic_help
     val HelpFilled = R.drawable.ic_help_filled
+
+    // 归档与展开
+    val Archive = R.drawable.ic_archive
+    val Unarchive = R.drawable.ic_unarchive
+    val ExpandMore = R.drawable.ic_expand_more
+    val ExpandLess = R.drawable.ic_expand_less
 }
 
 /**

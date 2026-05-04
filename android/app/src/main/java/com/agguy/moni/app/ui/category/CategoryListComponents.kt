@@ -112,7 +112,7 @@ fun CategoryListItem(
             if (!category.isPreset) {
                 IconButton(onClick = onArchiveClick) {
                     MoniIcon(
-                        icon = MoniIcons.Delete,
+                        icon = MoniIcons.Archive,
                         contentDescription = "归档",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -172,6 +172,46 @@ fun ArchiveConfirmDialog(
             confirmButton = {
                 TextButton(onClick = onConfirm) {
                     Text("归档")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("取消")
+                }
+            }
+        )
+    }
+}
+
+/**
+ * 恢复确认对话框。
+ */
+@Composable
+fun UnarchiveConfirmDialog(
+    category: CoreCategory,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val dialogSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
+
+    AnimatedVisibility(
+        visible = true,
+        enter = scaleIn(animationSpec = dialogSpec),
+        exit = scaleOut(animationSpec = dialogSpec)
+    ) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            shape = MaterialTheme.shapes.extraLarge,
+            title = { Text("确认恢复") },
+            text = {
+                Text(
+                    "确定要恢复「${category.name}」吗？\n" +
+                    "恢复后该分类将重新出现在新建记录的选择中。"
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = onConfirm) {
+                    Text("恢复")
                 }
             },
             dismissButton = {

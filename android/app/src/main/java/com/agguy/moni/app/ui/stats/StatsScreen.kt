@@ -149,8 +149,14 @@ fun StatsScreen(
  *
  * **边缘态（stuck state）设计**：
  * 滑到首/末月时，Material 3 内部会通过 keyline 移位生成
- * `[anchor, large, small, small, anchor]`，大卡片自然贴到容器边缘，另一侧露出两张完整小卡。
- * 由于移位仅搬动 keyline 位置而不改 size，边缘态的 small 与居中态左右两侧的 small **尺寸完全一致**。
+ * `[anchor, large, small, small, anchor]` 或 `[anchor, small, small, large, anchor]`，大卡片自然贴到容器边缘，
+ * 另一侧露出两张完整小卡。由于移位仅搬动 keyline 位置而不改 size，
+ * 边缘态的 small 与居中态左右两侧的 small **尺寸完全一致**。
+ *
+ * 注意 carousel 自身的 [PaddingValues] contentPadding 在 stuck state 下会让 large 距 carousel 边 = padding 值
+ * （Material 3 内部 createShiftedKeylineListForContentPadding 行为），导致大卡未贴屏幕边；
+ * 因此这里把 contentPadding 设为 0，把水平间距改用外层 Modifier.padding 实现，
+ * stuck state 时 large 真正贴 carousel 容器边，整体到屏幕边的距离 = 外层 padding，左右严格对称。
  *
  * 为避免 Material 3 在默认 40-56dp 区间内根据 viewport 自适应、导致
  * 不同设备宽度上 small 尺寸有微小差异，这里显式锁定 minSmallItemWidth = maxSmallItemWidth = [SmallItemWidth]，
@@ -180,13 +186,19 @@ private fun MonthSummaryCarousel(
     HorizontalCenteredHeroCarousel(
         state = carouselState,
         itemSpacing = CarouselItemSpacing,
-        contentPadding = PaddingValues(horizontal = CarouselContentPadding),
+        // contentPadding 设为 0：Material 3 在 stuck state 下，
+        // 会用 createShiftedKeylineListForContentPadding 把 large 中心向 padding 内侧偏移，
+        // 让 large 距离 carousel 容器边缘 = afterContentPadding，视觉上"没贴到边"。
+        // 改为把水平 padding 加到 carousel 外层 Modifier，让 carousel 容器自身就是缩小后的 viewport，
+        // stuck state 时 large 自然贴 carousel 边、整体距屏幕边就是外层 padding，左右一致。
+        contentPadding = PaddingValues(0.dp),
         // 显式锁定 small 尺寸：Material 3 在 stuck state 下通过 move 重排 keyline 但不改 size，
         // min == max 进一步避免 Material 在默认区间内做 viewport 适配，使中间态与边缘态严格相等。
         minSmallItemWidth = SmallItemWidth,
         maxSmallItemWidth = SmallItemWidth,
         modifier = modifier
             .fillMaxWidth()
+            .padding(horizontal = CarouselContentPadding)
             .height(180.dp)
     ) { index ->
         val summary = summaries[index]

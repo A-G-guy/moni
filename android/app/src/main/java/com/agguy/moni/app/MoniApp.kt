@@ -57,7 +57,7 @@ fun MoniApp() {
 
     MoniTheme(
         themeMode = themeSettings.themeMode,
-        seedColor = Color(themeSettings.seedColor),
+        seedColor = Color(themeSettings.seedColor.toULong()),
         dynamicColor = themeSettings.dynamicColor
     ) {
         Scaffold(

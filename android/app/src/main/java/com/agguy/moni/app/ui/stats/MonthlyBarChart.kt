@@ -97,7 +97,7 @@ fun MonthlyBarChart(
             val paddingStart = 32f
             val paddingEnd = 16f
             val paddingTop = 32f
-            val paddingBottom = 32f
+            val paddingBottom = 48f
             val chartWidth = size.width - paddingStart - paddingEnd
             val chartHeight = size.height - paddingTop - paddingBottom
 

@@ -10,9 +10,10 @@ import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import com.materialkolor.rememberDynamicColorScheme
+import com.materialkolor.dynamicColorScheme
 
 /**
  * 主题模式枚举。
@@ -47,7 +48,9 @@ fun MoniTheme(
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        else -> rememberDynamicColorScheme(seedColor = seedColor, isDark = darkTheme)
+        else -> remember(seedColor.value, darkTheme) {
+            dynamicColorScheme(seedColor = seedColor, isDark = darkTheme)
+        }
     }
 
     val motionScheme = MotionScheme.expressive()

@@ -140,9 +140,11 @@ private fun PieChartCanvas(
         if (total <= 0) return@Canvas
 
         val canvasSize = size.minDimension
-        val radius = canvasSize / 2 - 4f
         val center = Offset(size.width / 2, size.height / 2)
-        val strokeWidth = radius * 0.35f
+        // 预留边距防止 stroke 超出 Canvas 边界
+        val maxRadius = canvasSize / 2 - 8f
+        val strokeWidth = maxRadius * 0.30f
+        val radius = maxRadius - strokeWidth / 2
         val gapAngle = 2f
         var startAngle = -90f
 

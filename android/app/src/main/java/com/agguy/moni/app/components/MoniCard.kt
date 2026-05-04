@@ -48,7 +48,7 @@ fun MoniCard(
     when (variant) {
         MoniCardVariant.Filled -> Card(
             modifier = cardModifier,
-            shape = MaterialTheme.shapes.large,
+            shape = MaterialTheme.shapes.extraLarge,
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
@@ -57,7 +57,7 @@ fun MoniCard(
 
         MoniCardVariant.Tonal -> Card(
             modifier = cardModifier,
-            shape = MaterialTheme.shapes.large,
+            shape = MaterialTheme.shapes.extraLarge,
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -66,12 +66,12 @@ fun MoniCard(
 
         MoniCardVariant.Outlined -> OutlinedCard(
             modifier = cardModifier,
-            shape = MaterialTheme.shapes.large
+            shape = MaterialTheme.shapes.extraLarge
         ) { content() }
 
         MoniCardVariant.Elevated -> Card(
             modifier = cardModifier,
-            shape = MaterialTheme.shapes.large,
+            shape = MaterialTheme.shapes.extraLarge,
             elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow

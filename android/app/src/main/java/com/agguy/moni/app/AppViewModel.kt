@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.agguy.moni.app.navigation.Screen
+import com.agguy.moni.app.theme.DefaultSeedColor
 import com.agguy.moni.app.theme.ThemeMode
 import com.agguy.moni.core.CoreEffectRunner
 import com.agguy.moni.core.CoreIntent
@@ -23,7 +24,7 @@ import kotlinx.coroutines.launch
 data class ThemeSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val dynamicColor: Boolean = false,
-    val seedColor: Long = 0xFF0F5C5E
+    val seedColor: Long = DefaultSeedColor.value.toLong()
 )
 
 class AppViewModel(

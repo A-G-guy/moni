@@ -1,6 +1,5 @@
 package com.agguy.moni.app.ui.stats
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,10 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun EmptyChartPlaceholder(
-    message: String,
-    modifier: Modifier = Modifier
-) {
+fun EmptyChartPlaceholder(message: String, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -41,10 +37,7 @@ fun EmptyChartPlaceholder(
 }
 
 @Composable
-fun ChartLegend(
-    items: List<LegendItem>,
-    modifier: Modifier = Modifier
-) {
+fun ChartLegend(items: List<LegendItem>, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -80,7 +73,7 @@ fun formatShortAmount(cents: Long, symbol: String): String {
     return when {
         yuan >= 10000 -> "${symbol}${yuan / 10000}w"
         yuan >= 1000 -> "${symbol}${yuan / 1000}k"
-        else -> "${symbol}${yuan}"
+        else -> "${symbol}$yuan"
     }
 }
 

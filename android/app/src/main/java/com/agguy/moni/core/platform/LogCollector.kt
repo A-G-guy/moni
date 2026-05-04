@@ -10,7 +10,10 @@ import java.time.format.DateTimeFormatter
  * 日志等级。
  */
 enum class LogLevel {
-    DEBUG, INFO, WARN, ERROR
+    DEBUG,
+    INFO,
+    WARN,
+    ERROR
 }
 
 /**
@@ -104,23 +107,21 @@ object LogCollector {
      * 收集当前进程的系统日志（含 Rust 层通过 android_logger 写入的日志）。
      * 由于 Android 13+ 限制，可能返回空或失败提示。
      */
-    fun collectProcessLogcat(): String {
-        return try {
-            val pid = Process.myPid().toString()
-            val process = Runtime.getRuntime().exec(
-                arrayOf("logcat", "-d", "--pid=$pid", "-v", "threadtime")
-            )
-            process.inputStream.bufferedReader().use { reader ->
-                val lines = reader.readLines()
-                if (lines.isEmpty()) {
-                    "[系统日志为空，可能受 Android 权限限制]"
-                } else {
-                    lines.joinToString("\n")
-                }
+    fun collectProcessLogcat(): String = try {
+        val pid = Process.myPid().toString()
+        val process = Runtime.getRuntime().exec(
+            arrayOf("logcat", "-d", "--pid=$pid", "-v", "threadtime")
+        )
+        process.inputStream.bufferedReader().use { reader ->
+            val lines = reader.readLines()
+            if (lines.isEmpty()) {
+                "[系统日志为空，可能受 Android 权限限制]"
+            } else {
+                lines.joinToString("\n")
             }
-        } catch (e: Exception) {
-            "[无法读取系统日志: ${e.message}]"
         }
+    } catch (e: Exception) {
+        "[无法读取系统日志: ${e.message}]"
     }
 
     private fun addEntry(entry: LogEntry) {

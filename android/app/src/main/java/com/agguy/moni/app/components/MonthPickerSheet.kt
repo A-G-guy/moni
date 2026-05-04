@@ -178,8 +178,11 @@ private fun MonthCell(
             }
             Text(
                 text = label,
-                style = if (isFocus) MaterialTheme.typography.titleMediumEmphasized
-                        else MaterialTheme.typography.bodyLarge,
+                style = if (isFocus) {
+                    MaterialTheme.typography.titleMediumEmphasized
+                } else {
+                    MaterialTheme.typography.bodyLarge
+                },
                 color = textColor
             )
         }
@@ -188,8 +191,6 @@ private fun MonthCell(
 
 private const val MonthsPerRow = 4
 
-private fun parseYear(yearMonth: String): Int? =
-    yearMonth.split('-').firstOrNull()?.toIntOrNull()
+private fun parseYear(yearMonth: String): Int? = yearMonth.split('-').firstOrNull()?.toIntOrNull()
 
-private fun formatYearMonth(year: Int, month: Int): String =
-    "%04d-%02d".format(year, month)
+private fun formatYearMonth(year: Int, month: Int): String = "%04d-%02d".format(year, month)

@@ -29,10 +29,8 @@ object DataStoreHelper {
     /**
      * 获取货币符号流。
      */
-    fun currencySymbolFlow(context: Context): Flow<String> {
-        return context.dataStore.data.map { preferences ->
-            preferences[CURRENCY_SYMBOL_KEY] ?: "¥"
-        }
+    fun currencySymbolFlow(context: Context): Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[CURRENCY_SYMBOL_KEY] ?: "¥"
     }
 
     /**
@@ -47,13 +45,11 @@ object DataStoreHelper {
     /**
      * 获取主题模式流。
      */
-    fun themeModeFlow(context: Context): Flow<ThemeMode> {
-        return context.dataStore.data.map { preferences ->
-            when (preferences[THEME_MODE_KEY]) {
-                "light" -> ThemeMode.LIGHT
-                "dark" -> ThemeMode.DARK
-                else -> ThemeMode.SYSTEM
-            }
+    fun themeModeFlow(context: Context): Flow<ThemeMode> = context.dataStore.data.map { preferences ->
+        when (preferences[THEME_MODE_KEY]) {
+            "light" -> ThemeMode.LIGHT
+            "dark" -> ThemeMode.DARK
+            else -> ThemeMode.SYSTEM
         }
     }
 
@@ -73,10 +69,8 @@ object DataStoreHelper {
     /**
      * 获取动态颜色开关流。
      */
-    fun dynamicColorFlow(context: Context): Flow<Boolean> {
-        return context.dataStore.data.map { preferences ->
-            preferences[DYNAMIC_COLOR_KEY] ?: false
-        }
+    fun dynamicColorFlow(context: Context): Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[DYNAMIC_COLOR_KEY] ?: false
     }
 
     /**
@@ -91,10 +85,8 @@ object DataStoreHelper {
     /**
      * 获取种子色流。
      */
-    fun seedColorFlow(context: Context): Flow<Long> {
-        return context.dataStore.data.map { preferences ->
-            preferences[SEED_COLOR_KEY] ?: DefaultSeedColor.value.toLong()
-        }
+    fun seedColorFlow(context: Context): Flow<Long> = context.dataStore.data.map { preferences ->
+        preferences[SEED_COLOR_KEY] ?: DefaultSeedColor.value.toLong()
     }
 
     /**

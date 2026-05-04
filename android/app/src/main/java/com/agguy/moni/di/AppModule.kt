@@ -13,13 +13,13 @@ import com.agguy.moni.core.RustCoreController
 object AppModule {
     fun provideRustCoreController(): RustCoreController = RustCoreController()
 
-    fun provideCoreEffectRunner(context: Context): CoreEffectRunner {
-        return CoreEffectRunner().apply {
-            onExportFile = { format, content ->
-                com.agguy.moni.core.platform.ExportHelper.saveToDownloads(
-                    context, format, content
-                )
-            }
+    fun provideCoreEffectRunner(context: Context): CoreEffectRunner = CoreEffectRunner().apply {
+        onExportFile = { format, content ->
+            com.agguy.moni.core.platform.ExportHelper.saveToDownloads(
+                context,
+                format,
+                content
+            )
         }
     }
 }

@@ -31,11 +31,7 @@ fun iconForCategory(name: String): Int = when (name.lowercase()) {
  * @property iconRes 未选中态图标资源 ID
  * @property iconResFilled 选中态图标资源 ID
  */
-data class CategoryIcon(
-    val name: String,
-    val iconRes: Int,
-    val iconResFilled: Int
-)
+data class CategoryIcon(val name: String, val iconRes: Int, val iconResFilled: Int)
 
 /**
  * 图标分组。
@@ -43,10 +39,7 @@ data class CategoryIcon(
  * @property label 分组显示名称
  * @property icons 该分组下的图标列表
  */
-data class IconGroup(
-    val label: String,
-    val icons: List<CategoryIcon>
-)
+data class IconGroup(val label: String, val icons: List<CategoryIcon>)
 
 /**
  * 所有可供用户选择的分类图标，按主题分组。

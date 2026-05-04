@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,11 +42,7 @@ import com.agguy.moni.app.theme.luminance
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SeedColorPickerDialog(
-    currentSeed: Long,
-    onConfirm: (Long) -> Unit,
-    onDismiss: () -> Unit
-) {
+fun SeedColorPickerDialog(currentSeed: Long, onConfirm: (Long) -> Unit, onDismiss: () -> Unit) {
     var selected by remember { mutableLongStateOf(currentSeed) }
 
     AlertDialog(
@@ -75,7 +70,9 @@ fun SeedColorPickerDialog(
                             modifier = Modifier.size(40.dp),
                             border = if (isSelected) {
                                 BorderStroke(3.dp, MaterialTheme.colorScheme.primary)
-                            } else null
+                            } else {
+                                null
+                            }
                         ) {
                             Box(
                                 modifier = Modifier.fillMaxWidth(),
@@ -108,11 +105,7 @@ fun SeedColorPickerDialog(
 }
 
 @Composable
-fun CurrencyPickerDialog(
-    currentSymbol: String,
-    onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
+fun CurrencyPickerDialog(currentSymbol: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
     val options = listOf("¥" to "人民币", "$" to "美元", "€" to "欧元", "£" to "英镑")
     var selected by remember { mutableStateOf(currentSymbol) }
 
@@ -154,11 +147,7 @@ fun CurrencyPickerDialog(
 }
 
 @Composable
-fun ThemeModePickerDialog(
-    currentMode: ThemeMode,
-    onConfirm: (ThemeMode) -> Unit,
-    onDismiss: () -> Unit
-) {
+fun ThemeModePickerDialog(currentMode: ThemeMode, onConfirm: (ThemeMode) -> Unit, onDismiss: () -> Unit) {
     val options = listOf(
         ThemeMode.LIGHT to "浅色",
         ThemeMode.DARK to "深色",

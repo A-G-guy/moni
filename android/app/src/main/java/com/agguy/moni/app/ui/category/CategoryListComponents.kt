@@ -23,7 +23,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.icons.MoniIcon
@@ -147,11 +146,7 @@ fun EmptyCategoryList(modifier: Modifier = Modifier) {
  * 归档确认对话框。
  */
 @Composable
-fun ArchiveConfirmDialog(
-    category: CoreCategory,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
+fun ArchiveConfirmDialog(category: CoreCategory, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     val dialogSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
 
     AnimatedVisibility(
@@ -166,7 +161,7 @@ fun ArchiveConfirmDialog(
             text = {
                 Text(
                     "确定要归档「${category.name}」吗？\n" +
-                    "归档后该分类将不再出现在新建记录的选择中，但历史记录依然保留。"
+                        "归档后该分类将不再出现在新建记录的选择中，但历史记录依然保留。"
                 )
             },
             confirmButton = {
@@ -187,11 +182,7 @@ fun ArchiveConfirmDialog(
  * 恢复确认对话框。
  */
 @Composable
-fun UnarchiveConfirmDialog(
-    category: CoreCategory,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
+fun UnarchiveConfirmDialog(category: CoreCategory, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     val dialogSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
 
     AnimatedVisibility(
@@ -206,7 +197,7 @@ fun UnarchiveConfirmDialog(
             text = {
                 Text(
                     "确定要恢复「${category.name}」吗？\n" +
-                    "恢复后该分类将重新出现在新建记录的选择中。"
+                        "恢复后该分类将重新出现在新建记录的选择中。"
                 )
             },
             confirmButton = {

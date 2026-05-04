@@ -30,10 +30,7 @@ import com.agguy.moni.core.MockPreset
  * Mock 数据生成对话框。
  */
 @Composable
-fun DevMockDataDialog(
-    onConfirm: (count: Int, preset: MockPreset) -> Unit,
-    onDismiss: () -> Unit
-) {
+fun DevMockDataDialog(onConfirm: (count: Int, preset: MockPreset) -> Unit, onDismiss: () -> Unit) {
     var selectedCount by remember { mutableIntStateOf(10) }
     var selectedPreset by remember { mutableStateOf(MockPreset.NORMAL) }
 
@@ -98,11 +95,7 @@ fun DevMockDataDialog(
 }
 
 @Composable
-private fun CountOption(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
+private fun CountOption(label: String, selected: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -126,11 +119,7 @@ private fun CountOption(
 }
 
 @Composable
-private fun PresetOption(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
+private fun PresetOption(label: String, selected: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

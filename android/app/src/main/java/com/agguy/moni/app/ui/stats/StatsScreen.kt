@@ -47,11 +47,7 @@ import java.time.format.DateTimeFormatter
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StatsScreen(
-    appState: AppState,
-    onDispatch: (CoreIntent) -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun StatsScreen(appState: AppState, onDispatch: (CoreIntent) -> Unit, modifier: Modifier = Modifier) {
     val currentYearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 

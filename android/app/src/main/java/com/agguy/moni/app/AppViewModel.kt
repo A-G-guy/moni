@@ -86,7 +86,8 @@ class AppViewModel(
             LogCollector.i("AppViewModel", "Dispatch intent: ${intent::class.simpleName}")
             if (intent is CoreIntent.SettingsUpdateCurrency) {
                 DataStoreHelper.saveCurrencySymbol(
-                    getApplication(), intent.symbol
+                    getApplication(),
+                    intent.symbol
                 )
             }
             val mutation = rustCore.dispatch(intent)

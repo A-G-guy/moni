@@ -26,17 +26,16 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -262,16 +261,14 @@ private fun EmptyRecordList(modifier: Modifier = Modifier) {
     }
 }
 
-private fun formatDisplayDate(dateStr: String): String {
-    return try {
-        val date = LocalDate.parse(dateStr)
-        val today = LocalDate.now()
-        when (date) {
-            today -> "今天"
-            today.minusDays(1) -> "昨天"
-            else -> date.format(DateTimeFormatter.ofPattern("M月d日 EEEE"))
-        }
-    } catch (_: Exception) {
-        dateStr
+private fun formatDisplayDate(dateStr: String): String = try {
+    val date = LocalDate.parse(dateStr)
+    val today = LocalDate.now()
+    when (date) {
+        today -> "今天"
+        today.minusDays(1) -> "昨天"
+        else -> date.format(DateTimeFormatter.ofPattern("M月d日 EEEE"))
     }
+} catch (_: Exception) {
+    dateStr
 }

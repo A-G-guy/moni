@@ -38,11 +38,7 @@ import java.time.format.DateTimeFormatter
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DatePickerField(
-    timestamp: Long,
-    onTimestampChange: (Long) -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun DatePickerField(timestamp: Long, onTimestampChange: (Long) -> Unit, modifier: Modifier = Modifier) {
     var showDialog by remember { mutableStateOf(false) }
     val displayDate = remember(timestamp) { formatDate(timestamp) }
 
@@ -91,14 +87,12 @@ fun DatePickerField(
     }
 }
 
-private fun formatDate(timestamp: Long): String {
-    return try {
-        Instant.ofEpochSecond(timestamp)
-            .atZone(ZoneId.systemDefault())
-            .toLocalDate()
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-    } catch (e: Exception) {
-        Log.w("Moni", "日期格式化失败: timestamp=$timestamp, ${e.message}")
-        LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-    }
+private fun formatDate(timestamp: Long): String = try {
+    Instant.ofEpochSecond(timestamp)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
+        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+} catch (e: Exception) {
+    Log.w("Moni", "日期格式化失败: timestamp=$timestamp, ${e.message}")
+    LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 }

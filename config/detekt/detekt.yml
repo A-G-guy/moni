@@ -1,0 +1,101 @@
+config:
+  validation: true
+  warningsAsErrors: false
+  excludes: []
+
+processors:
+  active: true
+
+console-reports:
+  active: true
+
+complexity:
+  LongMethod:
+    active: true
+    # Compose @Composable UI 函数声明式 DSL 容易自然撑到 150~200 行，阈值放宽
+    allowedLines: 200
+  LongParameterList:
+    active: true
+    # @Composable 习惯将 Modifier、状态、回调一并通过参数传入
+    allowedFunctionParameters: 12
+    allowedConstructorParameters: 10
+    ignoreDataClasses: true
+    ignoreDefaultParameters: true
+  TooManyFunctions:
+    active: true
+    allowedFunctionsPerClass: 25
+    allowedFunctionsPerFile: 30
+    allowedFunctionsPerObject: 20
+    allowedFunctionsPerInterface: 25
+    allowedFunctionsPerEnum: 25
+  CyclomaticComplexMethod:
+    active: true
+    allowedComplexity: 25
+
+style:
+  MagicNumber:
+    active: false
+  MaxLineLength:
+    active: true
+    maxLineLength: 140
+  NewLineAtEndOfFile:
+    active: true
+  UnusedPrivateProperty:
+    active: true
+  UnusedPrivateFunction:
+    active: true
+  WildcardImport:
+    active: true
+  ReturnCount:
+    active: true
+    max: 4
+
+# ktlint 规则集（detekt 2.0 中前身为 formatting）
+ktlint:
+  active: true
+  android: true
+  MaximumLineLength:
+    active: true
+    maxLineLength: 140
+  Wrapping:
+    active: true
+  TrailingCommaOnCallSite:
+    active: false
+  TrailingCommaOnDeclarationSite:
+    active: false
+  # Compose 与 Android 生态对 PascalCase 顶层 const 友好，关闭 ktlint 默认严格规则
+  PropertyName:
+    active: false
+  BackingPropertyNaming:
+    active: false
+  Filename:
+    active: false
+
+empty-blocks:
+  active: true
+
+exceptions:
+  active: true
+  TooGenericExceptionCaught:
+    active: false
+
+# Compose 项目针对性
+naming:
+  active: true
+  FunctionNaming:
+    active: true
+    # 允许 PascalCase Composable 函数名
+    functionPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ignoreAnnotated: ['Composable']
+  TopLevelPropertyNaming:
+    active: true
+    # 允许 Compose 风格的 PascalCase 顶层 const
+    constantPattern: '[A-Z][A-Za-z0-9_]*'
+  # 单文件多顶层声明（如 enum + composable）在 UI 层很常见，关闭以避免误伤
+  MatchingDeclarationName:
+    active: false
+
+potential-bugs:
+  active: true
+  UnsafeCast:
+    active: true

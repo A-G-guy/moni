@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,9 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.icons.MoniIcons
@@ -76,7 +72,9 @@ fun CategoryEditorSheet(
 
     val initialType = if (category != null) {
         if (category.categoryType == RecordType.INCOME.serialName) RecordType.INCOME else RecordType.EXPENSE
-    } else defaultType
+    } else {
+        defaultType
+    }
 
     var name by remember { mutableStateOf(category?.name ?: "") }
     var description by remember { mutableStateOf(category?.description ?: "") }
@@ -290,11 +288,7 @@ private fun CategoryTypeSelector(
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun IconSelector(
-    selectedIndex: Int,
-    onIconSelected: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
+private fun IconSelector(selectedIndex: Int, onIconSelected: (Int) -> Unit, modifier: Modifier = Modifier) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = "选择图标",
@@ -349,7 +343,9 @@ private fun IconOption(
         modifier = modifier.size(56.dp),
         border = if (isSelected) {
             BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-        } else null
+        } else {
+            null
+        }
     ) {
         Box(
             modifier = Modifier.fillMaxWidth(),

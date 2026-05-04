@@ -63,9 +63,7 @@ data class CoreCategoryBreakdown(
 )
 
 @Serializable
-data class CoreSettings(
-    val currencySymbol: String = "¥"
-)
+data class CoreSettings(val currencySymbol: String = "¥")
 
 @Serializable
 data class CoreUiState(

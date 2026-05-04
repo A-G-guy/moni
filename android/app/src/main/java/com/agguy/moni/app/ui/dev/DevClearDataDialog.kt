@@ -14,10 +14,7 @@ import com.agguy.moni.app.theme.expenseRed
  * 清空数据二次确认对话框。
  */
 @Composable
-fun DevClearDataDialog(
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
+fun DevClearDataDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = MaterialTheme.shapes.extraLarge,
@@ -25,7 +22,7 @@ fun DevClearDataDialog(
         text = {
             Text(
                 "此操作将清空所有记账数据和应用设置，不可恢复。\n\n" +
-                "应用将自动重启并回到初始状态。"
+                    "应用将自动重启并回到初始状态。"
             )
         },
         confirmButton = {

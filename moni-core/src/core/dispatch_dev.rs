@@ -17,14 +17,10 @@ impl AppCoreRuntime {
                     .execute("DELETE FROM records;", [])
                     .map_err(|e| CoreError::Internal(format!("清空记录失败: {e}")))?;
 
-                // 删除自定义分类（保留预设分类的 ID 不变）
+                // 删除所有分类
                 self.conn
-                    .execute("DELETE FROM categories WHERE is_preset = 0;", [])
+                    .execute("DELETE FROM categories;", [])
                     .map_err(|e| CoreError::Internal(format!("清空分类失败: {e}")))?;
-
-                // 重新填充预设分类
-                category_repo::seed_presets(&self.conn)
-                    .map_err(|e| CoreError::Internal(format!("重新填充预设分类失败: {e}")))?;
 
                 // 压缩数据库
                 self.conn
@@ -33,6 +29,16 @@ impl AppCoreRuntime {
 
                 // 重置状态
                 self.state = crate::models::state::AppState::default();
+
+                log::info!("所有数据已清空");
+                self.finish(Vec::new())
+            }
+            CoreIntent::DevSeedPresets => {
+                log::info!("执行重置预设分类");
+
+                category_repo::seed_presets(&self.conn)
+                    .map_err(|e| CoreError::Internal(format!("填充预设分类失败: {e}")))?;
+
                 let categories = category_repo::list_all(&self.conn)
                     .map_err(|e| CoreError::Internal(format!("加载分类失败: {e}")))?;
                 self.state.categories = categories
@@ -40,8 +46,11 @@ impl AppCoreRuntime {
                     .map(crate::dto::CategoryDto::from_category)
                     .collect();
 
-                log::info!("所有数据已清空");
-                self.finish(Vec::new())
+                log::info!("预设分类已重置");
+                self.finish(vec![crate::models::effects::CoreEffect {
+                    kind: "show_snackbar".to_string(),
+                    payload_json: r#"{"message":"预设分类已重置"}"#.to_string(),
+                }])
             }
             CoreIntent::DevGenerateMockData { count, preset } => {
                 log::info!("生成 Mock 数据: count={count}, preset={preset}");

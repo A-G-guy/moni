@@ -120,12 +120,15 @@ fn test_update_custom_ok() {
 }
 
 #[test]
-fn test_update_preset_fails() {
+fn test_update_preset_ok() {
     let conn = setup();
     category_repo::seed_presets(&conn).unwrap();
     let presets = category_repo::list_all(&conn).unwrap();
     let affected = category_repo::update(&conn, presets[0].id, Some("改名"), None, None).unwrap();
-    assert_eq!(affected, 0);
+    assert_eq!(affected, 1);
+
+    let cat = category_repo::get_by_id(&conn, presets[0].id).unwrap().unwrap();
+    assert_eq!(cat.name, "改名");
 }
 
 #[test]

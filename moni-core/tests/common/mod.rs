@@ -19,6 +19,9 @@ pub fn setup_core_with_presets() -> MoniCore {
         core.initialize_with_db(":memory:".to_string())
             .await
             .expect("初始化失败");
+        core.dispatch(r#"{"type":"dev_seed_presets"}"#.to_string())
+            .await
+            .expect("填充预设分类失败");
     });
     core
 }

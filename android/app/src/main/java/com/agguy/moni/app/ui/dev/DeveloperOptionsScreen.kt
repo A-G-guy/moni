@@ -97,6 +97,13 @@ fun DeveloperOptionsScreen(
                 subtitle = "删除所有数据并重启（危险）",
                 onClick = { showClearDataDialog = true }
             )
+
+            SettingsItem(
+                icon = MoniIcons.Category,
+                title = "重置预设分类",
+                subtitle = "插入默认的分类模板",
+                onClick = { onDispatch(CoreIntent.DevSeedPresets) }
+            )
         }
     }
 

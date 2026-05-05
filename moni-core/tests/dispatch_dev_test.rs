@@ -33,7 +33,7 @@ fn test_dev_clear_all_data() {
     let categories = state["categories"].as_array().unwrap();
 
     assert!(records.is_empty(), "清空后记录应为空");
-    assert!(!categories.is_empty(), "清空后仍应有预设分类");
+    assert!(categories.is_empty(), "清空后分类应为空");
 }
 
 /// 测试生成 Mock 数据。

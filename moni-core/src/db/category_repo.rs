@@ -91,7 +91,7 @@ pub fn update(
             description = COALESCE(?3, description),
             icon_name = COALESCE(?4, icon_name),
             updated_at = ?5
-         WHERE id = ?1 AND is_preset = 0",
+         WHERE id = ?1",
         (id, name, description, icon_name, now),
     )
 }
@@ -141,7 +141,7 @@ pub fn seed_presets(conn: &Connection) -> Result<(), rusqlite::Error> {
         ("教育", RecordType::Expense, "school", 7),
         ("其他支出", RecordType::Expense, "more_horiz", 8),
         ("工资", RecordType::Income, "payments", 9),
-        ("奖金", RecordType::Income, "card_giftcard", 10),
+        ("奖金", RecordType::Income, "redeem", 10),
         ("投资", RecordType::Income, "trending_up", 11),
         ("其他收入", RecordType::Income, "more_horiz", 12),
     ];

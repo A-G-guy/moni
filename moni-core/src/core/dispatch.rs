@@ -40,7 +40,7 @@ impl AppCoreRuntime {
             CoreIntent::SettingsUpdateCurrency { .. } | CoreIntent::SettingsExportData { .. } => {
                 self.dispatch_settings(intent)
             }
-            CoreIntent::DevClearAllData | CoreIntent::DevGenerateMockData { .. } => {
+            CoreIntent::DevClearAllData | CoreIntent::DevGenerateMockData { .. } | CoreIntent::DevSeedPresets => {
                 self.dispatch_dev(intent)
             }
             CoreIntent::NavigateTo { screen } => {

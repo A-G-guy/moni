@@ -147,7 +147,7 @@ fn test_category_update_success() {
 }
 
 #[test]
-fn test_category_update_preset_fails() {
+fn test_category_update_preset_ok() {
     let core = common::setup_core_with_presets();
     let rt = tokio::runtime::Runtime::new().unwrap();
 
@@ -163,7 +163,11 @@ fn test_category_update_preset_fails() {
             .await
             .expect("dispatch 不应失败");
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
-        assert!(!state["ui"]["errorMessage"].is_null(), "编辑预设分类应失败");
+        assert!(state["ui"]["errorMessage"].is_null(), "编辑预设分类应成功");
+
+        let cat = state["categories"].as_array().unwrap()
+            .iter().find(|c| c["id"] == preset_id).unwrap();
+        assert_eq!(cat["name"], "改名");
     });
 }
 

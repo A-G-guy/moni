@@ -90,6 +90,7 @@ pub enum CoreIntent {
         count: u32,
         preset: MockPreset,
     },
+    DevSeedPresets,
 
     NavigateTo {
         screen: String,

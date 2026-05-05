@@ -1,5 +1,4 @@
 use crate::core::runtime::AppCoreRuntime;
-use crate::db::category_repo::seed_presets;
 use crate::db::schema::init_schema;
 use crate::dto::CategoryDto;
 use crate::models::effects::CoreUpdate;
@@ -22,7 +21,6 @@ impl AppCoreRuntime {
         log::info!("初始化数据库: path={db_path}");
         self.conn = open_connection(db_path)?;
         init_schema(&self.conn)?;
-        seed_presets(&self.conn)?;
         log::info!("数据库初始化完成");
 
         // 加载初始数据到状态

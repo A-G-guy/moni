@@ -123,6 +123,10 @@ sealed class CoreIntent {
     @SerialName("dev_generate_mock_data")
     data class DevGenerateMockData(val count: Int, val preset: MockPreset) : CoreIntent()
 
+    @Serializable
+    @SerialName("dev_seed_presets")
+    data object DevSeedPresets : CoreIntent()
+
     // UI 相关
     @Serializable
     @SerialName("navigate_to")

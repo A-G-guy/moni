@@ -163,6 +163,10 @@ class AppViewModel(
         _navController?.navigate(Screen.DevLog)
     }
 
+    fun navigateToArchivedCategories() {
+        _navController?.navigate(Screen.ArchivedCategories)
+    }
+
     fun navigateBack() {
         _navController?.popBackStack()
     }

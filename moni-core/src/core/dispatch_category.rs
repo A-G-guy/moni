@@ -92,12 +92,8 @@ impl AppCoreRuntime {
         description: Option<&str>,
         icon_name: Option<&str>,
     ) -> Result<CoreUpdate, CoreError> {
-        let category =
+        let _category =
             category_repo::get_by_id(&self.conn, id)?.ok_or(CoreError::CategoryNotFound(id))?;
-        if category.is_preset {
-            log::warn!("更新分类失败: 预设分类不可编辑, id={id}");
-            return Err(CoreError::InvalidInput("预设分类不可编辑".to_string()));
-        }
         if let Some(n) = name
             && n.trim().is_empty()
         {

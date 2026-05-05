@@ -23,5 +23,8 @@ sealed class Screen {
     data object DeveloperOptions : Screen()
 
     @Serializable
+    data object ArchivedCategories : Screen()
+
+    @Serializable
     data object DevLog : Screen()
 }

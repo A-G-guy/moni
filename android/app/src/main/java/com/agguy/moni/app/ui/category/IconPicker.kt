@@ -5,16 +5,15 @@ package com.agguy.moni.app.ui.category
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -30,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.theme.CategoryIcon
@@ -117,6 +115,9 @@ fun IconPicker(selectedIconName: String, onIconSelected: (String) -> Unit, modif
 /**
  * 单个图标分组区域。
  *
+ * 使用 [BoxWithConstraints] 动态计算列数，以普通 [Row]/[Column] 替代 [LazyVerticalGrid]，
+ * 避免懒加载网格嵌套在可滚动容器内导致的子项渲染异常。
+ *
  * @param group 图标分组数据
  * @param selectedIconName 当前选中的图标名称
  * @param onIconSelected 图标选中回调
@@ -134,39 +135,43 @@ private fun IconGroupSection(group: IconGroup, selectedIconName: String, onIconS
             modifier = Modifier.padding(horizontal = 4.dp)
         )
 
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 48.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(calculateGridHeight(group.icons.size)),
-            contentPadding = PaddingValues(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            userScrollEnabled = false
-        ) {
-            items(group.icons, key = { it.name }) { icon ->
-                IconPickerOption(
-                    icon = icon,
-                    isSelected = icon.name == selectedIconName,
-                    onClick = { onIconSelected(icon.name) }
-                )
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth().padding(4.dp)) {
+            val itemSize = 48.dp
+            val spacing = 8.dp
+            val columns = maxOf(
+                1,
+                ((maxWidth + spacing) / (itemSize + spacing)).toInt()
+            )
+            val rows = (group.icons.size + columns - 1) / columns
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(spacing)
+            ) {
+                for (row in 0 until rows) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(spacing)
+                    ) {
+                        for (col in 0 until columns) {
+                            val index = row * columns + col
+                            if (index < group.icons.size) {
+                                val icon = group.icons[index]
+                                IconPickerOption(
+                                    icon = icon,
+                                    isSelected = icon.name == selectedIconName,
+                                    onClick = { onIconSelected(icon.name) },
+                                    modifier = Modifier.size(itemSize)
+                                )
+                            } else {
+                                Spacer(modifier = Modifier.size(itemSize))
+                            }
+                        }
+                    }
+                }
             }
         }
     }
-}
-
-/**
- * 根据图标数量计算网格高度。
- *
- * 每行约 48dp 图标 + 8dp 间距，预留上下边距。
- */
-private fun calculateGridHeight(iconCount: Int): Dp {
-    val columns = 6
-    val rows = (iconCount + columns - 1) / columns
-    val itemHeight = 48
-    val spacing = 8
-    val padding = 16
-    return ((rows * itemHeight) + ((rows - 1) * spacing) + padding).dp
 }
 
 /**
@@ -189,7 +194,6 @@ private fun IconPickerOption(
 
     Box(
         modifier = modifier
-            .size(48.dp)
             .clip(optionShape),
         contentAlignment = Alignment.Center
     ) {
@@ -201,7 +205,7 @@ private fun IconPickerOption(
             } else {
                 MaterialTheme.colorScheme.surfaceContainerHighest
             },
-            modifier = Modifier.fillMaxWidth().height(48.dp),
+            modifier = Modifier.fillMaxSize(),
             border = if (isSelected) {
                 BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
             } else {

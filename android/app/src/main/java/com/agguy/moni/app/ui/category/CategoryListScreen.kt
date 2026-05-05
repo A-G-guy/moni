@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
@@ -59,7 +57,6 @@ fun CategoryListScreen(
     var categoryToEdit by remember { mutableStateOf<CoreCategory?>(null) }
     var showAddSheet by remember { mutableStateOf(false) }
     var categoryToArchive by remember { mutableStateOf<CoreCategory?>(null) }
-    var showMenu by remember { mutableStateOf(false) }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
@@ -85,20 +82,8 @@ fun CategoryListScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showMenu = true }) {
-                        MoniIcon(MoniIcons.MoreHoriz, contentDescription = "更多选项")
-                    }
-                    DropdownMenu(
-                        expanded = showMenu,
-                        onDismissRequest = { showMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("已归档分类") },
-                            onClick = {
-                                showMenu = false
-                                onNavigateToArchivedCategories()
-                            }
-                        )
+                    IconButton(onClick = onNavigateToArchivedCategories) {
+                        MoniIcon(MoniIcons.Archive, contentDescription = "已归档分类")
                     }
                 },
                 scrollBehavior = scrollBehavior

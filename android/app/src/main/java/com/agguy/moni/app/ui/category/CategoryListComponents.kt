@@ -3,7 +3,9 @@ package com.agguy.moni.app.ui.category
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -16,9 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,8 +27,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.app.components.MoniCard
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.expenseRed
@@ -80,10 +83,8 @@ fun CategoryListItem(
 ) {
     val categoryColor = categoryColorForType(category.categoryType)
 
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    MoniCard(
+        modifier = modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
@@ -91,22 +92,19 @@ fun CategoryListItem(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 分类图标（带颜色背景）
-            androidx.compose.foundation.layout.Box(
+            // 分类图标（圆角方框背景，与账单页卡片保持一致）
+            Box(
                 modifier = Modifier
                     .padding(end = 12.dp)
-                    .size(40.dp),
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(categoryColor.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
-                androidx.compose.foundation.Canvas(
-                    modifier = Modifier.matchParentSize()
-                ) {
-                    drawCircle(categoryColor.copy(alpha = 0.15f), radius = size.minDimension / 2)
-                }
                 MoniIcon(
                     icon = iconNameToRes(category.iconName),
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(22.dp),
                     tint = categoryColor
                 )
             }

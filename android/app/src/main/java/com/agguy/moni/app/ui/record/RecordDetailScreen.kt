@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -141,55 +142,47 @@ fun RecordDetailScreen(
             )
         },
         bottomBar = {
-            Surface(
-                tonalElevation = 3.dp,
-                shadowElevation = 0.dp
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Button(
-                        onClick = {
-                            if (isSaveEnabled) {
-                                if (isEditMode) {
-                                    onDispatch(
-                                        CoreIntent.RecordUpdate(
-                                            id = existingRecord.id,
-                                            amountCents = amountCents,
-                                            recordType = recordType,
-                                            categoryId = selectedCategoryId,
-                                            note = note
-                                        )
-                                    )
-                                } else {
-                                    onDispatch(
-                                        CoreIntent.RecordCreate(
-                                            amountCents = amountCents,
-                                            recordType = recordType,
-                                            categoryId = selectedCategoryId,
-                                            note = note,
-                                            timestamp = timestamp
-                                        )
-                                    )
-                                }
-                                onNavigateBack()
-                            }
-                        },
-                        enabled = isSaveEnabled,
-                        colors = ButtonDefaults.buttonColors(
-                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    ) {
-                        Text(
-                            text = "保存",
-                            style = MaterialTheme.typography.titleMediumEmphasized
-                        )
+            Button(
+                onClick = {
+                    if (isSaveEnabled) {
+                        if (isEditMode) {
+                            onDispatch(
+                                CoreIntent.RecordUpdate(
+                                    id = existingRecord.id,
+                                    amountCents = amountCents,
+                                    recordType = recordType,
+                                    categoryId = selectedCategoryId,
+                                    note = note
+                                )
+                            )
+                        } else {
+                            onDispatch(
+                                CoreIntent.RecordCreate(
+                                    amountCents = amountCents,
+                                    recordType = recordType,
+                                    categoryId = selectedCategoryId,
+                                    note = note,
+                                    timestamp = timestamp
+                                )
+                            )
+                        }
+                        onNavigateBack()
                     }
-                }
+                },
+                enabled = isSaveEnabled,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .height(48.dp),
+                colors = ButtonDefaults.buttonColors(
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            ) {
+                Text(
+                    text = "保存",
+                    style = MaterialTheme.typography.titleMediumEmphasized
+                )
             }
         }
     ) { innerPadding ->

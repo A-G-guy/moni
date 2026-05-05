@@ -191,9 +191,10 @@ fun CategoryEditorSheet(
                     onDismiss()
                 },
                 enabled = isSaveEnabled,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = typeColor,
                     disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )

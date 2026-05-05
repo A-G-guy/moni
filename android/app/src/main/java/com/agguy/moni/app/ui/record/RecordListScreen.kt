@@ -99,11 +99,6 @@ fun RecordListScreen(
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        MoniIcon(
-                            icon = MoniIcons.ExpandMore,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
                     }
                     IconButton(onClick = onNavigateToCategoryList) {
                         MoniIcon(

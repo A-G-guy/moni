@@ -118,8 +118,10 @@ internal fun MonthSummaryCarousel(
         }
     }
 
-    // 监听 carousel 内部滑动，仅当新月份与外部不同时才回调，避免循环触发
-    LaunchedEffect(carouselState, summaries) {
+    // 监听 carousel 内部滑动，仅当新月份与外部不同时才回调，避免循环触发。
+    // key 只使用 carouselState：summaries 数据刷新不应导致 snapshotFlow 重新订阅，
+    // 否则 currentItem 不变但 summaries 同 index 对应不同月份时会产生假阳性回调。
+    LaunchedEffect(carouselState) {
         snapshotFlow { carouselState.currentItem }
             .distinctUntilChanged()
             .collect { index ->

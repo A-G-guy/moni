@@ -2,9 +2,6 @@
 
 package com.agguy.moni.app.ui.record
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -33,7 +29,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -72,9 +67,7 @@ fun RecordListScreen(
     onNavigateToCategoryList: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var recordToDelete by remember { mutableLongStateOf(-1L) }
     var sheetVisible by remember { mutableStateOf(false) }
-    val dialogSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     val monthLabel = remember(selectedYearMonth) {
@@ -136,38 +129,9 @@ fun RecordListScreen(
                 recordGroups = appState.recordGroups,
                 currencySymbol = appState.currencySymbol,
                 onRecordClick = { onNavigateToRecordDetail(it) },
-                onDeleteRequest = { recordToDelete = it },
                 modifier = Modifier.padding(innerPadding)
             )
         }
-    }
-
-    AnimatedVisibility(
-        visible = recordToDelete != -1L,
-        enter = scaleIn(animationSpec = dialogSpec),
-        exit = scaleOut(animationSpec = dialogSpec)
-    ) {
-        AlertDialog(
-            onDismissRequest = { recordToDelete = -1L },
-            shape = MaterialTheme.shapes.extraLarge,
-            title = { Text("确认删除") },
-            text = { Text("确定要删除这条记录吗？此操作不可撤销。") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDispatch(CoreIntent.RecordDelete(recordToDelete))
-                        recordToDelete = -1L
-                    }
-                ) {
-                    Text("删除", color = MaterialTheme.colorScheme.expenseRed)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { recordToDelete = -1L }) {
-                    Text("取消")
-                }
-            }
-        )
     }
 
     if (sheetVisible) {
@@ -191,13 +155,12 @@ private fun RecordListContent(
     recordGroups: List<CoreRecordGroup>,
     currencySymbol: String,
     onRecordClick: (Long) -> Unit,
-    onDeleteRequest: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 80.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         recordGroups.forEach { group ->
             item(key = "header_${group.date}") {
@@ -214,8 +177,7 @@ private fun RecordListContent(
                 RecordListItem(
                     record = record,
                     currencySymbol = currencySymbol,
-                    onClick = { onRecordClick(record.id) },
-                    onLongClick = { onDeleteRequest(record.id) }
+                    onClick = { onRecordClick(record.id) }
                 )
             }
         }
@@ -238,7 +200,7 @@ private fun DayHeader(
         ) {
             Text(
                 text = formatDisplayDate(date),
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium
             )
@@ -247,14 +209,14 @@ private fun DayHeader(
                 if (incomeCents > 0) {
                     Text(
                         text = "收 ${currencySymbol}${formatAmount(incomeCents)}",
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.incomeGreen
                     )
                 }
                 if (expenseCents > 0) {
                     Text(
                         text = "支 ${currencySymbol}${formatAmount(expenseCents)}",
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.expenseRed
                     )
                 }

@@ -121,6 +121,20 @@ pub fn delete(conn: &Connection, id: RecordId) -> Result<usize, rusqlite::Error>
     conn.execute("DELETE FROM records WHERE id = ?1", [id])
 }
 
+/// 查询指定年月的记录（yyyy-MM 格式）。
+pub fn list_by_year_month(
+    conn: &Connection,
+    year_month: &str,
+) -> Result<Vec<Record>, rusqlite::Error> {
+    let mut stmt = conn.prepare(
+        "SELECT * FROM records
+         WHERE strftime('%Y-%m', datetime(created_at, 'unixepoch')) = ?1
+         ORDER BY created_at DESC"
+    )?;
+    let rows = stmt.query_map([year_month], map_record)?;
+    rows.collect()
+}
+
 /// 按月聚合收入和支出。
 pub fn monthly_aggregates(
     conn: &Connection,

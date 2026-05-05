@@ -28,6 +28,7 @@ impl AppCoreRuntime {
             | CoreIntent::RecordUpdate { .. }
             | CoreIntent::RecordDelete { .. }
             | CoreIntent::RecordList { .. }
+            | CoreIntent::RecordListByMonth { .. }
             | CoreIntent::RecordGet { .. } => self.dispatch_record(intent),
             CoreIntent::CategoryCreate { .. }
             | CoreIntent::CategoryUpdate { .. }

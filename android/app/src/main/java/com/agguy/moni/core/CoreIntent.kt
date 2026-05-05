@@ -62,6 +62,10 @@ sealed class CoreIntent {
     data class RecordList(val page: Int = 0, val pageSize: Int = 50) : CoreIntent()
 
     @Serializable
+    @SerialName("record_list_by_month")
+    data class RecordListByMonth(val yearMonth: String) : CoreIntent()
+
+    @Serializable
     @SerialName("record_get")
     data class RecordGet(val id: Long) : CoreIntent()
 

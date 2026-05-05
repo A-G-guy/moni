@@ -44,17 +44,29 @@ import java.time.format.DateTimeFormatter
  * - 选中月份会自动驱动下方饼图重载（实现细节见 [MonthSummaryCarousel] 的 KDoc）；
  * - 首次加载（数据为空）时显示 [ContainedLoadingIndicator]，是 Expressive 推荐的
  *   "morphing shape" 加载占位，比 CircularProgressIndicator 更动感。
+ *
+ * 月份联动：本页通过 [selectedYearMonth] 与账单页共享当前选中月份；
+ * [MonthSummaryCarousel] 既响应外部月份变化自动滚动，也向外部通知用户手动滑动产生的月份切换。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StatsScreen(appState: AppState, onDispatch: (CoreIntent) -> Unit, modifier: Modifier = Modifier) {
-    val currentYearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
+fun StatsScreen(
+    appState: AppState,
+    selectedYearMonth: String,
+    onDispatch: (CoreIntent) -> Unit,
+    onSelectYearMonth: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val todayYearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     LaunchedEffect(Unit) {
-        // 拉满前后一年共 ~24 个月的范围；多余配额留给历史数据，月份不足时数据库自然只返回有数据的月份。
-        onDispatch(CoreIntent.StatsMonthlySummary(months = MonthsToLoad))
-        onDispatch(CoreIntent.StatsCategoryBreakdown(yearMonth = currentYearMonth))
+        if (appState.monthlySummaries.isEmpty()) {
+            onDispatch(CoreIntent.StatsMonthlySummary(months = MonthsToLoad))
+        }
+        if (appState.currentMonthBreakdown.isEmpty()) {
+            onDispatch(CoreIntent.StatsCategoryBreakdown(yearMonth = selectedYearMonth))
+        }
     }
 
     Scaffold(
@@ -87,9 +99,11 @@ fun StatsScreen(appState: AppState, onDispatch: (CoreIntent) -> Unit, modifier: 
                 MonthSummaryCarousel(
                     summaries = appState.monthlySummaries,
                     currencySymbol = appState.currencySymbol,
-                    currentYearMonth = currentYearMonth,
+                    currentYearMonth = todayYearMonth,
+                    selectedYearMonth = selectedYearMonth,
                     onMonthChanged = { yearMonth ->
                         onDispatch(CoreIntent.StatsCategoryBreakdown(yearMonth = yearMonth))
+                        onSelectYearMonth(yearMonth)
                     }
                 )
             }

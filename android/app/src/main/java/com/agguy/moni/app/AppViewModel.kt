@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 /**
  * 主题设置状态。
@@ -39,6 +41,9 @@ class AppViewModel(
 
     private val _themeSettings = MutableStateFlow(ThemeSettings())
     val themeSettings: StateFlow<ThemeSettings> = _themeSettings.asStateFlow()
+
+    private val _selectedYearMonth = MutableStateFlow("")
+    val selectedYearMonth: StateFlow<String> = _selectedYearMonth.asStateFlow()
 
     private var _navController: NavHostController? = null
 
@@ -69,8 +74,15 @@ class AppViewModel(
                 val mutation = rustCore.initializeWithDb(dbPath)
                 applyMutation(mutation)
                 LogCollector.i("AppViewModel", "数据库初始化完成: $dbPath")
+
+                val currentYearMonth = LocalDate.now()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM"))
+                _selectedYearMonth.value = currentYearMonth
+
                 dispatch(CoreIntent.CategoryList)
-                dispatch(CoreIntent.RecordList(page = 0, pageSize = 50))
+                dispatch(CoreIntent.StatsMonthlySummary(months = 36))
+                dispatch(CoreIntent.RecordListByMonth(yearMonth = currentYearMonth))
+                dispatch(CoreIntent.StatsCategoryBreakdown(yearMonth = currentYearMonth))
                 syncCurrencySymbolFromDataStore()
                 syncThemeSettingsFromDataStore()
             } catch (e: Exception) {
@@ -79,6 +91,13 @@ class AppViewModel(
                 applyMutation(mutation)
             }
         }
+    }
+
+    fun selectYearMonth(yearMonth: String) {
+        if (_selectedYearMonth.value == yearMonth) return
+        _selectedYearMonth.value = yearMonth
+        dispatch(CoreIntent.RecordListByMonth(yearMonth = yearMonth))
+        dispatch(CoreIntent.StatsCategoryBreakdown(yearMonth = yearMonth))
     }
 
     fun dispatch(intent: CoreIntent) {
@@ -92,6 +111,20 @@ class AppViewModel(
             }
             val mutation = rustCore.dispatch(intent)
             applyMutation(mutation)
+
+            // 记录变更后自动刷新当前月份数据及月度汇总
+            if (intent is CoreIntent.RecordCreate ||
+                intent is CoreIntent.RecordDelete ||
+                intent is CoreIntent.RecordUpdate
+            ) {
+                val yearMonth = _selectedYearMonth.value
+                if (yearMonth.isNotEmpty()) {
+                    rustCore.dispatch(CoreIntent.RecordListByMonth(yearMonth = yearMonth))
+                        .let(::applyMutation)
+                    rustCore.dispatch(CoreIntent.StatsMonthlySummary(months = 36))
+                        .let(::applyMutation)
+                }
+            }
         }
     }
 

@@ -47,6 +47,9 @@ pub enum CoreIntent {
         page: u32,
         page_size: u32,
     },
+    RecordListByMonth {
+        year_month: String,
+    },
     RecordGet {
         id: RecordId,
     },

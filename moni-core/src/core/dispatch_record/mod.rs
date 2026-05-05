@@ -2,6 +2,7 @@ mod create;
 mod delete;
 mod get;
 mod list;
+mod list_by_month;
 mod update;
 
 use crate::core::error::CoreError;
@@ -16,6 +17,7 @@ impl AppCoreRuntime {
             CoreIntent::RecordUpdate { .. } => self.handle_record_update(intent),
             CoreIntent::RecordDelete { .. } => self.handle_record_delete(&intent),
             CoreIntent::RecordList { .. } => self.handle_record_list(&intent),
+            CoreIntent::RecordListByMonth { .. } => self.handle_record_list_by_month(&intent),
             CoreIntent::RecordGet { .. } => self.handle_record_get(&intent),
             _ => {
                 log::warn!("记录模块收到未支持的意图类型");

@@ -72,7 +72,9 @@ fun MoniNavHost(
     navController: NavHostController,
     appState: AppState,
     themeSettings: ThemeSettings,
+    selectedYearMonth: String,
     onDispatch: (CoreIntent) -> Unit,
+    onSelectYearMonth: (String) -> Unit,
     onNavigateToRecordDetail: (Long?) -> Unit,
     onNavigateToCategoryList: () -> Unit,
     onNavigateToArchivedCategories: () -> Unit,
@@ -116,7 +118,9 @@ fun MoniNavHost(
         composable<Screen.RecordList> {
             RecordListScreen(
                 appState = appState,
+                selectedYearMonth = selectedYearMonth,
                 onDispatch = onDispatch,
+                onSelectYearMonth = onSelectYearMonth,
                 onNavigateToRecordDetail = onNavigateToRecordDetail,
                 onNavigateToCategoryList = onNavigateToCategoryList
             )
@@ -148,7 +152,9 @@ fun MoniNavHost(
         composable<Screen.Stats> {
             StatsScreen(
                 appState = appState,
-                onDispatch = onDispatch
+                selectedYearMonth = selectedYearMonth,
+                onDispatch = onDispatch,
+                onSelectYearMonth = onSelectYearMonth
             )
         }
         composable<Screen.Settings> {

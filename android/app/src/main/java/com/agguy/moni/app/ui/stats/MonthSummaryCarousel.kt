@@ -94,6 +94,7 @@ internal fun MonthSummaryCarousel(
     summaries: List<CoreMonthlySummary>,
     currencySymbol: String,
     currentYearMonth: String,
+    selectedYearMonth: String,
     onMonthChanged: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -107,11 +108,26 @@ internal fun MonthSummaryCarousel(
     val coroutineScope = rememberCoroutineScope()
     var sheetVisible by remember { mutableStateOf(false) }
 
+    // 监听外部 selectedYearMonth 变化，自动滚动到对应月份
+    LaunchedEffect(selectedYearMonth, summaries) {
+        val targetIndex = summaries.indexOfFirst { it.yearMonth == selectedYearMonth }
+        if (targetIndex >= 0 && carouselState.currentItem != targetIndex) {
+            coroutineScope.launch {
+                carouselState.animateScrollToItem(targetIndex)
+            }
+        }
+    }
+
+    // 监听 carousel 内部滑动，仅当新月份与外部不同时才回调，避免循环触发
     LaunchedEffect(carouselState, summaries) {
         snapshotFlow { carouselState.currentItem }
             .distinctUntilChanged()
             .collect { index ->
-                summaries.getOrNull(index)?.let { onMonthChanged(it.yearMonth) }
+                summaries.getOrNull(index)?.let { summary ->
+                    if (summary.yearMonth != selectedYearMonth) {
+                        onMonthChanged(summary.yearMonth)
+                    }
+                }
             }
     }
 
@@ -196,8 +212,7 @@ internal fun MonthSummaryCarousel(
     if (sheetVisible) {
         MonthPickerSheet(
             availableYearMonths = remember(summaries) { summaries.map { it.yearMonth }.toSet() },
-            currentYearMonth = summaries.getOrNull(carouselState.currentItem)?.yearMonth
-                ?: currentYearMonth,
+            currentYearMonth = selectedYearMonth,
             todayYearMonth = currentYearMonth,
             onYearMonthSelected = { yearMonth ->
                 val targetIndex = summaries.indexOfFirst { it.yearMonth == yearMonth }

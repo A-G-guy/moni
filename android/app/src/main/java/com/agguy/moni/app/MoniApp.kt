@@ -37,6 +37,7 @@ fun MoniApp() {
     )
     val appState by viewModel.uiState.collectAsState()
     val themeSettings by viewModel.themeSettings.collectAsState()
+    val selectedYearMonth by viewModel.selectedYearMonth.collectAsState()
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
@@ -99,7 +100,9 @@ fun MoniApp() {
                 navController = navController,
                 appState = appState,
                 themeSettings = themeSettings,
+                selectedYearMonth = selectedYearMonth,
                 onDispatch = viewModel::dispatch,
+                onSelectYearMonth = viewModel::selectYearMonth,
                 onNavigateToRecordDetail = viewModel::navigateToRecordDetail,
                 onNavigateToCategoryList = viewModel::navigateToCategoryList,
                 onNavigateToArchivedCategories = viewModel::navigateToArchivedCategories,

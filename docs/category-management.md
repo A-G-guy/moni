@@ -21,7 +21,7 @@
      ▼   ▼                ▼                ▼      │
 ┌─────────┐      ┌─────────────┐    ┌──────────┐ │
 │ 创建中  │      │   编辑中    │    │ 归档确认 │ │
-│(AddDialog)│   │(UpdateIntent)│   │(AlertDialog)│
+│(EditorSheet)│  │(UpdateIntent)│   │(AlertDialog)│
 └────┬────┘      └──────┬──────┘    └────┬─────┘ │
      │                  │                │       │
      │ CategoryCreate   │ CategoryUpdate │       │
@@ -47,8 +47,8 @@
 
 ### 创建（Create）
 
-1. 用户点击 FAB → 弹出 `AddCategoryDialog`；
-2. 填写名称 + 选择图标（`AvailableCategoryIcons` 列表）；
+1. 用户点击 FAB → 弹出 `CategoryEditorSheet`（ModalBottomSheet）；
+2. 填写名称 + 选择图标（点击「选择图标」行 → 弹出 `IconPickerSheet`，支持搜索和分组）；
 3. 发送 `CategoryCreate` Intent → Rust 内核；
 4. 校验：名称非空、图标非空、描述长度 ≤ 200；
 5. 插入数据库，`sort_order = 999`（排在所有预设之后）；
@@ -57,31 +57,32 @@
 
 ### 编辑（Update）
 
-1. 用户长按自定义分类（或点击编辑按钮）→ 进入编辑态；
+1. 用户点击分类列表项的编辑按钮 → 弹出 `CategoryEditorSheet`；
 2. 发送 `CategoryUpdate` Intent → Rust 内核；
-3. 校验：**预设分类拒绝编辑**；名称非空；描述长度 ≤ 200；
-4. 仅允许更新 `name` / `description` / `icon_name`，`category_type` 不可变更；
+3. 校验：名称非空；描述长度 ≤ 200；
+4. 允许更新 `name` / `description` / `icon_name`，`category_type` 不可变更；
 5. 数据库 `COALESCE` 更新（仅传非 NULL 字段）；
 6. 刷新内存态对应条目，回传 `CoreUpdate`；
 7. UI 展示 Snackbar「分类更新成功」。
 
 ### 归档（Archive）
 
-1. 用户点击自定义分类的归档按钮 → 弹出确认对话框；
+1. 用户点击分类的归档按钮 → 弹出确认对话框；
 2. 发送 `CategoryArchive` Intent → Rust 内核；
-3. 校验：**预设分类不可归档**；已归档分类拒绝重复归档；
+3. 校验：已归档分类拒绝重复归档；
 4. 设置 `archived_at = NOW()`；
 5. 刷新内存态对应条目的 `archived_at`，回传 `CoreUpdate`；
 6. UI 展示 Snackbar「分类已归档」。
 
 ### 取消归档（Unarchive）
 
-1. 用户进入「已归档」列表（或管理界面）→ 点击恢复；
-2. 发送 `CategoryUnarchive` Intent → Rust 内核；
-3. 校验：未归档分类拒绝操作；
-4. 设置 `archived_at = NULL`；
-5. 刷新内存态，回传 `CoreUpdate`；
-6. UI 展示 Snackbar「分类已恢复」。
+1. 用户在分类管理页点击右上角菜单 → 「已归档分类」→ 进入二级页面；
+2. 点击恢复按钮 → 弹出确认对话框；
+3. 发送 `CategoryUnarchive` Intent → Rust 内核；
+4. 校验：未归档分类拒绝操作；
+5. 设置 `archived_at = NULL`；
+6. 刷新内存态，回传 `CoreUpdate`；
+7. UI 展示 Snackbar「分类已恢复」。
 
 ---
 
@@ -89,11 +90,11 @@
 
 | 规则 | 说明 | 原因 |
 |------|------|------|
-| 预设分类不可编辑 `name` / `type` | `is_preset = true` 时 `CategoryUpdate` 拒绝 | 保证预设分类语义稳定，避免用户破坏内置分类体系 |
-| 预设分类不可归档 | `is_preset = true` 时 `CategoryArchive` 拒绝 | 核心分类（餐饮、交通等）必须始终可用 |
-| 自定义分类可编辑 `name` / `description` / `icon` | `is_preset = false` 时允许 | 给予用户充分的自定义空间 |
+| 启动时不自动插入预设分类 | `init.rs` 不再调用 `seed_presets()` | 所有分类一视同仁，用户从零开始建立自身体系；预设分类纳入开发者选项手动重置 |
+| 所有分类均可编辑 / 归档 | `is_preset` 不再影响业务逻辑 | 即使是预设分类，用户也可按需修改或归档 |
 | 禁止物理删除 | 不提供 `CategoryDelete` Intent | 历史记录关联分类，物理删除会破坏数据完整性；归档是更安全的替代方案 |
 | 归档不删除历史记录 | `archived_at` 仅影响新建记录时的可选列表 | 保证历史数据完整可查 |
+| 已归档分类在二级页面管理 | 分类管理主页面只展示活跃分类 | 保持主页面整洁，归档操作低频，放入二级页面避免干扰 |
 | 描述长度 ≤ 200 | `CATEGORY_DESCRIPTION_MAX_LEN = 200` | 防止过长描述影响列表展示性能 |
 
 ---

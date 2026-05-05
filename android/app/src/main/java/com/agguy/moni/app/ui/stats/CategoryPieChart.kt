@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.agguy.moni.app.components.AutoResizeText
@@ -75,15 +76,16 @@ fun CategoryPieChart(breakdowns: List<CoreCategoryBreakdown>, currencySymbol: St
                 PieChartCanvas(breakdowns = breakdowns)
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.width(80.dp)
+                    modifier = Modifier.width(86.dp)
                 ) {
                     AutoResizeText(
                         text = totalText,
                         maxFontSize = 32.sp,
-                        minFontSize = 12.sp,
+                        minFontSize = 10.sp,
                         style = MaterialTheme.typography.displaySmall,
                         color = MaterialTheme.colorScheme.primary,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        overflow = TextOverflow.Visible
                     )
                     Text(
                         text = "本月支出",

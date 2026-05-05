@@ -51,7 +51,6 @@ class BridgeJsonTest {
                         "categoryType": "expense",
                         "iconName": "restaurant",
                         "sortOrder": 1,
-                        "isPreset": true,
                         "archivedAt": null,
                         "createdAt": 0,
                         "updatedAt": 0

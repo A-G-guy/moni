@@ -34,7 +34,6 @@ class AppStateTest {
                     categoryType = "expense",
                     iconName = "restaurant",
                     sortOrder = 1,
-                    isPreset = true,
                     createdAt = 0,
                     updatedAt = 0
                 )

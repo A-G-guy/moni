@@ -70,7 +70,6 @@ impl AppCoreRuntime {
             category_type,
             icon_name,
             crate::shared::constants::CUSTOM_CATEGORY_SORT_ORDER,
-            false,
         )?;
         let category = category_repo::get_by_id(&self.conn, id)?
             .ok_or_else(|| CoreError::Internal("插入后查询失败".to_string()))?;

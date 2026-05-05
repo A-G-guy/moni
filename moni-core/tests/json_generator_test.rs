@@ -20,7 +20,6 @@ fn test_generate_json() {
         category_type: RecordType::Expense,
         icon_name: "restaurant".to_string(),
         sort_order: 1,
-        is_preset: true,
         archived_at: None,
         created_at: 0,
         updated_at: 0,

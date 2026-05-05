@@ -14,7 +14,6 @@ fn test_category_list_with_presets() {
             categories.len(),
             moni_core::shared::constants::PRESET_CATEGORY_COUNT
         );
-        assert!(categories.iter().all(|c| c["isPreset"].as_bool().unwrap()));
         assert!(categories.iter().all(|c| c["archivedAt"].is_null()));
     });
 }
@@ -36,7 +35,6 @@ fn test_category_create_success() {
         let custom = categories.iter().find(|c| c["name"] == "自定义分类").unwrap();
         assert_eq!(custom["iconName"], "star");
         assert_eq!(custom["description"], "描述内容");
-        assert!(!custom["isPreset"].as_bool().unwrap());
         assert!(custom["archivedAt"].is_null());
     });
 }

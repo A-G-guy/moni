@@ -29,7 +29,6 @@ class BridgeJsonAndroidTest {
                         "categoryType": "expense",
                         "iconName": "restaurant",
                         "sortOrder": 1,
-                        "isPreset": true,
                         "archivedAt": null,
                         "createdAt": 0,
                         "updatedAt": 0
@@ -64,7 +63,6 @@ class BridgeJsonAndroidTest {
                         "categoryType": "expense",
                         "iconName": "category",
                         "sortOrder": 3,
-                        "isPreset": false,
                         "archivedAt": 1715000000000,
                         "createdAt": 1700000000000,
                         "updatedAt": 1715000000000
@@ -99,7 +97,6 @@ class BridgeJsonAndroidTest {
                         "categoryType": "expense",
                         "iconName": "category",
                         "sortOrder": 0,
-                        "isPreset": true,
                         "archivedAt": null,
                         "createdAt": 0,
                         "updatedAt": 0
@@ -213,7 +210,6 @@ class BridgeJsonAndroidTest {
                         "categoryType": "expense",
                         "iconName": "restaurant",
                         "sortOrder": 1,
-                        "isPreset": true,
                         "archivedAt": null,
                         "createdAt": 0,
                         "updatedAt": 0,

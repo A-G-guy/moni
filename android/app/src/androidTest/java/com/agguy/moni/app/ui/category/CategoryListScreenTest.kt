@@ -62,7 +62,6 @@ class CategoryListScreenTest {
                 categoryType = "expense",
                 iconName = "restaurant",
                 sortOrder = 1,
-                isPreset = true,
                 archivedAt = null
             ),
             CoreCategory(
@@ -72,7 +71,6 @@ class CategoryListScreenTest {
                 categoryType = "expense",
                 iconName = "transport",
                 sortOrder = 2,
-                isPreset = false,
                 archivedAt = null
             )
         )
@@ -92,32 +90,12 @@ class CategoryListScreenTest {
                 categoryType = "expense",
                 iconName = "restaurant",
                 sortOrder = 1,
-                isPreset = true,
                 archivedAt = null
             )
         )
 
         setScreenContent(AppState(categories = categories))
-        composeTestRule.onNodeWithText("预设分类").assertIsDisplayed()
-    }
-
-    @Test
-    fun 非预设分类应显示归档按钮() {
-        val categories = listOf(
-            CoreCategory(
-                id = 2,
-                name = "自定义分类",
-                description = null,
-                categoryType = "expense",
-                iconName = "category",
-                sortOrder = 1,
-                isPreset = false,
-                archivedAt = null
-            )
-        )
-
-        setScreenContent(AppState(categories = categories))
-        composeTestRule.onNodeWithText("自定义分类").assertIsDisplayed()
+        composeTestRule.onNodeWithText("餐饮").assertIsDisplayed()
     }
 
     @Test
@@ -130,7 +108,6 @@ class CategoryListScreenTest {
                 categoryType = "expense",
                 iconName = "category",
                 sortOrder = 1,
-                isPreset = false,
                 archivedAt = 12345678L
             )
         )
@@ -150,7 +127,6 @@ class CategoryListScreenTest {
                 categoryType = "income",
                 iconName = "salary",
                 sortOrder = 1,
-                isPreset = true,
                 archivedAt = null
             )
         )

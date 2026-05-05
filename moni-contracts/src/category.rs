@@ -18,7 +18,6 @@ pub struct Category {
     pub category_type: RecordType,
     pub icon_name: String,
     pub sort_order: i32,
-    pub is_preset: bool,
     pub archived_at: Option<TimestampSec>,
     pub created_at: TimestampSec,
     pub updated_at: TimestampSec,

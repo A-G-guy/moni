@@ -15,7 +15,6 @@ fn map_category(row: &Row) -> Result<Category, rusqlite::Error> {
         },
         icon_name: row.get("icon_name")?,
         sort_order: row.get("sort_order")?,
-        is_preset: row.get::<_, i32>("is_preset")? != 0,
         archived_at: row.get("archived_at")?,
         created_at: row.get("created_at")?,
         updated_at: row.get("updated_at")?,
@@ -30,12 +29,11 @@ pub fn insert(
     category_type: RecordType,
     icon_name: &str,
     sort_order: i32,
-    is_preset: bool,
 ) -> Result<CategoryId, rusqlite::Error> {
     let now = chrono::Utc::now().timestamp();
     conn.execute(
-        "INSERT INTO categories (name, description, category_type, icon_name, sort_order, is_preset, created_at, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+        "INSERT INTO categories (name, description, category_type, icon_name, sort_order, created_at, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
         (
             name,
             description,
@@ -45,7 +43,6 @@ pub fn insert(
             },
             icon_name,
             sort_order,
-            i32::from(is_preset),
             now,
             now,
         ),
@@ -147,7 +144,7 @@ pub fn seed_presets(conn: &Connection) -> Result<(), rusqlite::Error> {
     ];
 
     for (name, ty, icon, order) in presets {
-        insert(conn, name, None, ty, icon, order, true)?;
+        insert(conn, name, None, ty, icon, order)?;
     }
     Ok(())
 }

@@ -2,12 +2,9 @@
 
 package com.agguy.moni.app.ui.category
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,7 +27,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,8 +35,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.icons.MoniIcons
-import com.agguy.moni.app.theme.AvailableCategoryIcons
 import com.agguy.moni.app.theme.expenseRed
+import com.agguy.moni.app.theme.iconNameToRes
 import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreIntent
@@ -52,7 +48,7 @@ import com.agguy.moni.core.serialName
  *
  * 统一处理「新增」与「编辑」两种模式：
  * - 新增：所有字段可编辑，type 默认由外部传入（跟随当前 Tab）。
- * - 编辑：预设分类锁定 name/type；非预设分类全部可编辑。
+ * - 编辑：所有字段均可编辑（预设分类不再锁定）。
  * - 颜色由 type 决定（expense=红 / income=绿），不提供颜色选择器。
  *
  * @param category 待编辑的分类；null 表示新增模式
@@ -68,7 +64,6 @@ fun CategoryEditorSheet(
     onDismiss: () -> Unit
 ) {
     val isEditMode = category != null
-    val isPreset = category?.isPreset == true
 
     val initialType = if (category != null) {
         if (category.categoryType == RecordType.INCOME.serialName) RecordType.INCOME else RecordType.EXPENSE
@@ -79,12 +74,10 @@ fun CategoryEditorSheet(
     var name by remember { mutableStateOf(category?.name ?: "") }
     var description by remember { mutableStateOf(category?.description ?: "") }
     var selectedType by remember { mutableStateOf(initialType) }
-    var selectedIconIndex by remember {
-        val idx = category?.iconName?.let { iconName ->
-            AvailableCategoryIcons.indexOfFirst { it.first == iconName }
-        }?.takeIf { it >= 0 } ?: 0
-        mutableIntStateOf(idx)
+    var selectedIconName by remember {
+        mutableStateOf(category?.iconName ?: "restaurant")
     }
+    var showIconPicker by remember { mutableStateOf(false) }
 
     val typeColor = when (selectedType) {
         RecordType.EXPENSE -> MaterialTheme.colorScheme.expenseRed
@@ -117,11 +110,10 @@ fun CategoryEditorSheet(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // 类型选择器（编辑预设分类时禁用）
+            // 类型选择器
             CategoryTypeSelector(
                 selectedType = selectedType,
                 onTypeSelected = { selectedType = it },
-                enabled = !isPreset,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -131,8 +123,6 @@ fun CategoryEditorSheet(
                 onValueChange = { name = it },
                 label = { Text("分类名称") },
                 singleLine = true,
-                enabled = !isPreset,
-                readOnly = isPreset,
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -163,10 +153,10 @@ fun CategoryEditorSheet(
                 }
             )
 
-            // 图标选择
-            IconSelector(
-                selectedIndex = selectedIconIndex,
-                onIconSelected = { selectedIconIndex = it },
+            // 图标选择行
+            IconSelectorRow(
+                iconName = selectedIconName,
+                onClick = { showIconPicker = true },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -176,7 +166,6 @@ fun CategoryEditorSheet(
             Button(
                 onClick = {
                     if (!isSaveEnabled) return@Button
-                    val (iconName, _) = AvailableCategoryIcons[selectedIconIndex]
                     val trimmedName = name.trim()
                     val trimmedDescription = description.trim().takeIf { it.isNotBlank() }
 
@@ -184,9 +173,9 @@ fun CategoryEditorSheet(
                         onDispatch(
                             CoreIntent.CategoryUpdate(
                                 id = category.id,
-                                name = if (isPreset) null else trimmedName,
+                                name = trimmedName,
                                 description = trimmedDescription,
-                                iconName = iconName
+                                iconName = selectedIconName
                             )
                         )
                     } else {
@@ -195,7 +184,7 @@ fun CategoryEditorSheet(
                                 name = trimmedName,
                                 description = trimmedDescription,
                                 categoryType = selectedType,
-                                iconName = iconName
+                                iconName = selectedIconName
                             )
                         )
                     }
@@ -219,6 +208,15 @@ fun CategoryEditorSheet(
             }
         }
     }
+
+    // 图标选择器 BottomSheet
+    if (showIconPicker) {
+        IconPickerSheet(
+            selectedIconName = selectedIconName,
+            onIconSelected = { selectedIconName = it },
+            onDismiss = { showIconPicker = false }
+        )
+    }
 }
 
 /**
@@ -231,7 +229,6 @@ fun CategoryEditorSheet(
 private fun CategoryTypeSelector(
     selectedType: RecordType,
     onTypeSelected: (RecordType) -> Unit,
-    enabled: Boolean,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -249,7 +246,6 @@ private fun CategoryTypeSelector(
                 checked = selectedType == RecordType.EXPENSE,
                 label = "支出",
                 onCheckedChange = { if (it) onTypeSelected(RecordType.EXPENSE) },
-                enabled = enabled,
                 icon = {
                     if (selectedType == RecordType.EXPENSE) {
                         MoniIcon(
@@ -265,7 +261,6 @@ private fun CategoryTypeSelector(
                 checked = selectedType == RecordType.INCOME,
                 label = "收入",
                 onCheckedChange = { if (it) onTypeSelected(RecordType.INCOME) },
-                enabled = enabled,
                 icon = {
                     if (selectedType == RecordType.INCOME) {
                         MoniIcon(
@@ -282,80 +277,59 @@ private fun CategoryTypeSelector(
 }
 
 /**
- * 图标选择网格。
+ * 图标选择触发行。
  *
- * 使用 [FlowRow] 自适应换行，展示 [AvailableCategoryIcons] 中所有可选图标。
+ * 左侧显示当前图标，中间显示名称，右侧箭头提示可点击。
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun IconSelector(selectedIndex: Int, onIconSelected: (Int) -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+private fun IconSelectorRow(
+    iconName: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         Text(
-            text = "选择图标",
+            text = "图标",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        Surface(
+            onClick = onClick,
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            AvailableCategoryIcons.forEachIndexed { index, (iconName, iconRes) ->
-                IconOption(
-                    iconRes = iconRes,
-                    iconName = iconName,
-                    isSelected = selectedIndex == index,
-                    onClick = { onIconSelected(index) }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                MoniIcon(
+                    icon = iconNameToRes(iconName),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+
+                Text(
+                    text = iconName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+
+                MoniIcon(
+                    icon = MoniIcons.ExpandMore,
+                    contentDescription = "选择图标",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        }
-    }
-}
-
-/**
- * 单个图标选项。
- */
-@Composable
-private fun IconOption(
-    iconRes: Int,
-    iconName: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val optionShape = MaterialTheme.shapes.medium
-    val containerColor = if (isSelected) {
-        MaterialTheme.colorScheme.primaryContainer
-    } else {
-        MaterialTheme.colorScheme.surfaceContainerHighest
-    }
-    val iconTint = if (isSelected) {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    }
-
-    Surface(
-        onClick = onClick,
-        shape = optionShape,
-        color = containerColor,
-        modifier = modifier.size(56.dp),
-        border = if (isSelected) {
-            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-        } else {
-            null
-        }
-    ) {
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            MoniIcon(
-                icon = iconRes,
-                contentDescription = iconName,
-                tint = iconTint
-            )
         }
     }
 }

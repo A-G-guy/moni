@@ -7,10 +7,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
@@ -28,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.expenseRed
+import com.agguy.moni.app.theme.iconNameToRes
 import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreCategory
 
@@ -77,12 +81,24 @@ fun CategoryListItem(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            androidx.compose.foundation.Canvas(
+            // 分类图标（带颜色背景）
+            androidx.compose.foundation.layout.Box(
                 modifier = Modifier
                     .padding(end = 12.dp)
-                    .height(24.dp)
+                    .size(40.dp),
+                contentAlignment = Alignment.Center
             ) {
-                drawCircle(categoryColor, radius = 12.dp.toPx())
+                androidx.compose.foundation.Canvas(
+                    modifier = Modifier.matchParentSize()
+                ) {
+                    drawCircle(categoryColor.copy(alpha = 0.15f), radius = size.minDimension / 2)
+                }
+                MoniIcon(
+                    icon = iconNameToRes(category.iconName),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = categoryColor
+                )
             }
 
             Column(modifier = Modifier.weight(1f)) {
@@ -91,9 +107,9 @@ fun CategoryListItem(
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium
                 )
-                if (category.isPreset) {
+                if (!category.description.isNullOrBlank()) {
                     Text(
-                        text = "预设分类",
+                        text = category.description,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -108,14 +124,12 @@ fun CategoryListItem(
                 )
             }
 
-            if (!category.isPreset) {
-                IconButton(onClick = onArchiveClick) {
-                    MoniIcon(
-                        icon = MoniIcons.Archive,
-                        contentDescription = "归档",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+            IconButton(onClick = onArchiveClick) {
+                MoniIcon(
+                    icon = MoniIcons.Archive,
+                    contentDescription = "归档",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -133,7 +147,7 @@ fun EmptyCategoryList(modifier: Modifier = Modifier) {
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "点击右下角添加",
             style = MaterialTheme.typography.bodyMedium,

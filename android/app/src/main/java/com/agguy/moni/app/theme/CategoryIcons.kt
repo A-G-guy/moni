@@ -3,6 +3,23 @@ package com.agguy.moni.app.theme
 import com.agguy.moni.app.icons.MoniIcons
 
 /**
+ * 根据图标名称查找对应的未选中态图标资源 ID。
+ *
+ * 在 [GroupedCategoryIcons] 中扁平化查找，未命中时回退到 [MoniIcons.Category]。
+ *
+ * @param iconName 图标名称（与数据库中存储的一致）
+ * @return 对应的图标资源 ID
+ */
+fun iconNameToRes(iconName: String): Int {
+    return GroupedCategoryIcons
+        .asSequence()
+        .flatMap { it.icons.asSequence() }
+        .firstOrNull { it.name == iconName }
+        ?.iconRes
+        ?: MoniIcons.Category
+}
+
+/**
  * 分类名称到图标资源的映射。
  *
  * 支持中英文名称匹配，未命中时回退到通用分类图标。

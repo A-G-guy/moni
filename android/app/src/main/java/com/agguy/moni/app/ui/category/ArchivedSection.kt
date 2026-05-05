@@ -5,6 +5,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.expenseRed
+import com.agguy.moni.app.theme.iconNameToRes
 import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreCategory
 
@@ -40,7 +43,7 @@ import com.agguy.moni.core.CoreCategory
  *
  * - 默认收起，点击标题行展开；
  * - 展示已归档分类列表，每项带「恢复」操作；
- * - 预设分类仅展示，不提供恢复按钮。
+ * - 所有分类均可恢复（预设分类概念已弱化）。
  */
 @Composable
 fun ArchivedSection(
@@ -93,7 +96,7 @@ private fun ArchivedSectionHeader(count: Int, expanded: Boolean, onToggle: () ->
         Spacer(modifier = Modifier.width(8.dp))
 
         // 数量徽标
-        androidx.compose.foundation.layout.Box(
+        Box(
             modifier = Modifier
                 .height(20.dp)
                 .padding(horizontal = 6.dp),
@@ -158,12 +161,24 @@ private fun ArchivedCategoryItem(category: CoreCategory, onUnarchiveClick: () ->
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            androidx.compose.foundation.Canvas(
+            // 分类图标（带颜色背景）
+            Box(
                 modifier = Modifier
                     .padding(end = 12.dp)
-                    .height(24.dp)
+                    .size(40.dp),
+                contentAlignment = Alignment.Center
             ) {
-                drawCircle(categoryColor, radius = 12.dp.toPx())
+                androidx.compose.foundation.Canvas(
+                    modifier = Modifier.matchParentSize()
+                ) {
+                    drawCircle(categoryColor.copy(alpha = 0.15f), radius = size.minDimension / 2)
+                }
+                MoniIcon(
+                    icon = iconNameToRes(category.iconName),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = categoryColor
+                )
             }
 
             Column(modifier = Modifier.weight(1f)) {
@@ -173,24 +188,21 @@ private fun ArchivedCategoryItem(category: CoreCategory, onUnarchiveClick: () ->
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                if (category.isPreset) {
+                if (!category.description.isNullOrBlank()) {
                     Text(
-                        text = "预设分类",
+                        text = category.description,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            // 预设分类不提供恢复操作
-            if (!category.isPreset) {
-                IconButton(onClick = onUnarchiveClick) {
-                    MoniIcon(
-                        icon = MoniIcons.Unarchive,
-                        contentDescription = "恢复",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+            IconButton(onClick = onUnarchiveClick) {
+                MoniIcon(
+                    icon = MoniIcons.Unarchive,
+                    contentDescription = "恢复",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

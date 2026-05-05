@@ -4,7 +4,9 @@
     android:viewportWidth="960"
     android:viewportHeight="960"
 >
-  <path
+    <group android:translateY="960">
+<path
       android:fillColor="#FF000000"
       android:pathData="M 442 -242 q -116 0 -199 -80 t -83 -195 v -263 q 0 -25 17.5 -42.5 T 220 -840 h 529 q 54 0 92.5 37 t 38.5 91 q 0 60 -37 106 t -94 46 h -25 v 43 q 0 115 -83 195 t -199 80 Z M 220 -620 h 444 v -160 H 220 v 160 Z m 504 0 h 25 q 33 0 52 -28.5 t 19 -63.5 q 0 -29 -21 -48.5 T 749 -780 h -25 v 160 Z M 190 -120 q -13 0 -21.5 -8.5 T 160 -150 q 0 -13 8.5 -21.5 T 190 -180 h 580 q 13 0 21.5 8.5 T 800 -150 q 0 13 -8.5 21.5 T 770 -120 H 190 Z"/>
+  </group>
 </vector>

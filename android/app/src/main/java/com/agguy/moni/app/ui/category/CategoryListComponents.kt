@@ -31,6 +31,20 @@ import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreCategory
 
+/**
+ * 根据分类类型字符串获取对应的主题色。
+ *
+ * @param categoryType 分类类型序列化名称（"expense" 或 "income"）
+ * @return 支出为红色，收入为绿色
+ */
+@Composable
+fun categoryColorForType(categoryType: String): androidx.compose.ui.graphics.Color =
+    if (categoryType == "expense") {
+        MaterialTheme.colorScheme.expenseRed
+    } else {
+        MaterialTheme.colorScheme.incomeGreen
+    }
+
 @Composable
 fun CategoryListContent(
     categories: List<CoreCategory>,
@@ -60,11 +74,7 @@ fun CategoryListItem(
     onEditClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val categoryColor = if (category.categoryType == "expense") {
-        MaterialTheme.colorScheme.expenseRed
-    } else {
-        MaterialTheme.colorScheme.incomeGreen
-    }
+    val categoryColor = categoryColorForType(category.categoryType)
 
     Card(
         modifier = modifier.fillMaxWidth(),

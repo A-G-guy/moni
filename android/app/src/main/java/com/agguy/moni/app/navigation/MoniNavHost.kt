@@ -21,6 +21,7 @@ import androidx.navigation.toRoute
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.ThemeSettings
 import com.agguy.moni.app.theme.ThemeMode
+import com.agguy.moni.app.ui.category.ArchivedCategoriesScreen
 import com.agguy.moni.app.ui.category.CategoryListScreen
 import com.agguy.moni.app.ui.dev.DevLogScreen
 import com.agguy.moni.app.ui.dev.DeveloperOptionsScreen
@@ -74,6 +75,7 @@ fun MoniNavHost(
     onDispatch: (CoreIntent) -> Unit,
     onNavigateToRecordDetail: (Long?) -> Unit,
     onNavigateToCategoryList: () -> Unit,
+    onNavigateToArchivedCategories: () -> Unit,
     onNavigateBack: () -> Unit,
     onUpdateThemeMode: (ThemeMode) -> Unit,
     onUpdateDynamicColor: (Boolean) -> Unit,
@@ -130,6 +132,14 @@ fun MoniNavHost(
         }
         composable<Screen.CategoryList> {
             CategoryListScreen(
+                appState = appState,
+                onDispatch = onDispatch,
+                onNavigateBack = onNavigateBack,
+                onNavigateToArchivedCategories = onNavigateToArchivedCategories
+            )
+        }
+        composable<Screen.ArchivedCategories> {
+            ArchivedCategoriesScreen(
                 appState = appState,
                 onDispatch = onDispatch,
                 onNavigateBack = onNavigateBack

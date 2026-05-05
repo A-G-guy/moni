@@ -102,6 +102,7 @@ fun MoniApp() {
                 onDispatch = viewModel::dispatch,
                 onNavigateToRecordDetail = viewModel::navigateToRecordDetail,
                 onNavigateToCategoryList = viewModel::navigateToCategoryList,
+                onNavigateToArchivedCategories = viewModel::navigateToArchivedCategories,
                 onNavigateBack = viewModel::navigateBack,
                 onUpdateThemeMode = viewModel::updateThemeMode,
                 onUpdateDynamicColor = viewModel::updateDynamicColor,

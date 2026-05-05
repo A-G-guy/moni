@@ -34,8 +34,6 @@ fn collect_stats(conn: &Connection) -> Result<BackupStats, crate::core::error::C
 
 /// 通过 VACUUM INTO 创建数据库干净副本到临时路径。
 fn dump_db_to_temp(conn: &Connection, tmp_path: &str) -> Result<(), crate::core::error::CoreError> {
-    conn.execute("PRAGMA wal_checkpoint(TRUNCATE);", [])
-        .map_err(|e| crate::core::error::CoreError::Database(format!("WAL checkpoint 失败: {e}")))?;
     conn.execute("VACUUM INTO ?1", [tmp_path])
         .map_err(|e| crate::core::error::CoreError::Database(format!("VACUUM INTO 失败: {e}")))?;
     Ok(())
@@ -188,8 +186,9 @@ pub fn backup_export(
         .map(|m| m.len())
         .unwrap_or(0);
 
-    // 5. 清理临时文件
+    // 5. 清理临时文件与目录
     let _ = std::fs::remove_file(&tmp_db);
+    let _ = std::fs::remove_dir(&tmp_dir);
     if let Some(cb) = on_progress {
         cb("完成", 100);
     }

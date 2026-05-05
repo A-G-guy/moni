@@ -19,6 +19,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.longOrNull
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "moni_settings")
@@ -141,10 +142,17 @@ object DataStoreHelper {
 
     /**
      * 从 JSON 字符串恢复设置项。
+     *
+     * 若 JSON 中不含支持的 schema 版本号，则跳过恢复（避免旧格式或损坏数据）。
      */
     suspend fun restoreFromJson(context: Context, json: String) {
         val element = kotlinx.serialization.json.Json.parseToJsonElement(json)
         val obj = element.jsonObject
+        val schemaVersion = obj["schema"]?.jsonPrimitive?.intOrNull ?: 0
+        if (schemaVersion != 1) {
+            // schema 不匹配时保留默认设置，不抛异常（保证应用可用性）
+            return
+        }
         context.dataStore.edit { preferences ->
             preferences.clear()
             obj["currency_symbol"]?.jsonPrimitive?.content?.let {

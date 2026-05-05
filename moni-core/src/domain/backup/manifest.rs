@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::io::{BufReader, Read};
 
-const MAX_SUPPORTED_FORMAT_VERSION: u32 = 1;
+use crate::domain::backup::MAX_SUPPORTED_FORMAT_VERSION;
 
 /// ZIP 包内的文件指纹项。
 #[derive(Debug, Clone, Serialize, Deserialize)]

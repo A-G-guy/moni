@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
+import java.util.UUID
 
 /**
  * 备份操作状态。
@@ -100,8 +101,8 @@ class BackupViewModel(
         viewModelScope.launch {
             _operationState.value = BackupOperationState.Running("准备中...", 0)
             try {
-                // 先导出到缓存
-                val cacheFile = File(getApplication<Application>().cacheDir, "moni_export_tmp.zip")
+                // 先导出到缓存（使用 UUID 避免并发冲突）
+                val cacheFile = File(getApplication<Application>().cacheDir, "moni_export_${UUID.randomUUID()}.zip")
                 val settingsJson = DataStoreHelper.snapshotJson(getApplication<Application>())
                 rustCore.backupExport(
                     outZipPath = cacheFile.absolutePath,
@@ -138,7 +139,7 @@ class BackupViewModel(
         viewModelScope.launch {
             _operationState.value = BackupOperationState.Running("准备中...", 0)
             try {
-                val cacheFile = File(getApplication<Application>().cacheDir, "moni_import_tmp.zip")
+                val cacheFile = File(getApplication<Application>().cacheDir, "moni_import_${UUID.randomUUID()}.zip")
                 getApplication<Application>().contentResolver.openInputStream(uri)?.use { inp ->
                     cacheFile.outputStream().use { out ->
                         inp.copyTo(out)
@@ -211,17 +212,19 @@ class BackupViewModel(
 
     fun inspectBackupFromUri(uri: Uri) {
         viewModelScope.launch {
+            val cacheFile = File(getApplication<Application>().cacheDir, "moni_inspect_${UUID.randomUUID()}.zip")
             try {
-                val cacheFile = File(getApplication<Application>().cacheDir, "moni_inspect_tmp.zip")
                 getApplication<Application>().contentResolver.openInputStream(uri)?.use { inp ->
                     cacheFile.outputStream().use { out ->
                         inp.copyTo(out)
                     }
                 }
                 _inspectResult.value = rustCore.backupInspect(cacheFile.absolutePath)
-                cacheFile.delete()
             } catch (e: Exception) {
                 _inspectResult.value = null
+                _operationState.value = BackupOperationState.Error("无法读取备份文件：${e.message}")
+            } finally {
+                cacheFile.delete()
             }
         }
     }

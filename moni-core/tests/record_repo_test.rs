@@ -11,7 +11,7 @@ fn setup() -> rusqlite::Connection {
 }
 
 fn create_category(conn: &rusqlite::Connection, name: &str, ty: RecordType) -> i64 {
-    category_repo::insert(conn, name, None, ty, "icon", 1).unwrap()
+    category_repo::insert(conn, name, None, ty, "icon", 1, None).unwrap()
 }
 
 #[test]
@@ -100,4 +100,61 @@ fn test_list_by_date_range() {
     let list = record_repo::list_by_date_range(&conn, 1500, 2500).unwrap();
     assert_eq!(list.len(), 1);
     assert_eq!(list[0].amount_cents, 200);
+}
+
+#[test]
+fn test_category_aggregates() {
+    let conn = setup();
+    let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
+    // 2024-01-01 00:00:00 UTC = 1704067200
+    record_repo::insert(&conn, 5000, RecordType::Expense, cat_id, "午餐", Some(1704067200),
+    ).unwrap();
+    record_repo::insert(
+        &conn, 3000, RecordType::Expense, cat_id, "晚餐", Some(1704153600),
+    ).unwrap();
+
+    let agg = record_repo::category_aggregates(&conn, "2024-01"
+    ).unwrap();
+    assert_eq!(agg.len(), 1);
+    assert_eq!(agg[0].0, cat_id);
+    assert_eq!(agg[0].1, "餐饮");
+    assert_eq!(agg[0].2, 8000);
+}
+
+#[test]
+fn test_category_aggregates_by_parent() {
+    let conn = setup();
+    let parent_id = category_repo::insert(
+        &conn, "餐饮", None, RecordType::Expense, "restaurant", 1, None,
+    ).unwrap();
+    let child_id = category_repo::insert(
+        &conn, "早餐", None, RecordType::Expense, "bakery", 2, Some(parent_id),
+    ).unwrap();
+    let other_id = category_repo::insert(
+        &conn, "交通", None, RecordType::Expense, "car", 3, None,
+    ).unwrap();
+
+    // 2024-01-01 00:00:00 UTC = 1704067200
+    record_repo::insert(
+        &conn, 5000, RecordType::Expense, parent_id, "正餐", Some(1704067200),
+    ).unwrap();
+    record_repo::insert(
+        &conn, 2000, RecordType::Expense, child_id, "早餐", Some(1704153600),
+    ).unwrap();
+    record_repo::insert(
+        &conn, 3000, RecordType::Expense, other_id, "地铁", Some(1704240000),
+    ).unwrap();
+
+    let agg = record_repo::category_aggregates_by_parent(
+        &conn, "2024-01"
+    ).unwrap();
+    // 应合并为 2 条：餐饮(5000+2000=7000)、交通(3000)
+    assert_eq!(agg.len(), 2);
+    let dining = agg.iter().find(|a| a.0 == parent_id).unwrap();
+    assert_eq!(dining.1, "餐饮");
+    assert_eq!(dining.2, 7000);
+
+    let transport = agg.iter().find(|a| a.0 == other_id).unwrap();
+    assert_eq!(transport.1, "交通");
+    assert_eq!(transport.2, 3000);
 }

@@ -95,8 +95,9 @@ fun CategoryEditorSheet(
     val isSaveEnabled = isNameValid && isDescriptionValid
 
     // 编辑模式下，判断该分类是否已有子分类
-    val hasChildren = remember(category, categories) {
-        isEditMode && categories.any { it.parentId == category!!.id }
+    val editingCategoryId = if (isEditMode) category.id else -1L
+    val hasChildren = remember(editingCategoryId, categories) {
+        isEditMode && categories.any { it.parentId == editingCategoryId }
     }
 
     // 可选的父分类列表（同类型、一级分类、非自身、未归档）

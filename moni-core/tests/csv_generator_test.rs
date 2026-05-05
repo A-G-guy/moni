@@ -20,6 +20,7 @@ fn test_generate_csv() {
         category_type: RecordType::Expense,
         icon_name: "restaurant".to_string(),
         sort_order: 1,
+        parent_id: None,
         archived_at: None,
         created_at: 0,
         updated_at: 0,

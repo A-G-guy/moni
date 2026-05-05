@@ -59,18 +59,19 @@ pub fn get_by_id(conn: &Connection, id: CategoryId) -> Result<Option<Category>, 
         .optional()
 }
 
-/// 查询所有分类（含归档项），按 `sort_order` 排序。
+/// 查询所有分类（含归档项），一级分类在前，子分类紧跟父分类。
 pub fn list_all(conn: &Connection) -> Result<Vec<Category>, rusqlite::Error> {
-    let mut stmt =
-        conn.prepare("SELECT * FROM categories ORDER BY sort_order ASC, created_at ASC")?;
+    let mut stmt = conn.prepare(
+        "SELECT * FROM categories ORDER BY CASE WHEN parent_id IS NULL THEN 0 ELSE 1 END, parent_id ASC, sort_order ASC, created_at ASC"
+    )?;
     let rows = stmt.query_map([], map_category)?;
     rows.collect()
 }
 
-/// 仅查询活跃分类（未归档），按 `sort_order` 排序。
+/// 仅查询活跃分类（未归档），一级分类在前，子分类紧跟父分类。
 pub fn list_active(conn: &Connection) -> Result<Vec<Category>, rusqlite::Error> {
     let mut stmt = conn.prepare(
-        "SELECT * FROM categories WHERE archived_at IS NULL ORDER BY sort_order ASC, created_at ASC"
+        "SELECT * FROM categories WHERE archived_at IS NULL ORDER BY CASE WHEN parent_id IS NULL THEN 0 ELSE 1 END, parent_id ASC, sort_order ASC, created_at ASC"
     )?;
     let rows = stmt.query_map([], map_category)?;
     rows.collect()

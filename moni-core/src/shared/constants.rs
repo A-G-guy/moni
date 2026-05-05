@@ -16,5 +16,5 @@ pub const MIN_PAGE_SIZE: u32 = 1;
 /// 默认分页大小。
 pub const DEFAULT_PAGE_SIZE: u32 = 20;
 
-/// 预设分类的数量。
-pub const PRESET_CATEGORY_COUNT: usize = 12;
+/// 预设分类的数量（12 个一级 + 6 个二级）。
+pub const PRESET_CATEGORY_COUNT: usize = 18;

@@ -72,14 +72,6 @@ fun StatsScreen(
         if (appState.monthlySummaries.isEmpty()) {
             onDispatch(CoreIntent.StatsMonthlySummary(months = MonthsToLoad))
         }
-        if (appState.currentMonthBreakdown.isEmpty()) {
-            onDispatch(
-                CoreIntent.StatsCategoryBreakdown(
-                    yearMonth = selectedYearMonth,
-                    aggregateByParent = aggregateByParent
-                )
-            )
-        }
     }
 
     LaunchedEffect(selectedYearMonth, aggregateByParent) {

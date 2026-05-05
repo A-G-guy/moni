@@ -122,7 +122,6 @@ fun ArchivedCategoriesScreen(
                 EmptyArchivedCategoriesList()
             } else {
                 ArchivedCategoriesListContent(
-                    allCategories = appState.categories,
                     archivedCategories = archivedCategories,
                     onUnarchiveRequest = { categoryToUnarchive = it }
                 )
@@ -145,7 +144,6 @@ fun ArchivedCategoriesScreen(
 
 @Composable
 private fun ArchivedCategoriesListContent(
-    allCategories: List<CoreCategory>,
     archivedCategories: List<CoreCategory>,
     onUnarchiveRequest: (CoreCategory) -> Unit,
     modifier: Modifier = Modifier

@@ -25,7 +25,7 @@ fn test_stats_category_breakdown_empty() {
     let rt = tokio::runtime::Runtime::new().unwrap();
 
     rt.block_on(async {
-        let intent = r#"{"type":"stats_category_breakdown","year_month":"2026-05"}"#.to_string();
+        let intent = r#"{"type":"stats_category_breakdown","year_month":"2026-05","aggregate_by_parent":false}"#.to_string();
         let update = core.dispatch(intent).await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
         assert!(state["ui"]["errorMessage"].is_null());
@@ -91,7 +91,7 @@ fn test_stats_with_records() {
         // 查询分类占比（当前月）
         let year_month = chrono::Utc::now().format("%Y-%m").to_string();
         let intent = format!(
-            r#"{{"type":"stats_category_breakdown","year_month":"{year_month}"}}"#
+            r#"{{"type":"stats_category_breakdown","year_month":"{year_month}","aggregate_by_parent":false}}"#
         );
         let update = core.dispatch(intent).await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();

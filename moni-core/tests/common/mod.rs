@@ -12,6 +12,7 @@ pub fn setup_core() -> MoniCore {
 }
 
 /// 创建并初始化一个使用内存数据库的 `MoniCore` 实例，并预置分类数据。
+#[allow(dead_code)]
 pub fn setup_core_with_presets() -> MoniCore {
     let core = MoniCore::new();
     let rt = tokio::runtime::Runtime::new().expect("测试 Runtime 创建失败");

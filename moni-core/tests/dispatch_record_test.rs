@@ -146,6 +146,41 @@ fn test_record_update_not_found() {
     });
 }
 
+/// 更新记录时若指定的新分类 id 不存在，应进入 `CategoryNotFound` 分支并产生错误信息（覆盖 update.rs 中的 `category_id` 校验路径）。
+#[test]
+fn test_record_update_with_nonexistent_category_fails() {
+    let core = common::setup_core_with_presets();
+    let rt = tokio::runtime::Runtime::new().unwrap();
+
+    rt.block_on(async {
+        // 先准备一条已存在的记录
+        let snapshot = core.snapshot_json().await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
+        let category_id = state["categories"][0]["id"].as_i64().unwrap();
+        let create_intent = format!(
+            r#"{{"type":"record_create","amount_cents":1234,"record_type":"expense","category_id":{category_id},"note":"待更新","timestamp":null}}"#
+        );
+        core.dispatch(create_intent).await.unwrap();
+
+        let snapshot = core.snapshot_json().await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
+        let record_id = state["records"][0]["id"].as_i64().unwrap();
+
+        // 用一个绝对不存在的分类 id 触发 CategoryNotFound
+        let bogus_category_id: i64 = 9_999_999;
+        let intent = format!(
+            r#"{{"type":"record_update","id":{record_id},"amount_cents":null,"record_type":null,"category_id":{bogus_category_id},"note":null}}"#
+        );
+        let update = core.dispatch(intent).await.expect("dispatch 不应失败");
+        let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
+        let err = state["ui"]["errorMessage"].as_str().unwrap_or("");
+        assert!(
+            err.contains("分类不存在") || err.to_lowercase().contains("category"),
+            "更新到不存在分类应进入 CategoryNotFound 分支，errorMessage={err}"
+        );
+    });
+}
+
 #[test]
 fn test_record_delete() {
     let core = common::setup_core_with_presets();

@@ -30,7 +30,10 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.agguy.moni.app.components.AutoResizeText
 import com.agguy.moni.core.CoreCategoryBreakdown
 import com.agguy.moni.core.util.formatAmount
 
@@ -70,11 +73,17 @@ fun CategoryPieChart(breakdowns: List<CoreCategoryBreakdown>, currencySymbol: St
                 contentAlignment = Alignment.Center
             ) {
                 PieChartCanvas(breakdowns = breakdowns)
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.width(80.dp)
+                ) {
+                    AutoResizeText(
                         text = totalText,
+                        maxFontSize = 32.sp,
+                        minFontSize = 12.sp,
                         style = MaterialTheme.typography.displaySmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center
                     )
                     Text(
                         text = "本月支出",

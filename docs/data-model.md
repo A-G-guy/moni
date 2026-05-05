@@ -44,6 +44,7 @@ pub enum RecordType {
 | `icon_name` | `String` | NOT NULL, DEFAULT `'help'` | 图标标识，映射到 `res/drawable/ic_{name}.xml` |
 | `color_hex` | `String` | NOT NULL, DEFAULT `'#808080'` | **已废弃**：颜色统一由 `record_type` 决定，保留字段兼容旧数据 |
 | `sort_order` | `i32` | NOT NULL, DEFAULT `0` | 排序权重，预设分类按业务语义排序，自定义分类固定 `999` |
+| `parent_id` | `Option<i64>` | FK → `categories(id)`, NULL | 父分类 ID，NULL 表示一级分类，非 NULL 表示二级分类 |
 | `is_preset` | `bool` | NOT NULL, DEFAULT `0` | 预设分类不可编辑 name/type、不可归档 |
 | `archived_at` | `Option<i64>` | NULL | **NULL = 活跃**，非 NULL = 已归档 |
 | `created_at` | `i64` | Unix 秒 | |
@@ -53,6 +54,7 @@ pub enum RecordType {
 - 去色（移除用户自定义颜色）：颜色统一按 `record_type` 分色（支出红 / 收入绿），减少用户心智负担，保持视觉一致性。
 - `description` 选填：为后续扩展（如分类备注、预算说明）预留语义空间，不强制填写避免增加录入成本。
 - `archived_at` 软删除替代物理删除：归档分类不可再被新建记录选中，但历史记录正常展示，保证数据完整性。
+- `parent_id` 单表自引用：仅支持单一层级（不允许三级分类），父分类必须是一级分类且与子分类同类型，保持实现简洁。
 
 ---
 
@@ -74,6 +76,15 @@ pub fn init_schema(conn: &Connection) -> Result<(), rusqlite::Error> {
     let has_archived_at = /* pragma_table_info 检测 */;
     if has_archived_at == 0 {
         conn.execute("ALTER TABLE categories ADD COLUMN archived_at INTEGER NULL", [])?;
+    }
+
+    // 2026-05-05：添加 parent_id 列
+    let has_parent_id = /* pragma_table_info 检测 */;
+    if has_parent_id == 0 {
+        conn.execute(
+            "ALTER TABLE categories ADD COLUMN parent_id INTEGER NULL REFERENCES categories(id) ON DELETE RESTRICT",
+            [],
+        )?;
     }
 
     Ok(())
@@ -127,3 +138,4 @@ Record (contracts) ────→ RecordDto (moni-core/dto)
 | 2026-05-04 | 去色：移除用户自定义颜色，统一按 `record_type` 分色 | `color_hex` 字段废弃但保留兼容 |
 | 2026-05-04 | 加描述：新增 `description` 列 | 分类可添加语义说明 |
 | 2026-05-04 | 加归档：新增 `archived_at` 列 | 支持软删除（归档）语义 |
+| 2026-05-05 | 加层级：新增 `parent_id` 列 | 支持二级分类（子分类）语义 |

@@ -170,7 +170,7 @@ pub fn monthly_aggregates(
     rows.collect()
 }
 
-/// 按分类聚合指定月份的支出。
+/// 按分类聚合指定月份的支出（最细粒度，按 category_id 分组）。
 pub fn category_aggregates(
     conn: &Connection,
     year_month: &str,
@@ -185,6 +185,34 @@ pub fn category_aggregates(
          WHERE r.record_type = 'expense'
            AND strftime('%Y-%m', datetime(r.created_at, 'unixepoch')) = ?1
          GROUP BY c.id
+         ORDER BY total DESC",
+    )?;
+    let rows = stmt.query_map([year_month], |row| {
+        Ok((
+            row.get::<_, i64>(0)?,
+            row.get::<_, String>(1)?,
+            row.get::<_, Option<AmountCents>>(2)?.unwrap_or(0),
+        ))
+    })?;
+    rows.collect()
+}
+
+/// 按一级分类聚合指定月份的支出（二级分类金额合并到父分类）。
+pub fn category_aggregates_by_parent(
+    conn: &Connection,
+    year_month: &str,
+) -> Result<Vec<(CategoryId, String, AmountCents)>, rusqlite::Error> {
+    let mut stmt = conn.prepare(
+        "SELECT
+            COALESCE(p.id, c.id) as category_id,
+            COALESCE(p.name, c.name) as category_name,
+            SUM(r.amount_cents) as total
+         FROM records r
+         JOIN categories c ON r.category_id = c.id
+         LEFT JOIN categories p ON c.parent_id = p.id
+         WHERE r.record_type = 'expense'
+           AND strftime('%Y-%m', datetime(r.created_at, 'unixepoch')) = ?1
+         GROUP BY COALESCE(p.id, c.id)
          ORDER BY total DESC",
     )?;
     let rows = stmt.query_map([year_month], |row| {

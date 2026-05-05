@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +53,23 @@ fun categoryColorForType(categoryType: String): androidx.compose.ui.graphics.Col
         MaterialTheme.colorScheme.incomeGreen
     }
 
+/**
+ * 将分类列表按层级展平：一级分类在前，其子分类紧跟其后。
+ */
+fun flattenCategoriesWithHierarchy(categories: List<CoreCategory>): List<Pair<CoreCategory, Boolean>> {
+    val active = categories.filter { it.archivedAt == null }
+    val (parents, children) = active.partition { it.parentId == null }
+    return buildList {
+        for (parent in parents.sortedBy { it.sortOrder }) {
+            add(parent to false)
+            children
+                .filter { it.parentId == parent.id }
+                .sortedBy { it.sortOrder }
+                .forEach { add(it to true) }
+        }
+    }
+}
+
 @Composable
 fun CategoryListContent(
     categories: List<CoreCategory>,
@@ -59,14 +77,19 @@ fun CategoryListContent(
     onEditRequest: (CoreCategory) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val flatList: List<Pair<CoreCategory, Boolean>> = remember(categories) { flattenCategoriesWithHierarchy(categories) }
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(categories, key = { it.id }) { category ->
+        items(
+            items = flatList,
+            key = { (cat, _) -> cat.id }
+        ) { (category, isSub) ->
             CategoryListItem(
                 category = category,
+                isSubCategory = isSub,
                 onArchiveClick = { onArchiveRequest(category) },
                 onEditClick = { onEditRequest(category) }
             )
@@ -77,6 +100,7 @@ fun CategoryListContent(
 @Composable
 fun CategoryListItem(
     category: CoreCategory,
+    isSubCategory: Boolean = false,
     onArchiveClick: () -> Unit,
     onEditClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -89,31 +113,36 @@ fun CategoryListItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(
+                    start = if (isSubCategory) 40.dp else 16.dp,
+                    end = 16.dp,
+                    top = 12.dp,
+                    bottom = 12.dp
+                ),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 分类图标（圆角方框背景，与账单页卡片保持一致）
+            // 分类图标（圆角方框背景）
             Box(
                 modifier = Modifier
                     .padding(end = 12.dp)
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(categoryColor.copy(alpha = 0.15f)),
+                    .size(if (isSubCategory) 32.dp else 40.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(categoryColor.copy(alpha = if (isSubCategory) 0.1f else 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 MoniIcon(
                     icon = iconNameToRes(category.iconName),
                     contentDescription = null,
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(if (isSubCategory) 18.dp else 22.dp),
                     tint = categoryColor
                 )
             }
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = category.name,
+                    text = if (isSubCategory) "› ${category.name}" else category.name,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = if (isSubCategory) FontWeight.Normal else FontWeight.Medium
                 )
                 if (!category.description.isNullOrBlank()) {
                     Text(

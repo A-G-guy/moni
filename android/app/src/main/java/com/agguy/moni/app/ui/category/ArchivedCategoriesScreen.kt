@@ -122,7 +122,8 @@ fun ArchivedCategoriesScreen(
                 EmptyArchivedCategoriesList()
             } else {
                 ArchivedCategoriesListContent(
-                    categories = archivedCategories,
+                    allCategories = appState.categories,
+                    archivedCategories = archivedCategories,
                     onUnarchiveRequest = { categoryToUnarchive = it }
                 )
             }
@@ -144,18 +145,34 @@ fun ArchivedCategoriesScreen(
 
 @Composable
 private fun ArchivedCategoriesListContent(
-    categories: List<CoreCategory>,
+    allCategories: List<CoreCategory>,
+    archivedCategories: List<CoreCategory>,
     onUnarchiveRequest: (CoreCategory) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val flatList = remember(archivedCategories) {
+        val parentIds = archivedCategories.map { it.id }.toSet()
+        val (parents, children) = archivedCategories.partition { it.parentId == null || !parentIds.contains(it.parentId) }
+        buildList {
+            for (parent in parents.sortedBy { it.sortOrder }) {
+                add(parent to false)
+                archivedCategories
+                    .filter { it.parentId == parent.id }
+                    .sortedBy { it.sortOrder }
+                    .forEach { add(it to true) }
+            }
+        }
+    }
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(categories, key = { "archived_${it.id}" }) { category ->
+        items(flatList, key = { "archived_${it.first.id}" }) { (category, isSub) ->
             ArchivedCategoryItem(
                 category = category,
+                isSubCategory = isSub,
                 onUnarchiveClick = { onUnarchiveRequest(category) }
             )
         }
@@ -165,6 +182,7 @@ private fun ArchivedCategoriesListContent(
 @Composable
 private fun ArchivedCategoryItem(
     category: CoreCategory,
+    isSubCategory: Boolean = false,
     onUnarchiveClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -176,31 +194,36 @@ private fun ArchivedCategoryItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(
+                    start = if (isSubCategory) 40.dp else 16.dp,
+                    end = 16.dp,
+                    top = 12.dp,
+                    bottom = 12.dp
+                ),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 分类图标（圆角方框背景，与分类管理页、账单页保持一致）
+            // 分类图标
             Box(
                 modifier = Modifier
                     .padding(end = 12.dp)
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(categoryColor.copy(alpha = 0.15f)),
+                    .size(if (isSubCategory) 32.dp else 40.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(categoryColor.copy(alpha = if (isSubCategory) 0.1f else 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 MoniIcon(
                     icon = iconNameToRes(category.iconName),
                     contentDescription = null,
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(if (isSubCategory) 18.dp else 22.dp),
                     tint = categoryColor
                 )
             }
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = category.name,
+                    text = if (isSubCategory) "› ${category.name}" else category.name,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = if (isSubCategory) FontWeight.Normal else FontWeight.Medium
                 )
             }
 

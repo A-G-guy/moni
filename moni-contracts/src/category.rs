@@ -18,6 +18,7 @@ pub struct Category {
     pub category_type: RecordType,
     pub icon_name: String,
     pub sort_order: i32,
+    pub parent_id: Option<CategoryId>,
     pub archived_at: Option<TimestampSec>,
     pub created_at: TimestampSec,
     pub updated_at: TimestampSec,
@@ -27,5 +28,10 @@ impl Category {
     /// 是否处于活跃状态（未归档）。
     pub fn is_active(&self) -> bool {
         self.archived_at.is_none()
+    }
+
+    /// 是否为二级分类（拥有父分类）。
+    pub fn is_sub_category(&self) -> bool {
+        self.parent_id.is_some()
     }
 }

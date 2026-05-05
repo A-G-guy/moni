@@ -76,7 +76,8 @@ sealed class CoreIntent {
         val name: String,
         val description: String? = null,
         val categoryType: RecordType,
-        val iconName: String
+        val iconName: String,
+        val parentId: Long? = null
     ) : CoreIntent()
 
     @Serializable
@@ -85,7 +86,9 @@ sealed class CoreIntent {
         val id: Long,
         val name: String? = null,
         val description: String? = null,
-        val iconName: String? = null
+        val iconName: String? = null,
+        val parentId: Long? = null,
+        val clearParentId: Boolean = false
     ) : CoreIntent()
 
     @Serializable
@@ -107,7 +110,10 @@ sealed class CoreIntent {
 
     @Serializable
     @SerialName("stats_category_breakdown")
-    data class StatsCategoryBreakdown(val yearMonth: String) : CoreIntent()
+    data class StatsCategoryBreakdown(
+        val yearMonth: String,
+        val aggregateByParent: Boolean = false
+    ) : CoreIntent()
 
     // 设置相关
     @Serializable

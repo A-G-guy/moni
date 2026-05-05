@@ -215,7 +215,9 @@ fun RecordDetailScreen(
             )
 
             CategorySelector(
-                categories = appState.categories.filter { it.categoryType == recordType.serialName },
+                categories = appState.categories.filter {
+                    it.categoryType == recordType.serialName && it.archivedAt == null
+                },
                 selectedCategoryId = selectedCategoryId,
                 onCategorySelected = { selectedCategoryId = it }
             )
@@ -326,11 +328,25 @@ private fun CategorySelector(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         } else {
+            // 按层级排序：一级分类在前，子分类紧跟父分类
+            val sortedCategories = remember(categories) {
+                buildList {
+                    val (parents, children) = categories.partition { it.parentId == null }
+                    for (parent in parents.sortedBy { it.sortOrder }) {
+                        add(parent)
+                        children
+                            .filter { it.parentId == parent.id }
+                            .sortedBy { it.sortOrder }
+                            .forEach { add(it) }
+                    }
+                }
+            }
+
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(horizontal = 0.dp)
             ) {
-                items(categories) { category ->
+                items(sortedCategories) { category ->
                     CategoryChip(
                         category = category,
                         isSelected = category.id == selectedCategoryId,
@@ -345,10 +361,11 @@ private fun CategorySelector(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CategoryChip(category: CoreCategory, isSelected: Boolean, onClick: () -> Unit) {
+    val label = if (category.parentId != null) "› ${category.name}" else category.name
     FilterChip(
         selected = isSelected,
         onClick = onClick,
-        label = { Text(category.name) },
+        label = { Text(label) },
         leadingIcon = if (isSelected) {
             {
                 MoniIcon(

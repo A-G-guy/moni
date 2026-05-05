@@ -15,6 +15,7 @@ fn map_category(row: &Row) -> Result<Category, rusqlite::Error> {
         },
         icon_name: row.get("icon_name")?,
         sort_order: row.get("sort_order")?,
+        parent_id: row.get("parent_id")?,
         archived_at: row.get("archived_at")?,
         created_at: row.get("created_at")?,
         updated_at: row.get("updated_at")?,
@@ -29,11 +30,12 @@ pub fn insert(
     category_type: RecordType,
     icon_name: &str,
     sort_order: i32,
+    parent_id: Option<CategoryId>,
 ) -> Result<CategoryId, rusqlite::Error> {
     let now = chrono::Utc::now().timestamp();
     conn.execute(
-        "INSERT INTO categories (name, description, category_type, icon_name, sort_order, created_at, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        "INSERT INTO categories (name, description, category_type, icon_name, sort_order, parent_id, created_at, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
         (
             name,
             description,
@@ -43,6 +45,7 @@ pub fn insert(
             },
             icon_name,
             sort_order,
+            parent_id,
             now,
             now,
         ),
@@ -73,24 +76,37 @@ pub fn list_active(conn: &Connection) -> Result<Vec<Category>, rusqlite::Error> 
     rows.collect()
 }
 
-/// 更新分类（仅允许更新自定义分类的 name / description / `icon_name`）。
+/// 更新分类（允许更新 name / description / icon_name / parent_id）。
 pub fn update(
     conn: &Connection,
     id: CategoryId,
     name: Option<&str>,
     description: Option<&str>,
     icon_name: Option<&str>,
+    parent_id: Option<Option<CategoryId>>,
 ) -> Result<usize, rusqlite::Error> {
     let now = chrono::Utc::now().timestamp();
-    conn.execute(
-        "UPDATE categories SET
-            name = COALESCE(?2, name),
-            description = COALESCE(?3, description),
-            icon_name = COALESCE(?4, icon_name),
-            updated_at = ?5
-         WHERE id = ?1",
-        (id, name, description, icon_name, now),
-    )
+    match parent_id {
+        Some(pid) => conn.execute(
+            "UPDATE categories SET
+                name = COALESCE(?2, name),
+                description = COALESCE(?3, description),
+                icon_name = COALESCE(?4, icon_name),
+                parent_id = ?5,
+                updated_at = ?6
+             WHERE id = ?1",
+            (id, name, description, icon_name, pid, now),
+        ),
+        None => conn.execute(
+            "UPDATE categories SET
+                name = COALESCE(?2, name),
+                description = COALESCE(?3, description),
+                icon_name = COALESCE(?4, icon_name),
+                updated_at = ?5
+             WHERE id = ?1",
+            (id, name, description, icon_name, now),
+        ),
+    }
 }
 
 /// 归档分类（设置 `archived_at` 为当前时间戳）。
@@ -111,6 +127,28 @@ pub fn unarchive(conn: &Connection, id: CategoryId) -> Result<usize, rusqlite::E
     )
 }
 
+/// 查询指定父分类下的所有子分类。
+pub fn list_by_parent(
+    conn: &Connection,
+    parent_id: CategoryId,
+) -> Result<Vec<Category>, rusqlite::Error> {
+    let mut stmt = conn.prepare(
+        "SELECT * FROM categories WHERE parent_id = ?1 ORDER BY sort_order ASC, created_at ASC"
+    )?;
+    let rows = stmt.query_map([parent_id], map_category)?;
+    rows.collect()
+}
+
+/// 检查分类是否有子分类。
+pub fn has_children(conn: &Connection, id: CategoryId) -> Result<bool, rusqlite::Error> {
+    let count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM categories WHERE parent_id = ?1",
+        [id],
+        |row| row.get(0),
+    )?;
+    Ok(count > 0)
+}
+
 /// 检查分类是否被记录引用。
 pub fn is_in_use(conn: &Connection, id: CategoryId) -> Result<bool, rusqlite::Error> {
     let count: i64 = conn.query_row(
@@ -128,23 +166,41 @@ pub fn seed_presets(conn: &Connection) -> Result<(), rusqlite::Error> {
         return Ok(());
     }
 
-    let presets = [
-        ("餐饮", RecordType::Expense, "restaurant", 1),
-        ("交通", RecordType::Expense, "directions_car", 2),
-        ("购物", RecordType::Expense, "shopping_bag", 3),
-        ("娱乐", RecordType::Expense, "sports_esports", 4),
-        ("居住", RecordType::Expense, "home", 5),
-        ("医疗", RecordType::Expense, "local_hospital", 6),
-        ("教育", RecordType::Expense, "school", 7),
-        ("其他支出", RecordType::Expense, "more_horiz", 8),
-        ("工资", RecordType::Income, "payments", 9),
-        ("奖金", RecordType::Income, "redeem", 10),
-        ("投资", RecordType::Income, "trending_up", 11),
-        ("其他收入", RecordType::Income, "more_horiz", 12),
+    // 一级分类
+    let parents = [
+        ("餐饮", RecordType::Expense, "restaurant", 1, None::<CategoryId>),
+        ("交通", RecordType::Expense, "directions_car", 2, None),
+        ("购物", RecordType::Expense, "shopping_bag", 3, None),
+        ("娱乐", RecordType::Expense, "sports_esports", 4, None),
+        ("居住", RecordType::Expense, "home", 5, None),
+        ("医疗", RecordType::Expense, "local_hospital", 6, None),
+        ("教育", RecordType::Expense, "school", 7, None),
+        ("其他支出", RecordType::Expense, "more_horiz", 8, None),
+        ("工资", RecordType::Income, "payments", 9, None),
+        ("奖金", RecordType::Income, "redeem", 10, None),
+        ("投资", RecordType::Income, "trending_up", 11, None),
+        ("其他收入", RecordType::Income, "more_horiz", 12, None),
     ];
 
-    for (name, ty, icon, order) in presets {
-        insert(conn, name, None, ty, icon, order)?;
+    let mut parent_ids: Vec<CategoryId> = Vec::with_capacity(parents.len());
+    for (name, ty, icon, order, _) in &parents {
+        let id = insert(conn, name, None, *ty, icon, *order, None)?;
+        parent_ids.push(id);
     }
+
+    // 二级分类示例
+    let children = [
+        ("早餐", RecordType::Expense, "bakery_dining", 101, Some(parent_ids[0])),
+        ("外卖", RecordType::Expense, "delivery_dining", 102, Some(parent_ids[0])),
+        ("地铁", RecordType::Expense, "subway", 103, Some(parent_ids[1])),
+        ("打车", RecordType::Expense, "local_taxi", 104, Some(parent_ids[1])),
+        ("网购", RecordType::Expense, "shopping_cart", 105, Some(parent_ids[2])),
+        ("超市", RecordType::Expense, "storefront", 106, Some(parent_ids[2])),
+    ];
+
+    for (name, ty, icon, order, pid) in &children {
+        insert(conn, name, None, *ty, icon, *order, *pid)?;
+    }
+
     Ok(())
 }

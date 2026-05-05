@@ -40,6 +40,7 @@ data class CoreCategory(
     val categoryType: String,
     val iconName: String,
     val sortOrder: Int,
+    val parentId: Long? = null,
     val archivedAt: Long? = null,
     val createdAt: Long = 0,
     val updatedAt: Long = 0

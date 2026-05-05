@@ -117,15 +117,15 @@ fun CategoryListScreen(
             }
 
             val categoryType = if (selectedTab == 0) RecordType.EXPENSE else RecordType.INCOME
-            val filteredCategories = appState.categories.filter {
+            val typeCategories = appState.categories.filter {
                 it.categoryType == categoryType.serialName && it.archivedAt == null
             }
 
-            if (filteredCategories.isEmpty()) {
+            if (typeCategories.isEmpty()) {
                 EmptyCategoryList()
             } else {
                 CategoryListContent(
-                    categories = filteredCategories,
+                    categories = typeCategories,
                     onArchiveRequest = { categoryToArchive = it },
                     onEditRequest = { categoryToEdit = it }
                 )
@@ -138,6 +138,7 @@ fun CategoryListScreen(
         CategoryEditorSheet(
             category = categoryToEdit,
             defaultType = if (selectedTab == 0) RecordType.EXPENSE else RecordType.INCOME,
+            categories = appState.categories,
             onDispatch = onDispatch,
             onDismiss = {
                 showAddSheet = false

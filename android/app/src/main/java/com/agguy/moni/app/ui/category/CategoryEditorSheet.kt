@@ -18,12 +18,14 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.icons.MoniIcons
+import androidx.compose.foundation.layout.Box
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.app.theme.iconNameToRes
 import com.agguy.moni.app.theme.incomeGreen
@@ -60,6 +63,7 @@ import com.agguy.moni.core.serialName
 fun CategoryEditorSheet(
     category: CoreCategory?,
     defaultType: RecordType,
+    categories: List<CoreCategory>,
     onDispatch: (CoreIntent) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -77,7 +81,9 @@ fun CategoryEditorSheet(
     var selectedIconName by remember {
         mutableStateOf(category?.iconName ?: "restaurant")
     }
+    var selectedParentId by remember { mutableStateOf(category?.parentId) }
     var showIconPicker by remember { mutableStateOf(false) }
+    var showParentPicker by remember { mutableStateOf(false) }
 
     val typeColor = when (selectedType) {
         RecordType.EXPENSE -> MaterialTheme.colorScheme.expenseRed
@@ -87,6 +93,25 @@ fun CategoryEditorSheet(
     val isNameValid = name.isNotBlank()
     val isDescriptionValid = description.length <= DESCRIPTION_MAX_LENGTH
     val isSaveEnabled = isNameValid && isDescriptionValid
+
+    // 编辑模式下，判断该分类是否已有子分类
+    val hasChildren = remember(category, categories) {
+        isEditMode && categories.any { it.parentId == category!!.id }
+    }
+
+    // 可选的父分类列表（同类型、一级分类、非自身、未归档）
+    val availableParents = remember(selectedType, categories, category) {
+        categories.filter {
+            it.parentId == null
+                && it.categoryType == selectedType.serialName
+                && it.id != category?.id
+                && it.archivedAt == null
+        }
+    }
+
+    val selectedParent = remember(selectedParentId, categories) {
+        categories.find { it.id == selectedParentId }
+    }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -153,6 +178,16 @@ fun CategoryEditorSheet(
                 }
             )
 
+            // 父分类选择行（仅当该分类没有子分类时显示）
+            if (!hasChildren) {
+                ParentCategorySelectorRow(
+                    parent = selectedParent,
+                    onClick = { showParentPicker = true },
+                    onClear = { selectedParentId = null },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             // 图标选择行
             IconSelectorRow(
                 iconName = selectedIconName,
@@ -170,12 +205,16 @@ fun CategoryEditorSheet(
                     val trimmedDescription = description.trim().takeIf { it.isNotBlank() }
 
                     if (isEditMode) {
+                        val originalParentId = category.parentId
+                        val clearParentId = originalParentId != null && selectedParentId == null
                         onDispatch(
                             CoreIntent.CategoryUpdate(
                                 id = category.id,
                                 name = trimmedName,
                                 description = trimmedDescription,
-                                iconName = selectedIconName
+                                iconName = selectedIconName,
+                                parentId = selectedParentId,
+                                clearParentId = clearParentId
                             )
                         )
                     } else {
@@ -184,7 +223,8 @@ fun CategoryEditorSheet(
                                 name = trimmedName,
                                 description = trimmedDescription,
                                 categoryType = selectedType,
-                                iconName = selectedIconName
+                                iconName = selectedIconName,
+                                parentId = selectedParentId
                             )
                         )
                     }
@@ -213,6 +253,16 @@ fun CategoryEditorSheet(
             selectedIconName = selectedIconName,
             onIconSelected = { selectedIconName = it },
             onDismiss = { showIconPicker = false }
+        )
+    }
+
+    // 父分类选择器 BottomSheet
+    if (showParentPicker) {
+        ParentCategoryPickerSheet(
+            parents = availableParents,
+            selectedParentId = selectedParentId,
+            onParentSelected = { selectedParentId = it },
+            onDismiss = { showParentPicker = false }
         )
     }
 }
@@ -325,6 +375,88 @@ private fun IconSelectorRow(
                 MoniIcon(
                     icon = MoniIcons.ExpandMore,
                     contentDescription = "选择图标",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+/**
+ * 父分类选择触发行。
+ *
+ * 左侧显示当前父分类图标和名称，右侧提供清除按钮。
+ */
+@Composable
+private fun ParentCategorySelectorRow(
+    parent: CoreCategory?,
+    onClick: () -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "父分类",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Surface(
+            onClick = onClick,
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (parent != null) {
+                    val parentColor = if (parent.categoryType == "expense")
+                        MaterialTheme.colorScheme.expenseRed
+                    else
+                        MaterialTheme.colorScheme.incomeGreen
+
+                    MoniIcon(
+                        icon = iconNameToRes(parent.iconName),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = parentColor
+                    )
+
+                    Text(
+                        text = parent.name,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    // 清除按钮
+                    TextButton(onClick = onClear) {
+                        Text(
+                            text = "清除",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    Text(
+                        text = "作为一级分类（不选父分类）",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                MoniIcon(
+                    icon = MoniIcons.ExpandMore,
+                    contentDescription = "选择父分类",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

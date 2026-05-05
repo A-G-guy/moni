@@ -10,6 +10,7 @@ pub struct CategoryDto {
     pub category_type: RecordType,
     pub icon_name: String,
     pub sort_order: i32,
+    pub parent_id: Option<i64>,
     pub archived_at: Option<i64>,
 }
 
@@ -22,6 +23,7 @@ impl CategoryDto {
             category_type: category.category_type,
             icon_name: category.icon_name.clone(),
             sort_order: category.sort_order,
+            parent_id: category.parent_id,
             archived_at: category.archived_at,
         }
     }

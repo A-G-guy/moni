@@ -59,12 +59,15 @@ pub enum CoreIntent {
         description: Option<String>,
         category_type: RecordType,
         icon_name: String,
+        parent_id: Option<CategoryId>,
     },
     CategoryUpdate {
         id: CategoryId,
         name: Option<String>,
         description: Option<String>,
         icon_name: Option<String>,
+        parent_id: Option<CategoryId>,
+        clear_parent_id: bool,
     },
     CategoryArchive {
         id: CategoryId,
@@ -79,6 +82,7 @@ pub enum CoreIntent {
     },
     StatsCategoryBreakdown {
         year_month: String,
+        aggregate_by_parent: bool,
     },
 
     SettingsUpdateCurrency {

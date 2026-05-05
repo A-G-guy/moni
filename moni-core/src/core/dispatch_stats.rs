@@ -13,8 +13,15 @@ impl AppCoreRuntime {
                 self.state.monthly_summaries = calculator::calculate_monthly_summary(aggregates);
                 self.finish(Vec::new())
             }
-            CoreIntent::StatsCategoryBreakdown { year_month } => {
-                let aggregates = record_repo::category_aggregates(&self.conn, &year_month)?;
+            CoreIntent::StatsCategoryBreakdown {
+                year_month,
+                aggregate_by_parent,
+            } => {
+                let aggregates = if aggregate_by_parent {
+                    record_repo::category_aggregates_by_parent(&self.conn, &year_month)?
+                } else {
+                    record_repo::category_aggregates(&self.conn, &year_month)?
+                };
                 self.state.current_month_breakdown =
                     calculator::calculate_category_breakdown(aggregates);
                 self.finish(Vec::new())

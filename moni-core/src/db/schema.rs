@@ -57,5 +57,18 @@ pub fn init_schema(conn: &Connection) -> Result<(), rusqlite::Error> {
         )?;
     }
 
+    // 检查并添加 parent_id 列（2026-05-05 迁移）
+    let has_parent_id: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM pragma_table_info('categories') WHERE name = 'parent_id'",
+        [],
+        |row| row.get(0),
+    )?;
+    if has_parent_id == 0 {
+        conn.execute(
+            "ALTER TABLE categories ADD COLUMN parent_id INTEGER NULL REFERENCES categories(id) ON DELETE RESTRICT",
+            [],
+        )?;
+    }
+
     Ok(())
 }

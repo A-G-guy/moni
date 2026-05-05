@@ -202,24 +202,14 @@ private fun ArchivedCategoryItem(
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium
                 )
-                if (category.isPreset) {
-                    Text(
-                        text = "预设分类",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
 
-            // 预设分类不提供恢复操作
-            if (!category.isPreset) {
-                IconButton(onClick = onUnarchiveClick) {
-                    MoniIcon(
-                        icon = MoniIcons.Unarchive,
-                        contentDescription = "恢复",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+            IconButton(onClick = onUnarchiveClick) {
+                MoniIcon(
+                    icon = MoniIcons.Unarchive,
+                    contentDescription = "恢复",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

@@ -46,6 +46,7 @@ import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreMonthlySummary
 import com.agguy.moni.core.util.formatAmount
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
@@ -104,7 +105,12 @@ internal fun MonthSummaryCarousel(
             .takeIf { it >= 0 }
             ?: (summaries.size - 1).coerceAtLeast(0)
     }
-    val carouselState = rememberCarouselState(initialItem = currentMonthIndex) { summaries.size }
+    val selectedMonthIndex = remember(summaries, selectedYearMonth) {
+        summaries.indexOfFirst { it.yearMonth == selectedYearMonth }
+            .takeIf { it >= 0 }
+            ?: (summaries.size - 1).coerceAtLeast(0)
+    }
+    val carouselState = rememberCarouselState(initialItem = selectedMonthIndex) { summaries.size }
     val coroutineScope = rememberCoroutineScope()
     var sheetVisible by remember { mutableStateOf(false) }
 
@@ -119,11 +125,12 @@ internal fun MonthSummaryCarousel(
     }
 
     // 监听 carousel 内部滑动，仅当新月份与外部不同时才回调，避免循环触发。
-    // key 只使用 carouselState：summaries 数据刷新不应导致 snapshotFlow 重新订阅，
-    // 否则 currentItem 不变但 summaries 同 index 对应不同月份时会产生假阳性回调。
+    // drop(1) 跳过 snapshotFlow 首次订阅时 emit 的当前值，防止 composable 重建时
+    // 把 initialItem 对应的月份误报为一次"用户滑动"。
     LaunchedEffect(carouselState) {
         snapshotFlow { carouselState.currentItem }
             .distinctUntilChanged()
+            .drop(1)
             .collect { index ->
                 summaries.getOrNull(index)?.let { summary ->
                     if (summary.yearMonth != selectedYearMonth) {

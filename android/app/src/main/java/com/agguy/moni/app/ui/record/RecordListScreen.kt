@@ -102,8 +102,7 @@ fun RecordListScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 FilledIconButton(
                     onClick = { onNavigateToRecordDetail(null) },
-                    shape = MaterialTheme.shapes.large,
-                    modifier = Modifier.size(56.dp)
+                    shape = MaterialTheme.shapes.large
                 ) {
                     MoniIcon(
                         icon = MoniIcons.AddFilled,

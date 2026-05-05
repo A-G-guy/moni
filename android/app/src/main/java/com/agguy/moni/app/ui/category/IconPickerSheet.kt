@@ -16,6 +16,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -68,10 +69,7 @@ fun IconPickerSheet(
             // 确认按钮
             Button(
                 onClick = onDismiss,
-                contentPadding = ButtonDefaults.LargeContentPadding,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = ButtonDefaults.LargeContainerHeight)
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
                 Text(
                     text = "确认",

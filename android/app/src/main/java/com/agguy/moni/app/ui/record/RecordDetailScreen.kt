@@ -7,7 +7,9 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -143,48 +145,50 @@ fun RecordDetailScreen(
                 tonalElevation = 3.dp,
                 shadowElevation = 0.dp
             ) {
-                Button(
-                    onClick = {
-                        if (isSaveEnabled) {
-                            if (isEditMode) {
-                                onDispatch(
-                                    CoreIntent.RecordUpdate(
-                                        id = existingRecord.id,
-                                        amountCents = amountCents,
-                                        recordType = recordType,
-                                        categoryId = selectedCategoryId,
-                                        note = note
-                                    )
-                                )
-                            } else {
-                                onDispatch(
-                                    CoreIntent.RecordCreate(
-                                        amountCents = amountCents,
-                                        recordType = recordType,
-                                        categoryId = selectedCategoryId,
-                                        note = note,
-                                        timestamp = timestamp
-                                    )
-                                )
-                            }
-                            onNavigateBack()
-                        }
-                    },
-                    enabled = isSaveEnabled,
-                    contentPadding = ButtonDefaults.LargeContentPadding,
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
-                        .heightIn(min = ButtonDefaults.LargeContainerHeight),
-                    colors = ButtonDefaults.buttonColors(
-                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "保存",
-                        style = MaterialTheme.typography.titleMediumEmphasized
-                    )
+                    Button(
+                        onClick = {
+                            if (isSaveEnabled) {
+                                if (isEditMode) {
+                                    onDispatch(
+                                        CoreIntent.RecordUpdate(
+                                            id = existingRecord.id,
+                                            amountCents = amountCents,
+                                            recordType = recordType,
+                                            categoryId = selectedCategoryId,
+                                            note = note
+                                        )
+                                    )
+                                } else {
+                                    onDispatch(
+                                        CoreIntent.RecordCreate(
+                                            amountCents = amountCents,
+                                            recordType = recordType,
+                                            categoryId = selectedCategoryId,
+                                            note = note,
+                                            timestamp = timestamp
+                                        )
+                                    )
+                                }
+                                onNavigateBack()
+                            }
+                        },
+                        enabled = isSaveEnabled,
+                        colors = ButtonDefaults.buttonColors(
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    ) {
+                        Text(
+                            text = "保存",
+                            style = MaterialTheme.typography.titleMediumEmphasized
+                        )
+                    }
                 }
             }
         }

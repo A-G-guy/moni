@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use moni_contracts::export::ExportFormat;
 use moni_contracts::record::RecordType;
 use moni_contracts::types::{AmountCents, CategoryId, RecordId, TimestampSec};
 
@@ -88,10 +87,6 @@ pub enum CoreIntent {
     SettingsUpdateCurrency {
         symbol: String,
     },
-    SettingsExportData {
-        format: ExportFormat,
-    },
-
     DevClearAllData,
     DevGenerateMockData {
         count: u32,

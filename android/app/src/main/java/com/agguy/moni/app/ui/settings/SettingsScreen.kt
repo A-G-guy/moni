@@ -37,11 +37,6 @@ import com.agguy.moni.core.CoreIntent
 
 /**
  * 设置页面。
- *
- * Material 3 Expressive 改造点：
- * - 标题用 [androidx.compose.material3.Typography.headlineSmall]，强化 hero 字号；
- * - 4 个 dialog 的 scale 动画统一接入 [androidx.compose.material3.MotionScheme.defaultSpatialSpec]，
- *   消除手写 `spring()` 与项目 motion 主题的不一致。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,10 +48,12 @@ fun SettingsScreen(
     onUpdateDynamicColor: (Boolean) -> Unit,
     onUpdateSeedColor: (Long) -> Unit = {},
     onNavigateToDeveloperOptions: () -> Unit = {},
+    onNavigateToBackupManager: () -> Unit = {},
+    onShowExportDialog: () -> Unit = {},
+    onShowImportDialog: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showCurrencyDialog by remember { mutableStateOf(false) }
-    var showExportDialog by remember { mutableStateOf(false) }
     var showThemeModeDialog by remember { mutableStateOf(false) }
     var showSeedColorDialog by remember { mutableStateOf(false) }
 
@@ -124,8 +121,22 @@ fun SettingsScreen(
             SettingsItem(
                 icon = MoniIcons.ArrowBack,
                 title = "导出数据",
-                subtitle = "导出为 CSV 或 JSON 格式",
-                onClick = { showExportDialog = true }
+                subtitle = "导出全量备份 ZIP",
+                onClick = onShowExportDialog
+            )
+
+            SettingsItem(
+                icon = MoniIcons.ArrowBack,
+                title = "导入数据",
+                subtitle = "从 ZIP 备份恢复",
+                onClick = onShowImportDialog
+            )
+
+            SettingsItem(
+                icon = MoniIcons.Settings,
+                title = "备份管理",
+                subtitle = "查看、还原、删除应用内备份",
+                onClick = onNavigateToBackupManager
             )
 
             SettingsItem(
@@ -157,22 +168,6 @@ fun SettingsScreen(
                     showCurrencyDialog = false
                 },
                 onDismiss = { showCurrencyDialog = false }
-            )
-        }
-    }
-
-    AnimatedVisibility(
-        visible = showExportDialog,
-        enter = scaleIn(animationSpec = dialogSpec),
-        exit = scaleOut(animationSpec = dialogSpec)
-    ) {
-        if (showExportDialog) {
-            ExportDataDialog(
-                onConfirm = { format ->
-                    onDispatch(CoreIntent.SettingsExportData(format = format))
-                    showExportDialog = false
-                },
-                onDismiss = { showExportDialog = false }
             )
         }
     }

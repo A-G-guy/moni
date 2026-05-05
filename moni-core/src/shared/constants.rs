@@ -4,9 +4,6 @@ pub const CUSTOM_CATEGORY_SORT_ORDER: i32 = 999;
 /// 分类描述的最大字符长度。
 pub const CATEGORY_DESCRIPTION_MAX_LEN: usize = 200;
 
-/// 导出数据时单次查询的最大记录数。
-pub const EXPORT_MAX_RECORDS: i32 = 10000;
-
 /// 分页查询的最大页大小。
 pub const MAX_PAGE_SIZE: u32 = 1000;
 

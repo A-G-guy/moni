@@ -38,7 +38,7 @@ impl AppCoreRuntime {
             CoreIntent::StatsMonthlySummary { .. } | CoreIntent::StatsCategoryBreakdown { .. } => {
                 self.dispatch_stats(intent)
             }
-            CoreIntent::SettingsUpdateCurrency { .. } | CoreIntent::SettingsExportData { .. } => {
+            CoreIntent::SettingsUpdateCurrency { .. } => {
                 self.dispatch_settings(intent)
             }
             CoreIntent::DevClearAllData | CoreIntent::DevGenerateMockData { .. } | CoreIntent::DevSeedPresets => {

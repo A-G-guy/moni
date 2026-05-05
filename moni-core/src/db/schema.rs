@@ -1,5 +1,9 @@
 use rusqlite::Connection;
 
+/// 当前数据库 schema 版本号。
+/// 每次 schema 发生非向后兼容的变更时同步递增。
+pub const CURRENT_SCHEMA_VERSION: u32 = 1;
+
 const SCHEMA_SQL: &str = "
 CREATE TABLE IF NOT EXISTS categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

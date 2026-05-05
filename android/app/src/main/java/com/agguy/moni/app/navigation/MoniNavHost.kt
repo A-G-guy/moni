@@ -27,6 +27,8 @@ import com.agguy.moni.app.ui.dev.DevLogScreen
 import com.agguy.moni.app.ui.dev.DeveloperOptionsScreen
 import com.agguy.moni.app.ui.record.RecordDetailScreen
 import com.agguy.moni.app.ui.record.RecordListScreen
+import com.agguy.moni.app.ui.backup.BackupManagerScreen
+import com.agguy.moni.app.ui.backup.BackupViewModel
 import com.agguy.moni.app.ui.settings.SettingsScreen
 import com.agguy.moni.app.ui.stats.StatsScreen
 import com.agguy.moni.core.CoreIntent
@@ -85,6 +87,11 @@ fun MoniNavHost(
     onNavigateToDeveloperOptions: () -> Unit,
     onNavigateToDevLog: () -> Unit,
     onClearAllData: () -> Unit,
+    onNavigateToBackupManager: () -> Unit,
+    onShowExportDialog: () -> Unit,
+    onShowImportDialog: () -> Unit,
+    backupViewModel: BackupViewModel,
+    dbPath: String,
     modifier: Modifier = Modifier
 ) {
     val slideSpec = MaterialTheme.motionScheme.defaultSpatialSpec<IntOffset>()
@@ -165,7 +172,17 @@ fun MoniNavHost(
                 onUpdateThemeMode = onUpdateThemeMode,
                 onUpdateDynamicColor = onUpdateDynamicColor,
                 onUpdateSeedColor = onUpdateSeedColor,
-                onNavigateToDeveloperOptions = onNavigateToDeveloperOptions
+                onNavigateToDeveloperOptions = onNavigateToDeveloperOptions,
+                onNavigateToBackupManager = onNavigateToBackupManager,
+                onShowExportDialog = onShowExportDialog,
+                onShowImportDialog = onShowImportDialog
+            )
+        }
+        composable<Screen.BackupManager> {
+            BackupManagerScreen(
+                viewModel = backupViewModel,
+                dbPath = dbPath,
+                onNavigateBack = onNavigateBack
             )
         }
         composable<Screen.DeveloperOptions> {

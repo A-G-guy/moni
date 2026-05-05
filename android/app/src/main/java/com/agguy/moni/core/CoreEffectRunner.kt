@@ -7,7 +7,6 @@ import kotlinx.serialization.json.jsonPrimitive
 class CoreEffectRunner {
     var onShowSnackbar: ((String) -> Unit)? = null
     var onNavigate: ((String) -> Unit)? = null
-    var onExportFile: ((String, String) -> Unit)? = null
 
     fun runEffect(effect: CoreEffect) {
         when (effect.kind) {
@@ -35,19 +34,6 @@ class CoreEffectRunner {
                 }
                 LogCollector.i("CoreEffectRunner", "导航到: $screen")
                 onNavigate?.invoke(screen)
-            }
-
-            "export_file" -> {
-                val json = try {
-                    kotlinx.serialization.json.Json.parseToJsonElement(effect.payloadJson).jsonObject
-                } catch (e: Exception) {
-                    LogCollector.w("Moni", "导出参数解析失败: ${e.message}")
-                    null
-                }
-                val format = json?.get("format")?.jsonPrimitive?.content ?: "csv"
-                val content = json?.get("content")?.jsonPrimitive?.content ?: ""
-                LogCollector.i("CoreEffectRunner", "导出文件: format=$format, contentLength=${content.length}")
-                onExportFile?.invoke(format, content)
             }
 
             else -> LogCollector.w("MoniEffect", "未知的 effect 类型: ${effect.kind}")

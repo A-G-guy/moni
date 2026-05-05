@@ -17,6 +17,18 @@ pub enum CoreError {
     CategoryAlreadyArchived,
     #[error("分类未归档")]
     CategoryNotArchived,
+    #[error("备份 ZIP 错误: {0}")]
+    BackupZipError(String),
+    #[error("备份清单无效: {0}")]
+    BackupManifestInvalid(String),
+    #[error("备份文件损坏: {0}")]
+    BackupCorrupted(String),
+    #[error("备份版本过新: 要求 format_version={required}, 当前支持={supported}")]
+    BackupTooNew { required: u32, supported: u32 },
+    #[error("备份恢复失败: 阶段={stage}, 原因={reason}")]
+    BackupRestoreFailed { stage: String, reason: String },
+    #[error("备份 IO 错误: {0}")]
+    BackupIo(String),
 }
 
 impl From<rusqlite::Error> for CoreError {

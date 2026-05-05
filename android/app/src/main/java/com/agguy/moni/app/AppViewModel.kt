@@ -57,11 +57,6 @@ class AppViewModel(
         effectRunner.onShowSnackbar = callback
     }
 
-    /** 供 UI 层绑定导出文件回调。 */
-    fun bindExportCallback(callback: (String, String) -> Unit) {
-        effectRunner.onExportFile = callback
-    }
-
     init {
         effectRunner.onNavigate = { screen ->
             LogCollector.d("MoniNavigate", "Navigate to: $screen")
@@ -198,6 +193,10 @@ class AppViewModel(
 
     fun navigateToArchivedCategories() {
         _navController?.navigate(Screen.ArchivedCategories)
+    }
+
+    fun navigateToBackupManager() {
+        _navController?.navigate(Screen.BackupManager)
     }
 
     fun navigateBack() {

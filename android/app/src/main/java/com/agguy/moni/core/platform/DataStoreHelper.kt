@@ -11,7 +11,15 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.agguy.moni.app.theme.DefaultSeedColor
 import com.agguy.moni.app.theme.ThemeMode
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "moni_settings")
 
@@ -104,6 +112,53 @@ object DataStoreHelper {
     suspend fun clearAll(context: Context) {
         context.dataStore.edit { preferences ->
             preferences.clear()
+        }
+    }
+
+    /**
+     * 导出所有设置项为 JSON 字符串。
+     */
+    suspend fun snapshotJson(context: Context): String {
+        val preferences = context.dataStore.data.first()
+        return kotlinx.serialization.json.JsonObject(
+            mapOf(
+                "schema" to kotlinx.serialization.json.JsonPrimitive(1),
+                "currency_symbol" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[CURRENCY_SYMBOL_KEY] ?: "¥"
+                ),
+                "theme_mode" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[THEME_MODE_KEY] ?: "system"
+                ),
+                "dynamic_color" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[DYNAMIC_COLOR_KEY] ?: false
+                ),
+                "seed_color" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[SEED_COLOR_KEY] ?: DefaultSeedColor.value.toLong()
+                ),
+            )
+        ).toString()
+    }
+
+    /**
+     * 从 JSON 字符串恢复设置项。
+     */
+    suspend fun restoreFromJson(context: Context, json: String) {
+        val element = kotlinx.serialization.json.Json.parseToJsonElement(json)
+        val obj = element.jsonObject
+        context.dataStore.edit { preferences ->
+            preferences.clear()
+            obj["currency_symbol"]?.jsonPrimitive?.content?.let {
+                preferences[CURRENCY_SYMBOL_KEY] = it
+            }
+            obj["theme_mode"]?.jsonPrimitive?.content?.let {
+                preferences[THEME_MODE_KEY] = it
+            }
+            obj["dynamic_color"]?.jsonPrimitive?.booleanOrNull?.let {
+                preferences[DYNAMIC_COLOR_KEY] = it
+            }
+            obj["seed_color"]?.jsonPrimitive?.longOrNull?.let {
+                preferences[SEED_COLOR_KEY] = it
+            }
         }
     }
 }

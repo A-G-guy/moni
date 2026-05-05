@@ -115,6 +115,142 @@ impl MoniCore {
             .await
             .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
     }
+
+    pub async fn backup_export(
+        &self,
+        out_zip_path: String,
+        settings_json: String,
+        app_version_name: String,
+        app_version_code: i64,
+        device_manufacturer: String,
+        device_model: String,
+        android_sdk: i32,
+        progress: Option<Box<dyn crate::models::backup::BackupProgressListener>>,
+    ) -> Result<crate::models::backup::BackupExportReport, CoreError> {
+        let inner = Arc::clone(&self.inner);
+        self.runtime
+            .spawn_blocking(move || {
+                let inner = inner
+                    .lock()
+                    .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
+
+                let on_progress = |stage: &str, percent: i32| {
+                    if let Some(ref p) = progress {
+                        p.on_stage(stage.to_string(), percent);
+                    }
+                };
+
+                let report = crate::domain::backup::exporter::backup_export(
+                    &inner.conn,
+                    &out_zip_path,
+                    &settings_json,
+                    &app_version_name,
+                    app_version_code,
+                    &device_manufacturer,
+                    &device_model,
+                    android_sdk,
+                    Some(&on_progress),
+                )?;
+                Ok(report)
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
+    pub async fn backup_inspect(
+        &self,
+        in_zip_path: String,
+    ) -> Result<crate::models::backup::BackupInspection, CoreError> {
+        self.runtime
+            .spawn_blocking(move || {
+                let file = std::fs::File::open(&in_zip_path)
+                    .map_err(|e| CoreError::BackupIo(format!("打开备份 ZIP 失败: {e}")))?;
+                let mut zip = zip::ZipArchive::new(file)
+                    .map_err(|e| CoreError::BackupZipError(e.to_string()))?;
+                let manifest = crate::domain::backup::manifest::read_manifest(&mut zip)?;
+                Ok(crate::models::backup::BackupInspection {
+                    format_version: manifest.format_version,
+                    schema_version: manifest.schema_version,
+                    app_version_name: manifest.app_version_name,
+                    app_version_code: manifest.app_version_code,
+                    created_at: manifest.created_at,
+                    record_count: manifest.stats.record_count,
+                    category_count: manifest.stats.category_count,
+                    settings_count: manifest.stats.settings_count,
+                    total_bytes: std::fs::metadata(&in_zip_path).map(|m| m.len()).unwrap_or(0),
+                })
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
+    pub async fn backup_restore(
+        &self,
+        in_zip_path: String,
+        db_path: String,
+        progress: Option<Box<dyn crate::models::backup::BackupProgressListener>>,
+    ) -> Result<crate::models::backup::BackupRestoreReport, CoreError> {
+        let inner = Arc::clone(&self.inner);
+        self.runtime
+            .spawn_blocking(move || {
+                let mut inner = inner
+                    .lock()
+                    .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
+
+                // 1. 创建恢复前快照
+                let db_parent = std::path::Path::new(&db_path)
+                    .parent()
+                    .unwrap_or(std::path::Path::new("."));
+                let timestamp = chrono::Local::now().format("%Y%m%d_%H%M%S").to_string();
+                let snapshot_path = db_parent.join(format!(".pre_restore_{timestamp}.db"));
+
+                // 先关闭当前连接，确保文件句柄释放
+                inner.conn = rusqlite::Connection::open_in_memory()
+                    .map_err(|e| CoreError::Database(format!("创建内存连接失败: {e}")))?;
+
+                std::fs::copy(&db_path, &snapshot_path)
+                    .map_err(|e| CoreError::BackupIo(format!("创建恢复前快照失败: {e}")))?;
+
+                let on_progress = |stage: &str, percent: i32| {
+                    if let Some(ref p) = progress {
+                        p.on_stage(stage.to_string(), percent);
+                    }
+                };
+
+                // 2. 执行恢复
+                let report = crate::domain::backup::importer::backup_restore(
+                    &in_zip_path,
+                    &db_path,
+                    snapshot_path.to_str(),
+                    Some(&on_progress),
+                );
+
+                match report {
+                    Ok(r) => {
+                        // 恢复成功：重新打开连接、刷新状态
+                        let _ = std::fs::remove_file(&snapshot_path);
+                        inner.conn = crate::db::connection::open_connection(&db_path)
+                            .map_err(|e| CoreError::Database(format!("重新打开数据库失败: {e}")))?;
+                        crate::db::schema::init_schema(&inner.conn)
+                            .map_err(|e| CoreError::Database(format!("Schema 初始化失败: {e}")))?;
+                        let categories = crate::db::category_repo::list_all(&inner.conn)?;
+                        inner.state.categories = categories.iter().map(crate::dto::CategoryDto::from_category).collect();
+                        Ok(r)
+                    }
+                    Err(e) => {
+                        // 恢复失败：从快照回滚
+                        let _ = std::fs::copy(&snapshot_path, &db_path);
+                        let _ = std::fs::remove_file(&snapshot_path);
+                        inner.conn = crate::db::connection::open_connection(&db_path)
+                            .unwrap_or_else(|_| rusqlite::Connection::open_in_memory().expect("内存数据库创建失败"));
+                        let _ = crate::db::schema::init_schema(&inner.conn);
+                        Err(e)
+                    }
+                }
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
 }
 
 uniffi::setup_scaffolding!();

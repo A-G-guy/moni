@@ -46,7 +46,6 @@ private sealed class CategoryGridItem {
  *
  * 一级分类与二级分类平铺并列显示，仅在视觉上区分。
  * 有子分类的一级分类本身也可被选中。
- * 空间过多时内容靠上，下方自然留白。
  */
 @Composable
 fun CategoryGridPager(
@@ -76,54 +75,49 @@ fun CategoryGridPager(
         }
     }
 
-    Box(
-        modifier = modifier.fillMaxWidth(),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        if (flatItems.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "暂无分类，请先添加分类",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(GRID_COLUMNS),
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)
-            ) {
-                items(
-                    items = flatItems,
-                    key = { item ->
-                        when (item) {
-                            is CategoryGridItem.Parent -> "p-${item.category.id}"
-                            is CategoryGridItem.Child -> "c-${item.category.id}"
-                        }
-                    }
-                ) { item ->
+    if (flatItems.isEmpty()) {
+        Box(
+            modifier = modifier,
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "暂无分类，请先添加分类",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    } else {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(GRID_COLUMNS),
+            modifier = modifier,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)
+        ) {
+            items(
+                items = flatItems,
+                key = { item ->
                     when (item) {
-                        is CategoryGridItem.Parent -> {
-                            PrimaryCategoryItem(
-                                category = item.category,
-                                isSelected = item.category.id == selectedCategoryId,
-                                onClick = { onCategorySelected(item.category.id) }
-                            )
-                        }
+                        is CategoryGridItem.Parent -> "p-${item.category.id}"
+                        is CategoryGridItem.Child -> "c-${item.category.id}"
+                    }
+                }
+            ) { item ->
+                when (item) {
+                    is CategoryGridItem.Parent -> {
+                        PrimaryCategoryItem(
+                            category = item.category,
+                            isSelected = item.category.id == selectedCategoryId,
+                            onClick = { onCategorySelected(item.category.id) }
+                        )
+                    }
 
-                        is CategoryGridItem.Child -> {
-                            SubCategoryItem(
-                                category = item.category,
-                                isSelected = item.category.id == selectedCategoryId,
-                                onClick = { onCategorySelected(item.category.id) }
-                            )
-                        }
+                    is CategoryGridItem.Child -> {
+                        SubCategoryItem(
+                            category = item.category,
+                            isSelected = item.category.id == selectedCategoryId,
+                            onClick = { onCategorySelected(item.category.id) }
+                        )
                     }
                 }
             }

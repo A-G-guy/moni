@@ -49,12 +49,11 @@ import java.time.ZoneId
 /**
  * 记账详情屏（新增/编辑）。
  *
- * 全新一屏闭环设计：
+ * 布局：
  * - 顶部：收入/支出胶囊切换
- * - 中部：分类翻页网格
- * - 底部：综合输入面板
- *
- * 除备注外全程不依赖系统输入法，所有操作在一屏内完成。
+ * - 中部：分类垂直滚动网格（固定高度）
+ * - 弹性空白：空间过多时在此处填充
+ * - 底部：综合输入面板（固定高度，紧贴底部）
  */
 @Composable
 fun RecordDetailScreen(
@@ -137,7 +136,7 @@ fun RecordDetailScreen(
                     .padding(bottom = 4.dp)
             )
 
-            // 中部：分类网格（弹性空间，过多时下方自然留白）
+            // 中部：分类网格（固定高度，内部垂直滚动）
             CategoryGridPager(
                 categories = filteredCategories,
                 selectedCategoryId = state.selectedCategoryId,
@@ -146,9 +145,12 @@ fun RecordDetailScreen(
                 onGridPageChanged = { state.currentGridPage = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .height(220.dp)
                     .padding(bottom = 4.dp)
             )
+
+            // 弹性空白：空间过多时在此处填充（分类与金额之间）
+            Spacer(modifier = Modifier.weight(1f))
 
             // 底部：综合控制面板（固定高度，紧贴安全区）
             RecordEditorPanel(
@@ -188,7 +190,9 @@ fun RecordDetailScreen(
                         onNavigateBack()
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(420.dp)
             )
         }
     }

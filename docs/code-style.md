@@ -42,6 +42,82 @@
 - `data/` 包按数据源拆分：`local/`（DataStore、数据库）、`remote/`（HTTP/WebSocket）、`repository/`（聚合层）
 - 禁止在 `core/` 包中直接写 Android 平台代码（如 `Context` 操作），平台相关逻辑下沉到 `platform/` 包
 
+## 命名规范
+
+- **变量名描述内容，函数名描述动作**：命名即文档，看到名字即可理解其用途。
+- **严禁无意义单字母、缩写或拼音**：除极短作用域的循环变量（如 `i`）外，禁止 `a`、`b`、`tmp` 等无意义命名；禁止拼音缩写（如 `je` 代表 `金额`）。
+- **Rust**：采用 `snake_case`（函数、变量）、`PascalCase`（类型、枚举）、`SCREAMING_SNAKE_CASE`（常量）。
+- **Kotlin**：采用 `camelCase`（函数、变量）、`PascalCase`（类、接口）、`SCREAMING_SNAKE_CASE`（常量）。
+- **Composable 函数**：使用 `PascalCase`，与常规函数区分，以明确其 UI 声明式语义。
+
+## 注释规范
+
+- **注释只解释“为什么 (Why)”，不解释“是什么 (What)”**：代码本身说明做了什么，注释应说明为何这么做、设计权衡、潜在陷阱。
+- **Public 接口必须包含标准文档注释**：参数、返回值、异常必须明确说明。
+- **待办标记统一格式**：`// TODO: [具体描述]`，禁止无描述的裸 `// TODO`。
+- **异常与日志**：严禁静默吞没异常，关键分支与异常捕获处必须附带上下文日志。
+
+## 测试代码规范
+
+- **物理隔离**：测试文件严禁与源码平铺。
+  - Rust：必须放入 `<crate>/tests/` 目录，或使用 `#[cfg(test)]` 模块置于 `src/` 下的独立 `tests` 子模块。
+  - Kotlin：必须放入 `src/test/java/` 对应包路径。
+- **命名一致**：测试文件与源码文件命名严格对应。例如 `state.rs` 的测试对应 `tests/state_tests.rs`；`AppViewModel.kt` 的测试对应 `AppViewModelTest.kt`。
+- **逢变必测**：核心逻辑的增改必须同步覆盖测试用例，严禁提交“零测试”业务代码。
+- **测试独立**：单个测试用例之间不得存在执行顺序依赖，确保可并行运行。
+
+## Git 提交规范
+
+遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范，`<type>` 仅限以下 7 种：
+
+| 类型 | 用途 |
+|------|------|
+| `feat` | 新功能 |
+| `fix` | 缺陷修复 |
+| `docs` | 文档变更（含 README、注释） |
+| `style` | 代码风格调整（不影响逻辑的格式化、空行等） |
+| `refactor` | 重构（既不修复 bug 也不添加功能的代码改动） |
+| `test` | 测试相关（新增、修改测试代码） |
+| `chore` | 构建、工具链、依赖升级等杂项 |
+
+格式：
+
+```text
+<type>: <short description in lowercase>
+
+- <action verb> <detailed change 1>
+- <action verb> <detailed change 2>
+```
+
+## 工具链与格式化配置
+
+### Rust
+
+- **Edition**：`2024`（`moni-core`、`moni-contracts` 的 `Cargo.toml` 以及 `rustfmt.toml` 均指定）。
+- **工具链**：`stable` channel，组件包含 `rustfmt`、`clippy`、`rust-src`。
+- **格式化**（`rustfmt.toml`）：
+  - `max_width = 100`
+  - `hard_tabs = false`，`tab_spaces = 4`
+  - `newline_style = "Unix"`
+  - 启用字段初始化简写与 `?` 简写
+- **Clippy**（根目录 `Cargo.toml` `[workspace.lints.clippy]`）：
+  - `correctness`、`perf`、`suspicious` 级别为 `deny`
+  - `complexity`、`style`、`pedantic` 级别为 `warn`
+  - 针对性放宽：`module_name_repetitions`、`missing_errors_doc`、`missing_panics_doc`、`must_use_candidate`、`return_self_not_must_use`、`multiple_crate_versions`
+
+### Kotlin / Android
+
+- **AGP / Gradle**：`compileSdk = 36`，`minSdk = 28`，JDK 17。
+- **NDK**：`29.0.14206865`。
+- **Detekt**（`config/detekt/detekt.yml`）：
+  - `LongMethod`：阈值 `200` 行（Compose `@Composable` 声明式 DSL 适当放宽）
+  - `LongParameterList`：函数参数 `12`，构造参数 `10`
+  - `TooManyFunctions`：每类 `25`，每文件 `30`
+  - `MaxLineLength`：`140`
+  - `ReturnCount`：`max = 4`
+  - `FunctionNaming`：允许 PascalCase Composable 函数名
+  - `ktlint`：启用 Android 模式，尾随逗号默认关闭
+
 ## 预测性拆分（提前行动）
 
 **禁止被动等待拦截**：当文件行数达到预警阈值（Rust 300 行 / Kotlin 250 行 / Composable 80 行）时，主动规划拆分，不要等到 500 行硬上限才行动。

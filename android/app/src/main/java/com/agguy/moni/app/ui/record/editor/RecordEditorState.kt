@@ -10,7 +10,8 @@ import androidx.compose.runtime.setValue
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreRecord
 import com.agguy.moni.core.RecordType
-import java.time.LocalDate
+import java.time.Instant
+import java.time.LocalDateTime
 import java.time.ZoneId
 
 /**
@@ -45,7 +46,7 @@ class RecordEditorState(saved: List<Any?>?) {
 
     var timestamp by mutableLongStateOf(
         saved?.getOrNull(6) as? Long
-            ?: LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toEpochSecond()
+            ?: LocalDateTime.now().atZone(ZoneId.systemDefault()).toEpochSecond()
     )
         private set
 
@@ -214,9 +215,24 @@ class RecordEditorState(saved: List<Any?>?) {
         note = newNote
     }
 
-    /** 更新日期 */
+    /** 更新时间戳 */
     fun updateTimestamp(newTimestamp: Long) {
         timestamp = newTimestamp
+    }
+
+    /** 更新日期（保持时分秒不变） */
+    fun updateDate(dateEpochSecond: Long) {
+        val current = Instant.ofEpochSecond(timestamp).atZone(ZoneId.systemDefault())
+        val newDate = Instant.ofEpochSecond(dateEpochSecond).atZone(ZoneId.systemDefault()).toLocalDate()
+        val combined = newDate.atTime(current.toLocalTime())
+        timestamp = combined.atZone(ZoneId.systemDefault()).toEpochSecond()
+    }
+
+    /** 更新时间（保持日期不变） */
+    fun updateTime(hour: Int, minute: Int) {
+        val current = Instant.ofEpochSecond(timestamp).atZone(ZoneId.systemDefault())
+        val combined = current.toLocalDate().atTime(hour, minute)
+        timestamp = combined.atZone(ZoneId.systemDefault()).toEpochSecond()
     }
 
     /** 从已有记录加载（编辑模式） */
@@ -245,7 +261,7 @@ class RecordEditorState(saved: List<Any?>?) {
         amountExpression = ""
         confirmedAmountCents = 0L
         note = ""
-        timestamp = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toEpochSecond()
+        timestamp = LocalDateTime.now().atZone(ZoneId.systemDefault()).toEpochSecond()
         isNoteEditing = false
         currentGridPage = 0
         isInSubCategoryView = false

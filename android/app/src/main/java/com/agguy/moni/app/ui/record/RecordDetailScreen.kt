@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,20 +34,23 @@ import com.agguy.moni.app.ui.record.editor.CategoryGridPager
 import com.agguy.moni.app.ui.record.editor.DatePickerBottomSheet
 import com.agguy.moni.app.ui.record.editor.RecordEditorPanel
 import com.agguy.moni.app.ui.record.editor.RecordEditorState
+import com.agguy.moni.app.ui.record.editor.TimePickerBottomSheet
 import com.agguy.moni.app.ui.record.editor.rememberRecordEditorState
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.CoreRecord
 import com.agguy.moni.core.RecordType
 import com.agguy.moni.core.serialName
+import java.time.Instant
+import java.time.ZoneId
 
 /**
  * 记账详情屏（新增/编辑）。
  *
  * 全新一屏闭环设计：
- * - 顶部：收入/支出胶囊切换（~10%）
- * - 中部：分类翻页网格（~45%）
- * - 底部：综合输入面板（~45%）
+ * - 顶部：收入/支出胶囊切换
+ * - 中部：分类翻页网格
+ * - 底部：综合输入面板
  *
  * 除备注外全程不依赖系统输入法，所有操作在一屏内完成。
  */
@@ -67,6 +69,7 @@ fun RecordDetailScreen(
 
     val state = rememberRecordEditorState(existingRecord, appState.categories)
     var showDateSheet by remember { mutableStateOf(false) }
+    var showTimeSheet by remember { mutableStateOf(false) }
 
     // 根据当前类型过滤未归档分类
     val filteredCategories = remember(appState.categories, state.recordType) {
@@ -120,8 +123,8 @@ fun RecordDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             // 顶部：类型切换
             RecordTypeToggle(
@@ -134,12 +137,8 @@ fun RecordDetailScreen(
             CategoryGridPager(
                 categories = filteredCategories,
                 selectedCategoryId = state.selectedCategoryId,
-                selectedParentCategoryId = state.selectedParentCategoryId,
-                isInSubCategoryView = state.isInSubCategoryView,
                 currentGridPage = state.currentGridPage,
                 onCategorySelected = { state.selectCategory(it) },
-                onEnterSubCategory = { state.enterSubView(it) },
-                onExitSubCategory = { state.exitSubView() },
                 onGridPageChanged = { state.currentGridPage = it },
                 modifier = Modifier.weight(1f)
             )
@@ -147,9 +146,9 @@ fun RecordDetailScreen(
             // 底部：综合控制面板
             RecordEditorPanel(
                 state = state,
-                categories = filteredCategories,
                 currencySymbol = appState.currencySymbol,
                 onDateClick = { showDateSheet = true },
+                onTimeClick = { showTimeSheet = true },
                 onNoteClick = { state.startNoteEdit() },
                 onNoteDone = { state.endNoteEdit() },
                 onDigitClick = { state.appendDigit(it) },
@@ -191,8 +190,21 @@ fun RecordDetailScreen(
     if (showDateSheet) {
         DatePickerBottomSheet(
             selectedTimestamp = state.timestamp,
-            onDateSelected = { state.updateTimestamp(it) },
+            onDateSelected = { dateSeconds ->
+                state.updateDate(dateSeconds)
+            },
             onDismiss = { showDateSheet = false }
+        )
+    }
+
+    // 时间选择 BottomSheet
+    if (showTimeSheet) {
+        TimePickerBottomSheet(
+            selectedTimestamp = state.timestamp,
+            onTimeSelected = { hour, minute ->
+                state.updateTime(hour, minute)
+            },
+            onDismiss = { showTimeSheet = false }
         )
     }
 }
@@ -207,7 +219,7 @@ private fun RecordTypeToggle(
     modifier: Modifier = Modifier
 ) {
     ButtonGroup(
-        modifier = modifier,
+        modifier = modifier.padding(horizontal = 8.dp),
         overflowIndicator = {}
     ) {
         toggleableItem(

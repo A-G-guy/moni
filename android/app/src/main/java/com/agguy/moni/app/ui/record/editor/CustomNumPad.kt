@@ -5,17 +5,13 @@ package com.agguy.moni.app.ui.record.editor
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -26,8 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.agguy.moni.app.theme.expenseRed
-import com.agguy.moni.app.theme.incomeGreen
+import androidx.compose.ui.unit.sp
 import com.agguy.moni.core.RecordType
 
 /**
@@ -61,14 +56,9 @@ fun CustomNumPad(
 
     val actionButtonEnabled = canSave || canCalculate
 
-    val actionColor = when (recordType) {
-        RecordType.EXPENSE -> MaterialTheme.colorScheme.expenseRed
-        RecordType.INCOME -> MaterialTheme.colorScheme.incomeGreen
-    }
-
     Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         // 第一行: 7 8 9 +
         KeyRow {
@@ -88,25 +78,25 @@ fun CustomNumPad(
 
         // 第三行 + 第四行合并右侧保存按钮
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth().weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             // 左侧 3×2 数字区
             Column(
                 modifier = Modifier.weight(3f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     NumKey("1") { onDigitClick("1") }
                     NumKey("2") { onDigitClick("2") }
                     NumKey("3") { onDigitClick("3") }
                 }
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     NumKey(".") { onDigitClick(".") }
                     NumKey("0") { onDigitClick("0") }
@@ -118,12 +108,6 @@ fun CustomNumPad(
             ActionKey(
                 text = actionButtonText,
                 enabled = actionButtonEnabled,
-                containerColor = if (actionButtonEnabled) actionColor else MaterialTheme.colorScheme.surfaceContainerHigh,
-                contentColor = if (actionButtonEnabled) {
-                    MaterialTheme.colorScheme.onPrimary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
                 onClick = {
                     when {
                         canSave -> onSave()
@@ -137,10 +121,10 @@ fun CustomNumPad(
 }
 
 @Composable
-private fun KeyRow(content: @Composable RowScope.() -> Unit) {
+private fun ColumnScope.KeyRow(content: @Composable RowScope.() -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier.fillMaxWidth().weight(1f),
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         content()
     }
@@ -155,7 +139,7 @@ private fun RowScope.NumKey(
         onClick = onClick,
         modifier = Modifier
             .weight(1f)
-            .aspectRatio(1.2f),
+            .fillMaxHeight(),
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         tonalElevation = 1.dp
@@ -163,7 +147,8 @@ private fun RowScope.NumKey(
         Box(contentAlignment = Alignment.Center) {
             Text(
                 text = text,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.headlineSmall,
+                fontSize = 24.sp,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
@@ -179,7 +164,7 @@ private fun RowScope.OpKey(
         onClick = onClick,
         modifier = Modifier
             .weight(1f)
-            .aspectRatio(1.2f),
+            .fillMaxHeight(),
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surfaceContainer,
         tonalElevation = 2.dp
@@ -187,7 +172,8 @@ private fun RowScope.OpKey(
         Box(contentAlignment = Alignment.Center) {
             Text(
                 text = text,
-                style = MaterialTheme.typography.titleMediumEmphasized,
+                style = MaterialTheme.typography.headlineSmall,
+                fontSize = 24.sp,
                 color = MaterialTheme.colorScheme.primary
             )
         }
@@ -200,7 +186,7 @@ private fun RowScope.BackspaceKey(onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier
             .weight(1f)
-            .aspectRatio(1.2f),
+            .fillMaxHeight(),
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surfaceContainer,
         tonalElevation = 1.dp
@@ -208,7 +194,8 @@ private fun RowScope.BackspaceKey(onClick: () -> Unit) {
         Box(contentAlignment = Alignment.Center) {
             Text(
                 text = "⌫",
-                style = MaterialTheme.typography.titleMediumEmphasized,
+                style = MaterialTheme.typography.headlineSmall,
+                fontSize = 22.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -219,12 +206,22 @@ private fun RowScope.BackspaceKey(onClick: () -> Unit) {
 private fun ActionKey(
     text: String,
     enabled: Boolean,
-    containerColor: androidx.compose.ui.graphics.Color,
-    contentColor: androidx.compose.ui.graphics.Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val surfaceAlpha = if (enabled) 1f else 0.6f
+
+    val containerColor = if (enabled) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHigh
+    }
+
+    val contentColor = if (enabled) {
+        MaterialTheme.colorScheme.onPrimary
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
 
     Surface(
         onClick = { if (enabled) onClick() },
@@ -241,7 +238,8 @@ private fun ActionKey(
         ) {
             Text(
                 text = text,
-                style = MaterialTheme.typography.titleMediumEmphasized,
+                style = MaterialTheme.typography.titleLarge,
+                fontSize = 22.sp,
                 color = contentColor
             )
         }

@@ -21,14 +21,14 @@ import androidx.navigation.toRoute
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.ThemeSettings
 import com.agguy.moni.app.theme.ThemeMode
+import com.agguy.moni.app.ui.backup.BackupViewModel
+import com.agguy.moni.app.ui.backup.DataManagementScreen
 import com.agguy.moni.app.ui.category.ArchivedCategoriesScreen
 import com.agguy.moni.app.ui.category.CategoryListScreen
 import com.agguy.moni.app.ui.dev.DevLogScreen
 import com.agguy.moni.app.ui.dev.DeveloperOptionsScreen
 import com.agguy.moni.app.ui.record.RecordDetailScreen
 import com.agguy.moni.app.ui.record.RecordListScreen
-import com.agguy.moni.app.ui.backup.BackupManagerScreen
-import com.agguy.moni.app.ui.backup.BackupViewModel
 import com.agguy.moni.app.ui.settings.SettingsScreen
 import com.agguy.moni.app.ui.stats.StatsScreen
 import com.agguy.moni.core.CoreIntent
@@ -84,12 +84,10 @@ fun MoniNavHost(
     onUpdateThemeMode: (ThemeMode) -> Unit,
     onUpdateDynamicColor: (Boolean) -> Unit,
     onUpdateSeedColor: (Long) -> Unit,
-    onNavigateToDeveloperOptions: () -> Unit,
-    onNavigateToDevLog: () -> Unit,
-    onClearAllData: () -> Unit,
-    onNavigateToBackupManager: () -> Unit,
-    onShowExportDialog: () -> Unit,
-    onShowImportDialog: () -> Unit,
+    onNavigateToDeveloperOptions: () -> Unit = {},
+    onNavigateToDevLog: () -> Unit = {},
+    onClearAllData: () -> Unit = {},
+    onNavigateToDataManagement: () -> Unit = {},
     backupViewModel: BackupViewModel,
     dbPath: String,
     modifier: Modifier = Modifier
@@ -173,13 +171,11 @@ fun MoniNavHost(
                 onUpdateDynamicColor = onUpdateDynamicColor,
                 onUpdateSeedColor = onUpdateSeedColor,
                 onNavigateToDeveloperOptions = onNavigateToDeveloperOptions,
-                onNavigateToBackupManager = onNavigateToBackupManager,
-                onShowExportDialog = onShowExportDialog,
-                onShowImportDialog = onShowImportDialog
+                onNavigateToDataManagement = onNavigateToDataManagement
             )
         }
-        composable<Screen.BackupManager> {
-            BackupManagerScreen(
+        composable<Screen.DataManagement> {
+            DataManagementScreen(
                 viewModel = backupViewModel,
                 dbPath = dbPath,
                 onNavigateBack = onNavigateBack

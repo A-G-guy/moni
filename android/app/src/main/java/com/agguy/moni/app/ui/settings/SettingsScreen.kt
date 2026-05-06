@@ -48,9 +48,7 @@ fun SettingsScreen(
     onUpdateDynamicColor: (Boolean) -> Unit,
     onUpdateSeedColor: (Long) -> Unit = {},
     onNavigateToDeveloperOptions: () -> Unit = {},
-    onNavigateToBackupManager: () -> Unit = {},
-    onShowExportDialog: () -> Unit = {},
-    onShowImportDialog: () -> Unit = {},
+    onNavigateToDataManagement: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showCurrencyDialog by remember { mutableStateOf(false) }
@@ -119,24 +117,10 @@ fun SettingsScreen(
             )
 
             SettingsItem(
-                icon = MoniIcons.ArrowBack,
-                title = "导出数据",
-                subtitle = "导出全量备份 ZIP",
-                onClick = onShowExportDialog
-            )
-
-            SettingsItem(
-                icon = MoniIcons.ArrowBack,
-                title = "导入数据",
-                subtitle = "从 ZIP 备份恢复",
-                onClick = onShowImportDialog
-            )
-
-            SettingsItem(
-                icon = MoniIcons.Settings,
-                title = "备份管理",
-                subtitle = "查看、还原、删除应用内备份",
-                onClick = onNavigateToBackupManager
+                icon = MoniIcons.Cloud,
+                title = "数据管理",
+                subtitle = "备份导出、导入恢复、管理应用内备份",
+                onClick = onNavigateToDataManagement
             )
 
             SettingsItem(

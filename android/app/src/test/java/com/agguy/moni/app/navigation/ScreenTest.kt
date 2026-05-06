@@ -86,7 +86,7 @@ class ScreenTest {
             Screen.DeveloperOptions,
             Screen.ArchivedCategories,
             Screen.DevLog,
-            Screen.BackupManager,
+            Screen.DataManagement,
         )
         singletons.forEach { original ->
             val text = json.encodeToString(Screen.serializer(), original)
@@ -106,7 +106,7 @@ class ScreenTest {
         val a: Screen = Screen.RecordList
         val b: Screen = Screen.Settings
         val c: Screen = Screen.Stats
-        val d: Screen = Screen.BackupManager
+        val d: Screen = Screen.DataManagement
         assertNotEquals(a, b)
         assertNotEquals(c, d)
     }

@@ -2,8 +2,10 @@
 
 package com.agguy.moni.app.ui.backup
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,10 +18,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -48,21 +48,23 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.painterResource
-import com.agguy.moni.app.components.SettingsItem
 import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.ui.settings.ExportDataDialog
+import com.agguy.moni.app.ui.settings.ImportConfirmDialog
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 /**
- * 备份管理页面。
+ * 数据管理页面。
  *
- * 列出应用内所有备份，支持还原、删除、分享、导出到 SAF。
+ * 整合导出备份、导入恢复、应用内备份管理三个功能。
+ * 导出/导入对话框与 SAF launcher 在页面内部管理，不依赖 MoniApp 顶层。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BackupManagerScreen(
+fun DataManagementScreen(
     viewModel: BackupViewModel,
     dbPath: String,
     onNavigateBack: () -> Unit,
@@ -73,7 +75,27 @@ fun BackupManagerScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
+    var showExportDialog by remember { mutableStateOf(false) }
+    var showImportDialog by remember { mutableStateOf(false) }
+    var importUri by remember { mutableStateOf<Uri?>(null) }
     var showRestoreConfirm by remember { mutableStateOf<File?>(null) }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        uri?.let { viewModel.exportToSaf(it) }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            importUri = it
+            showImportDialog = true
+            viewModel.clearInspectResult()
+            viewModel.inspectBackupFromUri(it)
+        }
+    }
 
     LaunchedEffect(operationState) {
         when (val state = operationState) {
@@ -93,7 +115,7 @@ fun BackupManagerScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = { Text("备份管理") },
+                title = { Text("数据管理") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(painterResource(MoniIcons.ArrowBack), contentDescription = "返回")
@@ -109,19 +131,32 @@ fun BackupManagerScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 导出按钮
-            SettingsItem(
-                icon = MoniIcons.ArrowBack,
-                title = "立即备份",
-                subtitle = "创建一份新的应用内备份",
-                onClick = { viewModel.exportToInternal() }
-            )
+            // 操作区：导出 / 导入
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ActionCard(
+                    icon = MoniIcons.Cloud,
+                    title = "导出备份",
+                    subtitle = "备份到应用内或外部",
+                    modifier = Modifier.weight(1f),
+                    onClick = { showExportDialog = true }
+                )
+                ActionCard(
+                    icon = MoniIcons.Archive,
+                    title = "导入备份",
+                    subtitle = "从 ZIP 文件恢复",
+                    modifier = Modifier.weight(1f),
+                    onClick = { importLauncher.launch(arrayOf("application/zip")) }
+                )
+            }
 
             AnimatedVisibility(visible = operationState is BackupOperationState.Running) {
                 val running = operationState as? BackupOperationState.Running
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                Column(modifier = Modifier.padding(vertical = 4.dp)) {
                     Text(
                         running?.stage ?: "处理中...",
                         style = MaterialTheme.typography.bodyMedium
@@ -133,7 +168,7 @@ fun BackupManagerScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             Text(
                 "应用内备份 (${backups.size})",
@@ -169,6 +204,43 @@ fun BackupManagerScreen(
         }
     }
 
+    // 导出数据对话框
+    if (showExportDialog) {
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        ExportDataDialog(
+            operationState = operationState,
+            onExportToInternal = {
+                viewModel.exportToInternal()
+            },
+            onExportToSaf = {
+                exportLauncher.launch("Moni_Backup_$timestamp.zip")
+            },
+            onDismiss = {
+                showExportDialog = false
+                viewModel.resetState()
+            }
+        )
+    }
+
+    // 导入确认对话框
+    if (showImportDialog) {
+        ImportConfirmDialog(
+            inspectResult = inspectResult,
+            operationState = operationState,
+            onConfirm = {
+                importUri?.let { uri ->
+                    viewModel.importFromSaf(uri, dbPath)
+                }
+            },
+            onDismiss = {
+                showImportDialog = false
+                importUri = null
+                viewModel.clearInspectResult()
+                viewModel.resetState()
+            }
+        )
+    }
+
     // 恢复确认对话框
     showRestoreConfirm?.let { file ->
         AlertDialog(
@@ -189,6 +261,47 @@ fun BackupManagerScreen(
                 TextButton(onClick = { showRestoreConfirm = null }) { Text("取消") }
             }
         )
+    }
+}
+
+@Composable
+private fun ActionCard(
+    icon: Int,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+            )
+        }
     }
 }
 

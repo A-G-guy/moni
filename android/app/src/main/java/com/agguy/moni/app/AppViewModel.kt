@@ -195,8 +195,8 @@ class AppViewModel(
         _navController?.navigate(Screen.ArchivedCategories)
     }
 
-    fun navigateToBackupManager() {
-        _navController?.navigate(Screen.BackupManager)
+    fun navigateToDataManagement() {
+        _navController?.navigate(Screen.DataManagement)
     }
 
     fun navigateBack() {

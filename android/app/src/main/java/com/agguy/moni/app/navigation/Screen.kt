@@ -29,5 +29,5 @@ sealed class Screen {
     data object DevLog : Screen()
 
     @Serializable
-    data object BackupManager : Screen()
+    data object DataManagement : Screen()
 }

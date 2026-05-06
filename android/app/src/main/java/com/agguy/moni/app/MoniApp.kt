@@ -74,7 +74,8 @@ fun MoniApp() {
 
     MoniTheme(
         themeMode = themeSettings.themeMode,
-        dynamicColor = themeSettings.dynamicColor
+        dynamicColor = themeSettings.dynamicColor,
+        presetColorScheme = themeSettings.presetColorScheme
     ) {
         Scaffold(
             bottomBar = {
@@ -124,6 +125,7 @@ fun MoniApp() {
                 onNavigateBack = viewModel::navigateBack,
                 onUpdateThemeMode = viewModel::updateThemeMode,
                 onUpdateDynamicColor = viewModel::updateDynamicColor,
+                onUpdatePresetColorScheme = viewModel::updatePresetColorScheme,
                 onNavigateToDeveloperOptions = viewModel::navigateToDeveloperOptions,
                 onNavigateToDevLog = viewModel::navigateToDevLog,
                 onClearAllData = viewModel::clearAllData,

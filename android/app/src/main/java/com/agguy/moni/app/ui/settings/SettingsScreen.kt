@@ -32,6 +32,7 @@ import com.agguy.moni.app.ThemeSettings
 import com.agguy.moni.app.components.SettingsItem
 import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.ThemeMode
+import com.agguy.moni.app.theme.displayName
 import com.agguy.moni.core.CoreIntent
 
 /**
@@ -62,7 +63,7 @@ fun SettingsScreen(
     val appearanceSubtitle = if (themeSettings.dynamicColor) {
         "$themeModeLabel · 动态颜色"
     } else {
-        themeModeLabel
+        "$themeModeLabel · ${themeSettings.presetColorScheme.displayName}"
     }
 
     Scaffold(

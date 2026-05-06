@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.agguy.moni.app.navigation.Screen
+import com.agguy.moni.app.theme.PresetColorScheme
 import com.agguy.moni.app.theme.ThemeMode
 import com.agguy.moni.core.CoreEffectRunner
 import com.agguy.moni.core.CoreIntent
@@ -25,7 +26,8 @@ import java.time.format.DateTimeFormatter
  */
 data class ThemeSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
-    val dynamicColor: Boolean = false
+    val dynamicColor: Boolean = false,
+    val presetColorScheme: PresetColorScheme = PresetColorScheme.AIRY_SAKURA
 )
 
 class AppViewModel(
@@ -152,7 +154,8 @@ class AppViewModel(
     private suspend fun syncThemeSettingsFromDataStore() {
         val themeMode = DataStoreHelper.themeModeFlow(getApplication()).first()
         val dynamicColor = DataStoreHelper.dynamicColorFlow(getApplication()).first()
-        _themeSettings.value = ThemeSettings(themeMode, dynamicColor)
+        val presetColorScheme = DataStoreHelper.presetColorSchemeFlow(getApplication()).first()
+        _themeSettings.value = ThemeSettings(themeMode, dynamicColor, presetColorScheme)
     }
 
     fun updateThemeMode(mode: ThemeMode) {
@@ -166,6 +169,13 @@ class AppViewModel(
         viewModelScope.launch {
             DataStoreHelper.saveDynamicColor(getApplication(), enabled)
             _themeSettings.value = _themeSettings.value.copy(dynamicColor = enabled)
+        }
+    }
+
+    fun updatePresetColorScheme(scheme: PresetColorScheme) {
+        viewModelScope.launch {
+            DataStoreHelper.savePresetColorScheme(getApplication(), scheme)
+            _themeSettings.value = _themeSettings.value.copy(presetColorScheme = scheme)
         }
     }
 

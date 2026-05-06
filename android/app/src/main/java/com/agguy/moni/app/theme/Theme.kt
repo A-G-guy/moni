@@ -9,8 +9,6 @@ import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.expressiveLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
@@ -26,18 +24,20 @@ enum class ThemeMode {
 /**
  * Moni 主题入口。
  *
- * 配色策略完全基于官方 Material 3 Expressive API：
- * - 动态色（Android 12+）：使用系统壁纸提取的 [dynamicLightColorScheme] / [dynamicDarkColorScheme]
- * - 默认：使用官方 Expressive 默认配色 [expressiveLightColorScheme] / [expressiveDarkColorScheme]
+ * 配色策略：
+ * - 动态色（Android 12+）：系统壁纸提取的 [dynamicLightColorScheme] / [dynamicDarkColorScheme]
+ * - 预设配色：6 套 Material Theme Builder 导出的 Expressive 配色
  *
  * @param themeMode 主题模式：浅色、深色或跟随系统
  * @param dynamicColor 是否启用 Android 12+ 动态颜色
+ * @param presetColorScheme 预设配色方案（动态颜色关闭时生效）
  * @param content 主题内容
  */
 @Composable
 fun MoniTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     dynamicColor: Boolean = false,
+    presetColorScheme: PresetColorScheme = PresetColorScheme.AIRY_SAKURA,
     content: @Composable () -> Unit
 ) {
     val darkTheme = when (themeMode) {
@@ -51,7 +51,7 @@ fun MoniTheme(
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        else -> if (darkTheme) darkColorScheme() else expressiveLightColorScheme()
+        else -> if (darkTheme) presetColorScheme.toDarkColorScheme() else presetColorScheme.toLightColorScheme()
     }
 
     val motionScheme = MotionScheme.expressive()

@@ -32,9 +32,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import com.agguy.moni.app.ThemeSettings
 import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.theme.PresetColorScheme
 import com.agguy.moni.app.theme.ThemeMode
+import com.agguy.moni.app.theme.displayName
+import com.agguy.moni.app.theme.primaryColor
+import com.agguy.moni.app.theme.seedColor
 
 /**
  * 外观设置二级页面。
@@ -47,6 +56,7 @@ fun ThemeSettingsScreen(
     themeSettings: ThemeSettings,
     onUpdateThemeMode: (ThemeMode) -> Unit,
     onUpdateDynamicColor: (Boolean) -> Unit,
+    onUpdatePresetColorScheme: (PresetColorScheme) -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -78,6 +88,15 @@ fun ThemeSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Spacer(modifier = Modifier.height(4.dp))
+
+            // === 配色方案 ===
+            SectionTitle("配色方案")
+            ColorSchemeSelector(
+                currentScheme = themeSettings.presetColorScheme,
+                onSchemeSelected = onUpdatePresetColorScheme
+            )
+
+            HorizontalDivider()
 
             // === 主题模式 ===
             SectionTitle("主题模式")
@@ -123,6 +142,59 @@ private fun SectionTitle(title: String) {
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
+}
+
+/**
+ * 预设配色方案选择器。
+ *
+ * 水平滚动的圆形色块网格，每个色块展示该配色的种子色，
+ * 选中态用 M3 生成主色作为边框高亮。
+ */
+@Composable
+private fun ColorSchemeSelector(
+    currentScheme: PresetColorScheme,
+    onSchemeSelected: (PresetColorScheme) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val schemes = PresetColorScheme.entries
+
+    LazyRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(horizontal = 4.dp)
+    ) {
+        items(schemes) { scheme ->
+            val selected = scheme == currentScheme
+            val border = if (selected) {
+                BorderStroke(2.dp, scheme.primaryColor)
+            } else {
+                BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            }
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Surface(
+                    onClick = { onSchemeSelected(scheme) },
+                    shape = CircleShape,
+                    color = scheme.seedColor,
+                    border = border,
+                    modifier = Modifier.size(48.dp)
+                ) {}
+
+                Text(
+                    text = scheme.displayName,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (selected) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                )
+            }
+        }
+    }
 }
 
 @Composable

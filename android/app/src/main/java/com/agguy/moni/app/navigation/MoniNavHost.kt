@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.ThemeSettings
+import com.agguy.moni.app.theme.PresetColorScheme
 import com.agguy.moni.app.theme.ThemeMode
 import com.agguy.moni.app.ui.backup.BackupViewModel
 import com.agguy.moni.app.ui.backup.DataManagementScreen
@@ -83,6 +84,7 @@ fun MoniNavHost(
     onNavigateBack: () -> Unit,
     onUpdateThemeMode: (ThemeMode) -> Unit,
     onUpdateDynamicColor: (Boolean) -> Unit,
+    onUpdatePresetColorScheme: (PresetColorScheme) -> Unit,
     onNavigateToDeveloperOptions: () -> Unit = {},
     onNavigateToDevLog: () -> Unit = {},
     onClearAllData: () -> Unit = {},
@@ -197,6 +199,7 @@ fun MoniNavHost(
                 themeSettings = themeSettings,
                 onUpdateThemeMode = onUpdateThemeMode,
                 onUpdateDynamicColor = onUpdateDynamicColor,
+                onUpdatePresetColorScheme = onUpdatePresetColorScheme,
                 onNavigateBack = onNavigateBack
             )
         }

@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.agguy.moni.app.theme.PresetColorScheme
 import com.agguy.moni.app.theme.ThemeMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -30,6 +31,7 @@ object DataStoreHelper {
     private val CURRENCY_SYMBOL_KEY = stringPreferencesKey("currency_symbol")
     private val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
     private val DYNAMIC_COLOR_KEY = booleanPreferencesKey("dynamic_color")
+    private val PRESET_COLOR_SCHEME_KEY = stringPreferencesKey("preset_color_scheme")
 
     /**
      * 获取货币符号流。
@@ -88,6 +90,36 @@ object DataStoreHelper {
     }
 
     /**
+     * 获取预设配色方案流。
+     */
+    fun presetColorSchemeFlow(context: Context): Flow<PresetColorScheme> = context.dataStore.data.map { preferences ->
+        when (preferences[PRESET_COLOR_SCHEME_KEY]) {
+            "anime_sky" -> PresetColorScheme.ANIME_SKY
+            "crisp_mint" -> PresetColorScheme.CRISP_MINT
+            "neon_lavender" -> PresetColorScheme.NEON_LAVENDER
+            "oatmeal_gold" -> PresetColorScheme.OATMEAL_GOLD
+            "sunset_coral" -> PresetColorScheme.SUNSET_CORAL
+            else -> PresetColorScheme.AIRY_SAKURA
+        }
+    }
+
+    /**
+     * 保存预设配色方案。
+     */
+    suspend fun savePresetColorScheme(context: Context, scheme: PresetColorScheme) {
+        context.dataStore.edit { preferences ->
+            preferences[PRESET_COLOR_SCHEME_KEY] = when (scheme) {
+                PresetColorScheme.AIRY_SAKURA -> "airy_sakura"
+                PresetColorScheme.ANIME_SKY -> "anime_sky"
+                PresetColorScheme.CRISP_MINT -> "crisp_mint"
+                PresetColorScheme.NEON_LAVENDER -> "neon_lavender"
+                PresetColorScheme.OATMEAL_GOLD -> "oatmeal_gold"
+                PresetColorScheme.SUNSET_CORAL -> "sunset_coral"
+            }
+        }
+    }
+
+    /**
      * 清空所有设置数据。
      */
     suspend fun clearAll(context: Context) {
@@ -112,6 +144,9 @@ object DataStoreHelper {
                 ),
                 "dynamic_color" to kotlinx.serialization.json.JsonPrimitive(
                     preferences[DYNAMIC_COLOR_KEY] ?: false
+                ),
+                "preset_color_scheme" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[PRESET_COLOR_SCHEME_KEY] ?: "airy_sakura"
                 ),
             )
         ).toString()
@@ -141,6 +176,9 @@ object DataStoreHelper {
             }
             obj["dynamic_color"]?.jsonPrimitive?.booleanOrNull?.let {
                 preferences[DYNAMIC_COLOR_KEY] = it
+            }
+            obj["preset_color_scheme"]?.jsonPrimitive?.content?.let {
+                preferences[PRESET_COLOR_SCHEME_KEY] = it
             }
         }
     }

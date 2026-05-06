@@ -30,10 +30,21 @@ import com.agguy.moni.BuildConfig
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.ThemeSettings
 import com.agguy.moni.app.components.SettingsItem
-import com.agguy.moni.app.components.SettingsToggleItem
 import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.ThemeMode
 import com.agguy.moni.core.CoreIntent
+
+/** 种子色到中文名称的映射（与 ThemeSettingsScreen 保持一致）。 */
+private val SeedColorNames = mapOf(
+    0xFF0F5C5E to "深青",
+    0xFF4A3F8C to "沉稳紫",
+    0xFF1F3A6E to "墨蓝",
+    0xFF2E6A4D to "森绿",
+    0xFFB36A2E to "暖橙",
+    0xFFB14F77 to "玫瑰粉",
+    0xFF6E4A2E to "棕褐",
+    0xFF2A7AA1 to "水青",
+)
 
 /**
  * 设置页面。
@@ -44,16 +55,12 @@ fun SettingsScreen(
     appState: AppState,
     themeSettings: ThemeSettings,
     onDispatch: (CoreIntent) -> Unit,
-    onUpdateThemeMode: (ThemeMode) -> Unit,
-    onUpdateDynamicColor: (Boolean) -> Unit,
-    onUpdateSeedColor: (Long) -> Unit = {},
+    onNavigateToThemeSettings: () -> Unit = {},
     onNavigateToDeveloperOptions: () -> Unit = {},
     onNavigateToDataManagement: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showCurrencyDialog by remember { mutableStateOf(false) }
-    var showThemeModeDialog by remember { mutableStateOf(false) }
-    var showSeedColorDialog by remember { mutableStateOf(false) }
 
     val dialogSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
@@ -62,6 +69,13 @@ fun SettingsScreen(
         ThemeMode.LIGHT -> "浅色"
         ThemeMode.DARK -> "深色"
         ThemeMode.SYSTEM -> "跟随系统"
+    }
+
+    val appearanceSubtitle = if (themeSettings.dynamicColor) {
+        "$themeModeLabel · 动态颜色"
+    } else {
+        val seedName = SeedColorNames[themeSettings.seedColor] ?: ""
+        "$themeModeLabel · $seedName"
     }
 
     Scaffold(
@@ -88,25 +102,10 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             SettingsItem(
-                icon = MoniIcons.DarkMode,
-                title = "主题模式",
-                subtitle = "当前: $themeModeLabel",
-                onClick = { showThemeModeDialog = true }
-            )
-
-            SettingsItem(
                 icon = MoniIcons.Palette,
-                title = "主题色",
-                subtitle = "选择应用主色调",
-                onClick = { showSeedColorDialog = true }
-            )
-
-            SettingsToggleItem(
-                icon = MoniIcons.Tune,
-                title = "动态颜色",
-                subtitle = "使用系统壁纸颜色（Android 12+）",
-                checked = themeSettings.dynamicColor,
-                onCheckedChange = { onUpdateDynamicColor(it) }
+                title = "外观",
+                subtitle = appearanceSubtitle,
+                onClick = onNavigateToThemeSettings
             )
 
             SettingsItem(
@@ -152,40 +151,6 @@ fun SettingsScreen(
                     showCurrencyDialog = false
                 },
                 onDismiss = { showCurrencyDialog = false }
-            )
-        }
-    }
-
-    AnimatedVisibility(
-        visible = showThemeModeDialog,
-        enter = scaleIn(animationSpec = dialogSpec),
-        exit = scaleOut(animationSpec = dialogSpec)
-    ) {
-        if (showThemeModeDialog) {
-            ThemeModePickerDialog(
-                currentMode = themeSettings.themeMode,
-                onConfirm = { mode ->
-                    onUpdateThemeMode(mode)
-                    showThemeModeDialog = false
-                },
-                onDismiss = { showThemeModeDialog = false }
-            )
-        }
-    }
-
-    AnimatedVisibility(
-        visible = showSeedColorDialog,
-        enter = scaleIn(animationSpec = dialogSpec),
-        exit = scaleOut(animationSpec = dialogSpec)
-    ) {
-        if (showSeedColorDialog) {
-            SeedColorPickerDialog(
-                currentSeed = themeSettings.seedColor,
-                onConfirm = { seedColor ->
-                    onUpdateSeedColor(seedColor)
-                    showSeedColorDialog = false
-                },
-                onDismiss = { showSeedColorDialog = false }
             )
         }
     }

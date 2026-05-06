@@ -88,6 +88,7 @@ fun MoniNavHost(
     onNavigateToDevLog: () -> Unit = {},
     onClearAllData: () -> Unit = {},
     onNavigateToDataManagement: () -> Unit = {},
+    onNavigateToThemeSettings: () -> Unit = {},
     backupViewModel: BackupViewModel,
     dbPath: String,
     modifier: Modifier = Modifier
@@ -167,9 +168,7 @@ fun MoniNavHost(
                 appState = appState,
                 themeSettings = themeSettings,
                 onDispatch = onDispatch,
-                onUpdateThemeMode = onUpdateThemeMode,
-                onUpdateDynamicColor = onUpdateDynamicColor,
-                onUpdateSeedColor = onUpdateSeedColor,
+                onNavigateToThemeSettings = onNavigateToThemeSettings,
                 onNavigateToDeveloperOptions = onNavigateToDeveloperOptions,
                 onNavigateToDataManagement = onNavigateToDataManagement
             )
@@ -191,6 +190,15 @@ fun MoniNavHost(
         }
         composable<Screen.DevLog> {
             DevLogScreen(
+                onNavigateBack = onNavigateBack
+            )
+        }
+        composable<Screen.ThemeSettings> {
+            com.agguy.moni.app.ui.settings.ThemeSettingsScreen(
+                themeSettings = themeSettings,
+                onUpdateThemeMode = onUpdateThemeMode,
+                onUpdateDynamicColor = onUpdateDynamicColor,
+                onUpdateSeedColor = onUpdateSeedColor,
                 onNavigateBack = onNavigateBack
             )
         }

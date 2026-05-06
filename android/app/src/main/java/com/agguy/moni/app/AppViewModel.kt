@@ -199,6 +199,10 @@ class AppViewModel(
         _navController?.navigate(Screen.DataManagement)
     }
 
+    fun navigateToThemeSettings() {
+        _navController?.navigate(Screen.ThemeSettings)
+    }
+
     fun navigateBack() {
         _navController?.popBackStack()
     }

@@ -87,6 +87,7 @@ class ScreenTest {
             Screen.ArchivedCategories,
             Screen.DevLog,
             Screen.DataManagement,
+            Screen.ThemeSettings,
         )
         singletons.forEach { original ->
             val text = json.encodeToString(Screen.serializer(), original)

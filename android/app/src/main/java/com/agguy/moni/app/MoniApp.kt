@@ -131,6 +131,7 @@ fun MoniApp() {
                 onNavigateToDevLog = viewModel::navigateToDevLog,
                 onClearAllData = viewModel::clearAllData,
                 onNavigateToDataManagement = viewModel::navigateToDataManagement,
+                onNavigateToThemeSettings = viewModel::navigateToThemeSettings,
                 backupViewModel = backupViewModel,
                 dbPath = dbPath,
                 modifier = Modifier.padding(innerPadding)

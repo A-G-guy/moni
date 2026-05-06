@@ -162,15 +162,28 @@ private fun PrimaryCategoryPager(
     currentPage: Int,
     onPageChanged: (Int) -> Unit
 ) {
+    if (parentCategories.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                text = "暂无分类，请先添加分类",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        return
+    }
+
     val pageCount = (parentCategories.size + ITEMS_PER_PAGE - 1) / ITEMS_PER_PAGE
     val pagerState = rememberPagerState(
         initialPage = currentPage.coerceIn(0, (pageCount - 1).coerceAtLeast(0)),
         pageCount = { pageCount }
     )
 
-    // 同步外部 page 状态
-    if (pagerState.currentPage != currentPage) {
-        onPageChanged(pagerState.currentPage)
+    // 同步外部 page 状态（使用副作用避免重组循环）
+    androidx.compose.runtime.LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage != currentPage) {
+            onPageChanged(pagerState.currentPage)
+        }
     }
 
     HorizontalPager(

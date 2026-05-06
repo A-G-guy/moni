@@ -1,57 +1,39 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
 
 package com.agguy.moni.app.ui.record.editor
 
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.icons.MoniIcon
-import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.GroupedCategoryIcons
 import com.agguy.moni.app.theme.iconNameToRes
 import com.agguy.moni.core.CoreCategory
 
-/** 每页网格列数 */
+/** 网格列数 */
 private const val GRID_COLUMNS = 5
-
-/** 每页网格行数 */
-private const val GRID_ROWS = 3
-
-/** 每页最多显示的分类数 */
-private const val ITEMS_PER_PAGE = GRID_COLUMNS * GRID_ROWS
 
 /** 分类网格项类型 */
 private sealed class CategoryGridItem {
@@ -60,10 +42,11 @@ private sealed class CategoryGridItem {
 }
 
 /**
- * 分类选择翻页网格。
+ * 分类选择垂直滚动网格。
  *
  * 一级分类与二级分类平铺并列显示，仅在视觉上区分。
  * 有子分类的一级分类本身也可被选中。
+ * 空间过多时内容靠上，下方自然留白。
  */
 @Composable
 fun CategoryGridPager(
@@ -93,97 +76,57 @@ fun CategoryGridPager(
         }
     }
 
-    val pageCount = (flatItems.size + ITEMS_PER_PAGE - 1) / ITEMS_PER_PAGE
-
-    Column(
+    Box(
         modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        contentAlignment = Alignment.TopCenter
     ) {
-        // 网格区域
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(230.dp)
-        ) {
-            if (flatItems.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "暂无分类，请先添加分类",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            } else {
-                val pagerState = rememberPagerState(
-                    initialPage = currentGridPage.coerceIn(0, (pageCount - 1).coerceAtLeast(0)),
-                    pageCount = { pageCount }
+        if (flatItems.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "暂无分类，请先添加分类",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
-                androidx.compose.runtime.LaunchedEffect(pagerState.currentPage) {
-                    if (pagerState.currentPage != currentGridPage) {
-                        onGridPageChanged(pagerState.currentPage)
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(GRID_COLUMNS),
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)
+            ) {
+                items(
+                    items = flatItems,
+                    key = { item ->
+                        when (item) {
+                            is CategoryGridItem.Parent -> "p-${item.category.id}"
+                            is CategoryGridItem.Child -> "c-${item.category.id}"
+                        }
                     }
-                }
+                ) { item ->
+                    when (item) {
+                        is CategoryGridItem.Parent -> {
+                            PrimaryCategoryItem(
+                                category = item.category,
+                                isSelected = item.category.id == selectedCategoryId,
+                                onClick = { onCategorySelected(item.category.id) }
+                            )
+                        }
 
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 8.dp),
-                    pageSpacing = 4.dp
-                ) { page ->
-                    val startIndex = page * ITEMS_PER_PAGE
-                    val endIndex = (startIndex + ITEMS_PER_PAGE).coerceAtMost(flatItems.size)
-                    val pageItems = flatItems.subList(startIndex, endIndex)
-
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(GRID_COLUMNS),
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        userScrollEnabled = false
-                    ) {
-                        items(
-                            items = pageItems,
-                            key = { item ->
-                                when (item) {
-                                    is CategoryGridItem.Parent -> "p-${item.category.id}"
-                                    is CategoryGridItem.Child -> "c-${item.category.id}"
-                                }
-                            }
-                        ) { item ->
-                            when (item) {
-                                is CategoryGridItem.Parent -> {
-                                    PrimaryCategoryItem(
-                                        category = item.category,
-                                        isSelected = item.category.id == selectedCategoryId,
-                                        onClick = { onCategorySelected(item.category.id) }
-                                    )
-                                }
-
-                                is CategoryGridItem.Child -> {
-                                    SubCategoryItem(
-                                        category = item.category,
-                                        isSelected = item.category.id == selectedCategoryId,
-                                        onClick = { onCategorySelected(item.category.id) }
-                                    )
-                                }
-                            }
+                        is CategoryGridItem.Child -> {
+                            SubCategoryItem(
+                                category = item.category,
+                                isSelected = item.category.id == selectedCategoryId,
+                                onClick = { onCategorySelected(item.category.id) }
+                            )
                         }
                     }
                 }
             }
-        }
-
-        // 分页指示器
-        Spacer(modifier = Modifier.height(8.dp))
-        if (pageCount > 1) {
-            PageIndicator(
-                pageCount = pageCount,
-                currentPage = currentGridPage
-            )
         }
     }
 }
@@ -324,45 +267,6 @@ private fun SubCategoryItem(
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center
             )
-        }
-    }
-}
-
-@Composable
-private fun PageIndicator(
-    pageCount: Int,
-    currentPage: Int
-) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        repeat(pageCount) { index ->
-            val isSelected = index == currentPage
-            val size by animateDpAsState(
-                targetValue = if (isSelected) 10.dp else 6.dp,
-                animationSpec = spring(
-                    dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
-                    stiffness = androidx.compose.animation.core.Spring.StiffnessLow
-                ),
-                label = "indicator_size"
-            )
-            val color = if (isSelected) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-            }
-            Box(
-                modifier = Modifier
-                    .size(size)
-                    .clip(MaterialTheme.shapes.small)
-            ) {
-                Surface(
-                    color = color,
-                    shape = androidx.compose.foundation.shape.CircleShape,
-                    modifier = Modifier.fillMaxSize()
-                ) {}
-            }
         }
     }
 }

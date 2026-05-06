@@ -137,7 +137,7 @@ fun RecordDetailScreen(
                     .padding(bottom = 4.dp)
             )
 
-            // 中部：分类网格
+            // 中部：分类网格（弹性空间，过多时下方自然留白）
             CategoryGridPager(
                 categories = filteredCategories,
                 selectedCategoryId = state.selectedCategoryId,
@@ -146,10 +146,11 @@ fun RecordDetailScreen(
                 onGridPageChanged = { state.currentGridPage = it },
                 modifier = Modifier
                     .fillMaxWidth()
+                    .weight(1f)
                     .padding(bottom = 4.dp)
             )
 
-            // 底部：综合控制面板
+            // 底部：综合控制面板（固定高度，紧贴安全区）
             RecordEditorPanel(
                 state = state,
                 currencySymbol = appState.currencySymbol,
@@ -187,11 +188,8 @@ fun RecordDetailScreen(
                         onNavigateBack()
                     }
                 },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.fillMaxWidth()
             )
-
-            // 底部缓冲：吸收分类区缩小后释放的多余空间，保持键盘高度不变
-            Spacer(modifier = Modifier.height(56.dp))
         }
     }
 

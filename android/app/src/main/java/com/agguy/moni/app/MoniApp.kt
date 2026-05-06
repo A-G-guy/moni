@@ -40,10 +40,11 @@ import java.util.Locale
 fun MoniApp() {
     val context = LocalContext.current
     val application = context.applicationContext as Application
+    val rustCore = remember { AppModule.provideRustCoreController() }
     val viewModel: AppViewModel = viewModel(
         factory = AppViewModelFactory(
             application = application,
-            rustCore = AppModule.provideRustCoreController(),
+            rustCore = rustCore,
             effectRunner = AppModule.provideCoreEffectRunner(context),
         )
     )
@@ -62,7 +63,7 @@ fun MoniApp() {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                 return BackupViewModel(
                     application,
-                    AppModule.provideRustCoreController()
+                    rustCore
                 ) as T
             }
         }

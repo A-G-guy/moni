@@ -11,7 +11,11 @@ import com.agguy.moni.core.RustCoreController
  * 未来可平滑迁移至 Hilt/Koin 等正式 DI 框架。
  */
 object AppModule {
-    fun provideRustCoreController(): RustCoreController = RustCoreController()
+    // RustCoreController 必须全局单例：它内部持有 MoniCore（含 SQLite 连接），
+    // 多处创建独立实例会导致 BackupViewModel 使用未初始化的空内存数据库。
+    private val rustCoreController: RustCoreController by lazy { RustCoreController() }
+
+    fun provideRustCoreController(): RustCoreController = rustCoreController
 
     fun provideCoreEffectRunner(context: Context): CoreEffectRunner = CoreEffectRunner()
 }

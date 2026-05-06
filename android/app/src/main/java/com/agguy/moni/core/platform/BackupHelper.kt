@@ -58,6 +58,10 @@ object BackupHelper {
 
     /**
      * 通过系统分享发送备份文件。
+     *
+     * 注意：此辅助方法可能被 Application context 调用，因此 intent 必须附加
+     * [Intent.FLAG_ACTIVITY_NEW_TASK]，否则在非 Activity context 上启动 Activity
+     * 会抛出 [AndroidRuntimeException]。
      */
     fun shareBackup(context: Context, file: File) {
         val uri = FileProvider.getUriForFile(
@@ -70,7 +74,9 @@ object BackupHelper {
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        val chooser = Intent.createChooser(intent, "分享备份")
+        val chooser = Intent.createChooser(intent, "分享备份").apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
         context.startActivity(chooser)
     }
 }

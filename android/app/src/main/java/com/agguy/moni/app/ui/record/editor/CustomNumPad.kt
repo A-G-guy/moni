@@ -76,9 +76,9 @@ fun CustomNumPad(
             OpKey("-") { onOperatorClick("-") }
         }
 
-        // 第三行 + 第四行合并右侧保存按钮
+        // 第三行 + 第四行合并右侧保存按钮（weight=2f 使内部两行与上方各行等高）
         Row(
-            modifier = Modifier.fillMaxWidth().weight(1f),
+            modifier = Modifier.fillMaxWidth().weight(2f),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             // 左侧 3×2 数字区

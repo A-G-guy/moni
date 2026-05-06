@@ -205,13 +205,13 @@ private fun PrimaryCategoryItem(
     val borderColor = if (isSelected) {
         MaterialTheme.colorScheme.primary
     } else {
-        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
     }
 
     val borderWidth = if (isSelected) 2.dp else 1.5.dp
 
     val containerColor = if (isSelected) {
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+        MaterialTheme.colorScheme.primaryContainer
     } else {
         Color.Transparent
     }
@@ -274,15 +274,15 @@ private fun SubCategoryItem(
     val displayIcon = if (isSelected && filledIconRes != null) filledIconRes else iconRes
 
     val borderColor = if (isSelected) {
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+        MaterialTheme.colorScheme.primary
     } else {
-        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
     }
 
     val borderWidth = if (isSelected) 1.5.dp else 1.dp
 
     val containerColor = if (isSelected) {
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f)
     } else {
         Color.Transparent
     }

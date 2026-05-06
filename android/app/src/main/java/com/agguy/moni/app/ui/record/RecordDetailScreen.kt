@@ -1,78 +1,57 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 
 package com.agguy.moni.app.ui.record
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.ui.Alignment
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
-import com.agguy.moni.app.components.AmountInput
-import com.agguy.moni.app.components.DatePickerField
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.expenseRed
+import com.agguy.moni.app.ui.record.editor.CategoryGridPager
+import com.agguy.moni.app.ui.record.editor.DatePickerBottomSheet
+import com.agguy.moni.app.ui.record.editor.RecordEditorPanel
+import com.agguy.moni.app.ui.record.editor.RecordEditorState
+import com.agguy.moni.app.ui.record.editor.rememberRecordEditorState
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreIntent
+import com.agguy.moni.core.CoreRecord
 import com.agguy.moni.core.RecordType
 import com.agguy.moni.core.serialName
-import java.time.LocalDate
-import java.time.ZoneId
 
 /**
  * 记账详情屏（新增/编辑）。
  *
- * Material 3 Expressive 改造点：
- * - 收入/支出切换：[androidx.compose.material3.SegmentedButton] 替换为 [ButtonGroup] + [ToggleButton]，
- *   按下时邻居 squish 形变，是 Expressive 招牌交互；
- * - 保存按钮升级到 Large size（56dp）：用 [ButtonDefaults.LargeContentPadding] + [ButtonDefaults.LargeContainerHeight]；
- * - 备注 [OutlinedTextField] 加 medium 圆角，与新的 corner token 体系协同；
- * - 删除确认 [AlertDialog] 改用 [androidx.compose.material3.Shapes.extraLarge] (32dp) 圆角并接入 motion token。
+ * 全新一屏闭环设计：
+ * - 顶部：收入/支出胶囊切换（~10%）
+ * - 中部：分类翻页网格（~45%）
+ * - 底部：综合输入面板（~45%）
+ *
+ * 除备注外全程不依赖系统输入法，所有操作在一屏内完成。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecordDetailScreen(
     appState: AppState,
@@ -86,34 +65,22 @@ fun RecordDetailScreen(
     }
     val isEditMode = existingRecord != null
 
-    var amountCents by remember { mutableLongStateOf(existingRecord?.amountCents ?: 0L) }
-    var recordType by remember {
-        mutableStateOf(
-            if (existingRecord?.recordType == "income") RecordType.INCOME else RecordType.EXPENSE
-        )
-    }
-    var selectedCategoryId by remember { mutableLongStateOf(existingRecord?.categoryId ?: -1L) }
-    var note by remember { mutableStateOf(existingRecord?.note ?: "") }
-    var timestamp by remember {
-        mutableLongStateOf(
-            existingRecord?.createdAt ?: LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toEpochSecond()
-        )
-    }
-    var showDeleteConfirm by remember { mutableStateOf(false) }
+    val state = rememberRecordEditorState(existingRecord, appState.categories)
+    var showDateSheet by remember { mutableStateOf(false) }
 
-    val isSaveEnabled = amountCents > 0 && selectedCategoryId != -1L
-
-    val contentSpec = MaterialTheme.motionScheme.fastSpatialSpec<IntSize>()
-    val dialogSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
-
-    LaunchedEffect(existingRecord) {
-        existingRecord?.let {
-            amountCents = it.amountCents
-            recordType = if (it.recordType == "income") RecordType.INCOME else RecordType.EXPENSE
-            selectedCategoryId = it.categoryId
-            note = it.note
-            timestamp = it.createdAt
+    // 根据当前类型过滤未归档分类
+    val filteredCategories = remember(appState.categories, state.recordType) {
+        appState.categories.filter {
+            it.categoryType == state.recordType.serialName && it.archivedAt == null
         }
+    }
+
+    // 保存条件
+    val isSaveEnabled = state.confirmedAmountCents > 0 && state.selectedCategoryId != -1L
+
+    // 备注编辑模式下拦截返回键
+    BackHandler(enabled = state.isNoteEditing) {
+        state.endNoteEdit()
     }
 
     Scaffold(
@@ -130,7 +97,14 @@ fun RecordDetailScreen(
                 },
                 actions = {
                     if (isEditMode) {
-                        IconButton(onClick = { showDeleteConfirm = true }) {
+                        IconButton(
+                            onClick = {
+                                existingRecord.let {
+                                    onDispatch(CoreIntent.RecordDelete(it.id))
+                                    onNavigateBack()
+                                }
+                            }
+                        ) {
                             MoniIcon(
                                 MoniIcons.Delete,
                                 contentDescription = "删除",
@@ -140,146 +114,101 @@ fun RecordDetailScreen(
                     }
                 }
             )
-        },
-        bottomBar = {
-            Button(
-                onClick = {
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // 顶部：类型切换
+            RecordTypeToggle(
+                selectedType = state.recordType,
+                onTypeSelected = { state.updateType(it) },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // 中部：分类网格
+            CategoryGridPager(
+                categories = filteredCategories,
+                selectedCategoryId = state.selectedCategoryId,
+                selectedParentCategoryId = state.selectedParentCategoryId,
+                isInSubCategoryView = state.isInSubCategoryView,
+                currentGridPage = state.currentGridPage,
+                onCategorySelected = { state.selectCategory(it) },
+                onEnterSubCategory = { state.enterSubView(it) },
+                onExitSubCategory = { state.exitSubView() },
+                onGridPageChanged = { state.currentGridPage = it },
+                modifier = Modifier.weight(1f)
+            )
+
+            // 底部：综合控制面板
+            RecordEditorPanel(
+                state = state,
+                categories = filteredCategories,
+                currencySymbol = appState.currencySymbol,
+                onDateClick = { showDateSheet = true },
+                onNoteClick = { state.startNoteEdit() },
+                onNoteDone = { state.endNoteEdit() },
+                onDigitClick = { state.appendDigit(it) },
+                onOperatorClick = { state.appendOperator(it) },
+                onBackspace = { state.backspace() },
+                onCalculate = { state.calculate() },
+                onSave = {
                     if (isSaveEnabled) {
                         if (isEditMode) {
                             onDispatch(
                                 CoreIntent.RecordUpdate(
                                     id = existingRecord.id,
-                                    amountCents = amountCents,
-                                    recordType = recordType,
-                                    categoryId = selectedCategoryId,
-                                    note = note
+                                    amountCents = state.confirmedAmountCents,
+                                    recordType = state.recordType,
+                                    categoryId = state.selectedCategoryId,
+                                    note = state.note
                                 )
                             )
                         } else {
                             onDispatch(
                                 CoreIntent.RecordCreate(
-                                    amountCents = amountCents,
-                                    recordType = recordType,
-                                    categoryId = selectedCategoryId,
-                                    note = note,
-                                    timestamp = timestamp
+                                    amountCents = state.confirmedAmountCents,
+                                    recordType = state.recordType,
+                                    categoryId = state.selectedCategoryId,
+                                    note = state.note,
+                                    timestamp = state.timestamp
                                 )
                             )
                         }
                         onNavigateBack()
                     }
                 },
-                enabled = isSaveEnabled,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            ) {
-                Text(
-                    text = "保存",
-                    style = MaterialTheme.typography.titleMediumEmphasized
-                )
-            }
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(innerPadding)
-                .padding(16.dp)
-                .animateContentSize(animationSpec = contentSpec),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            RecordTypeSelector(
-                selectedType = recordType,
-                onTypeSelected = {
-                    recordType = it
-                    selectedCategoryId = -1L
-                }
-            )
-
-            AmountInput(
-                value = amountCents,
-                onValueChange = { amountCents = it },
-                currencySymbol = appState.currencySymbol
-            )
-
-            DatePickerField(
-                timestamp = timestamp,
-                onTimestampChange = { timestamp = it }
-            )
-
-            CategorySelector(
-                categories = appState.categories.filter {
-                    it.categoryType == recordType.serialName && it.archivedAt == null
-                },
-                selectedCategoryId = selectedCategoryId,
-                onCategorySelected = { selectedCategoryId = it }
-            )
-
-            OutlinedTextField(
-                value = note,
-                onValueChange = { note = it },
-                label = { Text("备注") },
-                placeholder = { Text("可选，最多50字") },
-                singleLine = true,
-                shape = MaterialTheme.shapes.medium,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.weight(1f)
             )
         }
     }
 
-    AnimatedVisibility(
-        visible = showDeleteConfirm,
-        enter = scaleIn(animationSpec = dialogSpec),
-        exit = scaleOut(animationSpec = dialogSpec)
-    ) {
-        AlertDialog(
-            onDismissRequest = { showDeleteConfirm = false },
-            shape = MaterialTheme.shapes.extraLarge,
-            title = { Text("确认删除") },
-            text = { Text("确定要删除这条记录吗？") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        existingRecord?.let { onDispatch(CoreIntent.RecordDelete(it.id)) }
-                        showDeleteConfirm = false
-                        onNavigateBack()
-                    }
-                ) {
-                    Text("删除", color = MaterialTheme.colorScheme.expenseRed)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("取消")
-                }
-            }
+    // 日期选择 BottomSheet
+    if (showDateSheet) {
+        DatePickerBottomSheet(
+            selectedTimestamp = state.timestamp,
+            onDateSelected = { state.updateTimestamp(it) },
+            onDismiss = { showDateSheet = false }
         )
     }
 }
 
 /**
- * 收入/支出切换器。
- *
- * 升级为 Material 3 Expressive [ButtonGroup] + 声明式 [androidx.compose.material3.ButtonGroupScope.toggleableItem]：
- * 选中时邻居自动 squish 形变（M3 Expressive 招牌"挤压"交互），并由 ButtonGroup 自动管理 overflow，
- * 与按钮族 motion 风格统一。
+ * 收入/支出胶囊切换器。
  */
 @Composable
-private fun RecordTypeSelector(
+private fun RecordTypeToggle(
     selectedType: RecordType,
     onTypeSelected: (RecordType) -> Unit,
     modifier: Modifier = Modifier
 ) {
     ButtonGroup(
-        overflowIndicator = { /* 仅 2 个固定项，永不溢出 */ },
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier,
+        overflowIndicator = {}
     ) {
         toggleableItem(
             checked = selectedType == RecordType.EXPENSE,
@@ -304,84 +233,4 @@ private fun RecordTypeSelector(
             weight = 1f
         )
     }
-}
-
-@Composable
-private fun CategorySelector(
-    categories: List<CoreCategory>,
-    selectedCategoryId: Long,
-    onCategorySelected: (Long) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = "分类",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        if (categories.isEmpty()) {
-            Text(
-                text = "暂无分类，请先添加分类",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        } else {
-            // 按层级排序：一级分类在前，子分类紧跟父分类
-            val sortedCategories = remember(categories) {
-                buildList {
-                    val (parents, children) = categories.partition { it.parentId == null }
-                    for (parent in parents.sortedBy { it.sortOrder }) {
-                        add(parent)
-                        children
-                            .filter { it.parentId == parent.id }
-                            .sortedBy { it.sortOrder }
-                            .forEach { add(it) }
-                    }
-                }
-            }
-
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(horizontal = 0.dp)
-            ) {
-                items(sortedCategories) { category ->
-                    CategoryChip(
-                        category = category,
-                        isSelected = category.id == selectedCategoryId,
-                        onClick = { onCategorySelected(category.id) }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CategoryChip(category: CoreCategory, isSelected: Boolean, onClick: () -> Unit) {
-    val label = if (category.parentId != null) "› ${category.name}" else category.name
-    FilterChip(
-        selected = isSelected,
-        onClick = onClick,
-        label = { Text(label) },
-        leadingIcon = if (isSelected) {
-            {
-                MoniIcon(
-                    MoniIcons.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-        } else {
-            null
-        },
-        colors = FilterChipDefaults.filterChipColors(
-            containerColor = Color.Transparent,
-            labelColor = MaterialTheme.colorScheme.onSurface,
-            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
-        )
-    )
 }

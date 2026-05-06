@@ -128,7 +128,7 @@ pub fn backup_restore(
     let tmp_dir = std::env::temp_dir().join("moni_restore_tmp");
     let _ = std::fs::create_dir_all(&tmp_dir);
     let timestamp = chrono::Local::now().format("%Y%m%d_%H%M%S").to_string();
-    let tmp_db = tmp_dir.join(format!("moni_restore_{timestamp}.db"));
+    let tmp_db = tmp_dir.join(format!("moni_restore_{timestamp}_{}.db", uuid::Uuid::new_v4()));
     extract_entry(&mut zip, DB_ENTRY_PATH, tmp_db.to_str().unwrap_or("moni_restore.db"))?;
 
     // 4. 打开临时数据库，运行迁移

@@ -110,7 +110,7 @@ fn test_backup_restore_empty_zip_no_manifest() {
         let empty_zip = tmp_dir.join("empty.zip");
         {
             let file = std::fs::File::create(&empty_zip).unwrap();
-            let mut zip = zip::ZipWriter::new(file);
+            let zip = zip::ZipWriter::new(file);
             zip.finish().unwrap();
         }
 

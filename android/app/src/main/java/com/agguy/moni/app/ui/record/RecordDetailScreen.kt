@@ -140,7 +140,7 @@ fun RecordDetailScreen(
                 currentGridPage = state.currentGridPage,
                 onCategorySelected = { state.selectCategory(it) },
                 onGridPageChanged = { state.currentGridPage = it },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.fillMaxWidth()
             )
 
             // 底部：综合控制面板

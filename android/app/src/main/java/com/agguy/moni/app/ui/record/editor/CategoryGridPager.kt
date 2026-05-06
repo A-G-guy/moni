@@ -103,7 +103,7 @@ fun CategoryGridPager(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(248.dp)
+                .height(292.dp)
         ) {
             if (flatItems.isEmpty()) {
                 Box(

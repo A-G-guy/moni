@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -70,7 +71,7 @@ fun RecordEditorPanel(
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         // 第一行：金额（居中）
         AmountDisplay(
@@ -186,43 +187,49 @@ private fun InfoRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // 日期按钮
-        TextButton(
-            onClick = onDateClick,
-            modifier = Modifier.height(36.dp)
+        // 左侧：日期 + 时间
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            MoniIcon(
-                icon = MoniIcons.Event,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp)
-            )
-            Text(
-                text = dateText,
-                style = MaterialTheme.typography.labelMedium
-            )
+            TextButton(
+                onClick = onDateClick,
+                modifier = Modifier.height(36.dp)
+            ) {
+                MoniIcon(
+                    icon = MoniIcons.Event,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    text = dateText,
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
+
+            TextButton(
+                onClick = onTimeClick,
+                modifier = Modifier.height(36.dp)
+            ) {
+                Text(
+                    text = timeText,
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
         }
 
-        // 时间按钮
-        TextButton(
-            onClick = onTimeClick,
-            modifier = Modifier.height(36.dp)
-        ) {
-            Text(
-                text = timeText,
-                style = MaterialTheme.typography.labelMedium
-            )
-        }
+        // 中间留白
+        Spacer(modifier = Modifier.weight(1f))
 
-        // 备注区域
+        // 右侧：备注区域
         if (state.isNoteEditing) {
             BasicTextField(
                 value = state.note,
                 onValueChange = { state.updateNote(it) },
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(2f)
                     .focusRequester(focusRequester),
                 textStyle = MaterialTheme.typography.labelMedium.copy(
                     color = MaterialTheme.colorScheme.onSurface
@@ -238,8 +245,7 @@ private fun InfoRow(
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             MoniIcon(
                                 icon = MoniIcons.Edit,
@@ -271,9 +277,7 @@ private fun InfoRow(
         } else {
             TextButton(
                 onClick = onNoteClick,
-                modifier = Modifier
-                    .height(36.dp)
-                    .weight(1f)
+                modifier = Modifier.height(36.dp)
             ) {
                 MoniIcon(
                     icon = MoniIcons.Edit,

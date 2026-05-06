@@ -96,7 +96,9 @@ fun RecordEditorPanel(
                         slideOutVertically { -it } + fadeOut()
             },
             label = "keyboard_note_switch",
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(260.dp)
         ) { isEditing ->
             if (isEditing) {
                 // 备注编辑模式：下方留白，点击空白处关闭

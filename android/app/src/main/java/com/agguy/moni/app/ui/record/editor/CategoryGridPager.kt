@@ -6,14 +6,14 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -46,6 +46,7 @@ private sealed class CategoryGridItem {
  *
  * 一级分类与二级分类平铺并列显示，仅在视觉上区分。
  * 有子分类的一级分类本身也可被选中。
+ * 高度自适应内容，空间过多时下方自然留白。
  */
 @Composable
 fun CategoryGridPager(
@@ -87,37 +88,43 @@ fun CategoryGridPager(
             )
         }
     } else {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(GRID_COLUMNS),
-            modifier = modifier,
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)
+        val scrollState = rememberScrollState()
+        Column(
+            modifier = modifier
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            items(
-                items = flatItems,
-                key = { item ->
-                    when (item) {
-                        is CategoryGridItem.Parent -> "p-${item.category.id}"
-                        is CategoryGridItem.Child -> "c-${item.category.id}"
+            val rows = flatItems.chunked(GRID_COLUMNS)
+            rows.forEach { rowItems ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    rowItems.forEach { item ->
+                        when (item) {
+                            is CategoryGridItem.Parent -> {
+                                PrimaryCategoryItem(
+                                    category = item.category,
+                                    isSelected = item.category.id == selectedCategoryId,
+                                    onClick = { onCategorySelected(item.category.id) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            is CategoryGridItem.Child -> {
+                                SubCategoryItem(
+                                    category = item.category,
+                                    isSelected = item.category.id == selectedCategoryId,
+                                    onClick = { onCategorySelected(item.category.id) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
                     }
-                }
-            ) { item ->
-                when (item) {
-                    is CategoryGridItem.Parent -> {
-                        PrimaryCategoryItem(
-                            category = item.category,
-                            isSelected = item.category.id == selectedCategoryId,
-                            onClick = { onCategorySelected(item.category.id) }
-                        )
-                    }
-
-                    is CategoryGridItem.Child -> {
-                        SubCategoryItem(
-                            category = item.category,
-                            isSelected = item.category.id == selectedCategoryId,
-                            onClick = { onCategorySelected(item.category.id) }
-                        )
+                    // 补齐空位保持行宽一致
+                    repeat(GRID_COLUMNS - rowItems.size) {
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
@@ -129,7 +136,8 @@ fun CategoryGridPager(
 private fun PrimaryCategoryItem(
     category: CoreCategory,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val iconRes = remember(category.iconName) {
         iconNameToRes(category.iconName)
@@ -161,8 +169,7 @@ private fun PrimaryCategoryItem(
 
     Surface(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .aspectRatio(1f)
             .border(
                 width = borderWidth,
@@ -200,7 +207,8 @@ private fun PrimaryCategoryItem(
 private fun SubCategoryItem(
     category: CoreCategory,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val iconRes = remember(category.iconName) {
         iconNameToRes(category.iconName)
@@ -232,8 +240,7 @@ private fun SubCategoryItem(
 
     Surface(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .aspectRatio(1f)
             .border(
                 width = borderWidth,

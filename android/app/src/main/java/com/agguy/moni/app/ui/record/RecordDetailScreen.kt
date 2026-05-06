@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ButtonDefaults
@@ -124,7 +125,8 @@ fun RecordDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 8.dp, vertical = 4.dp),
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .navigationBarsPadding(),
             verticalArrangement = Arrangement.Top
         ) {
             // 顶部：类型切换
@@ -136,7 +138,7 @@ fun RecordDetailScreen(
                     .padding(bottom = 4.dp)
             )
 
-            // 中部：分类网格（固定高度，内部垂直滚动）
+            // 中部：分类网格（内容自适应高度，内部垂直滚动）
             CategoryGridPager(
                 categories = filteredCategories,
                 selectedCategoryId = state.selectedCategoryId,
@@ -145,14 +147,13 @@ fun RecordDetailScreen(
                 onGridPageChanged = { state.currentGridPage = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(220.dp)
                     .padding(bottom = 4.dp)
             )
 
-            // 弹性空白：空间过多时在此处填充（分类与金额之间）
+            // 弹性间距：将编辑器推至底部，多余空白留在分类与金额之间
             Spacer(modifier = Modifier.weight(1f))
 
-            // 底部：综合控制面板（固定高度，紧贴安全区）
+            // 底部：综合控制面板（内容自适应高度）
             RecordEditorPanel(
                 state = state,
                 currencySymbol = appState.currencySymbol,
@@ -190,9 +191,7 @@ fun RecordDetailScreen(
                         onNavigateBack()
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(420.dp)
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }

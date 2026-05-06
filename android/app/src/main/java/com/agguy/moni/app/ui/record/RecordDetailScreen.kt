@@ -5,9 +5,11 @@ package com.agguy.moni.app.ui.record
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ButtonDefaults
@@ -124,13 +126,15 @@ fun RecordDetailScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 8.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.Top
         ) {
             // 顶部：类型切换
             RecordTypeToggle(
                 selectedType = state.recordType,
                 onTypeSelected = { state.updateType(it) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 4.dp)
             )
 
             // 中部：分类网格
@@ -140,7 +144,9 @@ fun RecordDetailScreen(
                 currentGridPage = state.currentGridPage,
                 onCategorySelected = { state.selectCategory(it) },
                 onGridPageChanged = { state.currentGridPage = it },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 4.dp)
             )
 
             // 底部：综合控制面板
@@ -183,6 +189,9 @@ fun RecordDetailScreen(
                 },
                 modifier = Modifier.weight(1f)
             )
+
+            // 底部缓冲：吸收分类区缩小后释放的多余空间，保持键盘高度不变
+            Spacer(modifier = Modifier.height(56.dp))
         }
     }
 

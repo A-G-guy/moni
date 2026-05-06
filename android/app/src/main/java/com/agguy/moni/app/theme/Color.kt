@@ -3,36 +3,9 @@ package com.agguy.moni.app.theme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-
-// === 预设 Seed 色块 ===
-
-/**
- * 可供用户选择的 8 个预设主题种子色。
- * 使用 Material Kolor `rememberDynamicColorScheme(seedColor)` 生成完整色板。
- */
-val SeedSwatches = listOf(
-    Color(0xFF0F5C5E), // 深青
-    Color(0xFF4A3F8C), // 沉稳紫
-    Color(0xFF1F3A6E), // 墨蓝
-    Color(0xFF2E6A4D), // 森绿
-    Color(0xFFB36A2E), // 暖橙
-    Color(0xFFB14F77), // 玫瑰粉
-    Color(0xFF6E4A2E), // 棕褐
-    Color(0xFF2A7AA1), // 水青
-)
-
-/** 默认种子色：深青 */
-val DefaultSeedColor = SeedSwatches[0]
+import androidx.compose.ui.graphics.luminance
 
 // === 亮度辅助 ===
-
-/** 计算颜色亮度。 */
-fun Color.luminance(): Float {
-    val r = red * 0.2126f
-    val g = green * 0.7152f
-    val b = blue * 0.0722f
-    return r + g + b
-}
 
 /** 判断当前色板是否为浅色模式。 */
 fun ColorScheme.isLight(): Boolean = this.background.luminance() > 0.5f

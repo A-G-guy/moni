@@ -34,18 +34,6 @@ import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.ThemeMode
 import com.agguy.moni.core.CoreIntent
 
-/** 种子色到中文名称的映射（与 ThemeSettingsScreen 保持一致）。 */
-private val SeedColorNames = mapOf(
-    0xFF0F5C5E to "深青",
-    0xFF4A3F8C to "沉稳紫",
-    0xFF1F3A6E to "墨蓝",
-    0xFF2E6A4D to "森绿",
-    0xFFB36A2E to "暖橙",
-    0xFFB14F77 to "玫瑰粉",
-    0xFF6E4A2E to "棕褐",
-    0xFF2A7AA1 to "水青",
-)
-
 /**
  * 设置页面。
  */
@@ -74,8 +62,7 @@ fun SettingsScreen(
     val appearanceSubtitle = if (themeSettings.dynamicColor) {
         "$themeModeLabel · 动态颜色"
     } else {
-        val seedName = SeedColorNames[themeSettings.seedColor] ?: ""
-        "$themeModeLabel · $seedName"
+        themeModeLabel
     }
 
     Scaffold(

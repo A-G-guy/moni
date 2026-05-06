@@ -2,6 +2,7 @@ package com.agguy.moni.app.theme
 
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -31,12 +32,19 @@ class ColorTest {
     }
 
     @Test
-    fun `luminance of mid gray is around 0_5`() {
+    fun `luminance of mid gray is around 0_2`() {
         val gray = Color(0xFF808080)
         val actual = gray.luminance()
-        // 0x80 = 128/255 ≈ 0.502, 直接按 sRGB 值加权
-        // 亮度 ≈ 0.502 * (0.2126 + 0.7152 + 0.0722) ≈ 0.502
-        assertTrue("mid gray luminance should be around 0.5", actual in 0.48f..0.52f)
+        // 官方 luminance() 先对 sRGB 做 gamma 解码，0x80 线性化后约 0.216
+        assertTrue("mid gray luminance should be around 0.216", actual in 0.20f..0.24f)
+    }
+
+    @Test
+    fun `luminance of light gray is around 0_5`() {
+        // 线性亮度 0.5 对应的 sRGB 值约为 0xBC (gamma 编码后)
+        val gray = Color(0xFFBCBCBC)
+        val actual = gray.luminance()
+        assertTrue("light gray luminance should be around 0.5", actual in 0.48f..0.52f)
     }
 
     @Test

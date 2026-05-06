@@ -165,7 +165,6 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.material.kolor)
     implementation(variantOf(libs.jna) { artifactType("aar") })
 
     debugImplementation(libs.androidx.compose.ui.tooling)

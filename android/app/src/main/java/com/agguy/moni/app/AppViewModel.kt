@@ -5,7 +5,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.agguy.moni.app.navigation.Screen
-import com.agguy.moni.app.theme.DefaultSeedColor
 import com.agguy.moni.app.theme.ThemeMode
 import com.agguy.moni.core.CoreEffectRunner
 import com.agguy.moni.core.CoreIntent
@@ -26,8 +25,7 @@ import java.time.format.DateTimeFormatter
  */
 data class ThemeSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
-    val dynamicColor: Boolean = false,
-    val seedColor: Long = DefaultSeedColor.value.toLong()
+    val dynamicColor: Boolean = false
 )
 
 class AppViewModel(
@@ -154,8 +152,7 @@ class AppViewModel(
     private suspend fun syncThemeSettingsFromDataStore() {
         val themeMode = DataStoreHelper.themeModeFlow(getApplication()).first()
         val dynamicColor = DataStoreHelper.dynamicColorFlow(getApplication()).first()
-        val seedColor = DataStoreHelper.seedColorFlow(getApplication()).first()
-        _themeSettings.value = ThemeSettings(themeMode, dynamicColor, seedColor)
+        _themeSettings.value = ThemeSettings(themeMode, dynamicColor)
     }
 
     fun updateThemeMode(mode: ThemeMode) {
@@ -169,13 +166,6 @@ class AppViewModel(
         viewModelScope.launch {
             DataStoreHelper.saveDynamicColor(getApplication(), enabled)
             _themeSettings.value = _themeSettings.value.copy(dynamicColor = enabled)
-        }
-    }
-
-    fun updateSeedColor(colorValue: Long) {
-        viewModelScope.launch {
-            DataStoreHelper.saveSeedColor(getApplication(), colorValue)
-            _themeSettings.value = _themeSettings.value.copy(seedColor = colorValue)
         }
     }
 

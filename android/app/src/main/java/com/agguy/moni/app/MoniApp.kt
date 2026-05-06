@@ -12,7 +12,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -75,7 +74,6 @@ fun MoniApp() {
 
     MoniTheme(
         themeMode = themeSettings.themeMode,
-        seedColor = Color(themeSettings.seedColor.toULong()),
         dynamicColor = themeSettings.dynamicColor
     ) {
         Scaffold(
@@ -126,7 +124,6 @@ fun MoniApp() {
                 onNavigateBack = viewModel::navigateBack,
                 onUpdateThemeMode = viewModel::updateThemeMode,
                 onUpdateDynamicColor = viewModel::updateDynamicColor,
-                onUpdateSeedColor = viewModel::updateSeedColor,
                 onNavigateToDeveloperOptions = viewModel::navigateToDeveloperOptions,
                 onNavigateToDevLog = viewModel::navigateToDevLog,
                 onClearAllData = viewModel::clearAllData,

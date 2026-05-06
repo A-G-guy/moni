@@ -83,7 +83,6 @@ fun MoniNavHost(
     onNavigateBack: () -> Unit,
     onUpdateThemeMode: (ThemeMode) -> Unit,
     onUpdateDynamicColor: (Boolean) -> Unit,
-    onUpdateSeedColor: (Long) -> Unit,
     onNavigateToDeveloperOptions: () -> Unit = {},
     onNavigateToDevLog: () -> Unit = {},
     onClearAllData: () -> Unit = {},
@@ -198,7 +197,6 @@ fun MoniNavHost(
                 themeSettings = themeSettings,
                 onUpdateThemeMode = onUpdateThemeMode,
                 onUpdateDynamicColor = onUpdateDynamicColor,
-                onUpdateSeedColor = onUpdateSeedColor,
                 onNavigateBack = onNavigateBack
             )
         }

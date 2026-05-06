@@ -5,10 +5,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.agguy.moni.app.theme.DefaultSeedColor
 import com.agguy.moni.app.theme.ThemeMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -20,7 +18,6 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.longOrNull
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "moni_settings")
 
@@ -33,7 +30,6 @@ object DataStoreHelper {
     private val CURRENCY_SYMBOL_KEY = stringPreferencesKey("currency_symbol")
     private val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
     private val DYNAMIC_COLOR_KEY = booleanPreferencesKey("dynamic_color")
-    private val SEED_COLOR_KEY = longPreferencesKey("seed_color")
 
     /**
      * 获取货币符号流。
@@ -92,22 +88,6 @@ object DataStoreHelper {
     }
 
     /**
-     * 获取种子色流。
-     */
-    fun seedColorFlow(context: Context): Flow<Long> = context.dataStore.data.map { preferences ->
-        preferences[SEED_COLOR_KEY] ?: DefaultSeedColor.value.toLong()
-    }
-
-    /**
-     * 保存种子色。
-     */
-    suspend fun saveSeedColor(context: Context, colorValue: Long) {
-        context.dataStore.edit { preferences ->
-            preferences[SEED_COLOR_KEY] = colorValue
-        }
-    }
-
-    /**
      * 清空所有设置数据。
      */
     suspend fun clearAll(context: Context) {
@@ -133,9 +113,6 @@ object DataStoreHelper {
                 "dynamic_color" to kotlinx.serialization.json.JsonPrimitive(
                     preferences[DYNAMIC_COLOR_KEY] ?: false
                 ),
-                "seed_color" to kotlinx.serialization.json.JsonPrimitive(
-                    preferences[SEED_COLOR_KEY] ?: DefaultSeedColor.value.toLong()
-                ),
             )
         ).toString()
     }
@@ -144,9 +121,10 @@ object DataStoreHelper {
      * 从 JSON 字符串恢复设置项。
      *
      * 若 JSON 中不含支持的 schema 版本号，则跳过恢复（避免旧格式或损坏数据）。
+     * 旧数据中的 seed_color 字段会被静默忽略。
      */
     suspend fun restoreFromJson(context: Context, json: String) {
-        val element = kotlinx.serialization.json.Json.parseToJsonElement(json)
+        val element = Json.parseToJsonElement(json)
         val obj = element.jsonObject
         val schemaVersion = obj["schema"]?.jsonPrimitive?.intOrNull ?: 0
         if (schemaVersion != 1) {
@@ -163,9 +141,6 @@ object DataStoreHelper {
             }
             obj["dynamic_color"]?.jsonPrimitive?.booleanOrNull?.let {
                 preferences[DYNAMIC_COLOR_KEY] = it
-            }
-            obj["seed_color"]?.jsonPrimitive?.longOrNull?.let {
-                preferences[SEED_COLOR_KEY] = it
             }
         }
     }

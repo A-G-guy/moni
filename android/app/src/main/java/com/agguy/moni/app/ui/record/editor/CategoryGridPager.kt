@@ -45,7 +45,7 @@ import com.agguy.moni.app.theme.iconNameToRes
 import com.agguy.moni.core.CoreCategory
 
 /** 每页网格列数 */
-private const val GRID_COLUMNS = 4
+private const val GRID_COLUMNS = 5
 
 /** 每页网格行数 */
 private const val GRID_ROWS = 3
@@ -103,7 +103,7 @@ fun CategoryGridPager(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(292.dp)
+                .height(230.dp)
         ) {
             if (flatItems.isEmpty()) {
                 Box(

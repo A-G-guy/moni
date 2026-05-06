@@ -83,7 +83,6 @@ fun MoniNavHost(
     onNavigateToArchivedCategories: () -> Unit,
     onNavigateBack: () -> Unit,
     onUpdateThemeMode: (ThemeMode) -> Unit,
-    onUpdateDynamicColor: (Boolean) -> Unit,
     onUpdatePresetColorScheme: (PresetColorScheme) -> Unit,
     onNavigateToDeveloperOptions: () -> Unit = {},
     onNavigateToDevLog: () -> Unit = {},
@@ -198,7 +197,6 @@ fun MoniNavHost(
             com.agguy.moni.app.ui.settings.ThemeSettingsScreen(
                 themeSettings = themeSettings,
                 onUpdateThemeMode = onUpdateThemeMode,
-                onUpdateDynamicColor = onUpdateDynamicColor,
                 onUpdatePresetColorScheme = onUpdatePresetColorScheme,
                 onNavigateBack = onNavigateBack
             )

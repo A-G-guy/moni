@@ -29,6 +29,12 @@ class PresetColorSchemeTest {
     }
 
     @Test
+    fun `default light primary matches expected`() {
+        val scheme = PresetColorScheme.DEFAULT.toLightColorScheme()
+        assertEquals(Color(0xFF6750A4), scheme.primary)
+    }
+
+    @Test
     fun `airy sakura light primary matches expected`() {
         val scheme = PresetColorScheme.AIRY_SAKURA.toLightColorScheme()
         assertEquals(Color(0xFF9B3E64), scheme.primary)
@@ -66,6 +72,8 @@ class PresetColorSchemeTest {
 
     @Test
     fun `display names are in chinese`() {
+        assertEquals("默认", PresetColorScheme.DEFAULT.displayName)
+        assertEquals("动态颜色", PresetColorScheme.DYNAMIC.displayName)
         assertEquals("晴空樱粉", PresetColorScheme.AIRY_SAKURA.displayName)
         assertEquals("动漫天蓝", PresetColorScheme.ANIME_SKY.displayName)
         assertEquals("清新薄荷", PresetColorScheme.CRISP_MINT.displayName)
@@ -76,11 +84,29 @@ class PresetColorSchemeTest {
 
     @Test
     fun `seed colors match expected values`() {
+        assertEquals(Color(0xFF6750A4), PresetColorScheme.DEFAULT.seedColor)
+        assertEquals(Color(0xFF9C27B0), PresetColorScheme.DYNAMIC.seedColor)
         assertEquals(Color(0xFFFF8FB8), PresetColorScheme.AIRY_SAKURA.seedColor)
         assertEquals(Color(0xFF269BFF), PresetColorScheme.ANIME_SKY.seedColor)
         assertEquals(Color(0xFF17D19B), PresetColorScheme.CRISP_MINT.seedColor)
         assertEquals(Color(0xFF974DE6), PresetColorScheme.NEON_LAVENDER.seedColor)
         assertEquals(Color(0xFFD4A373), PresetColorScheme.OATMEAL_GOLD.seedColor)
         assertEquals(Color(0xFFFA7C4B), PresetColorScheme.SUNSET_CORAL.seedColor)
+    }
+
+    @Test
+    fun `dynamic scheme reports is dynamic`() {
+        assertEquals(true, PresetColorScheme.DYNAMIC.isDynamic())
+    }
+
+    @Test
+    fun `non dynamic schemes report not dynamic`() {
+        assertEquals(false, PresetColorScheme.DEFAULT.isDynamic())
+        assertEquals(false, PresetColorScheme.AIRY_SAKURA.isDynamic())
+        assertEquals(false, PresetColorScheme.ANIME_SKY.isDynamic())
+        assertEquals(false, PresetColorScheme.CRISP_MINT.isDynamic())
+        assertEquals(false, PresetColorScheme.NEON_LAVENDER.isDynamic())
+        assertEquals(false, PresetColorScheme.OATMEAL_GOLD.isDynamic())
+        assertEquals(false, PresetColorScheme.SUNSET_CORAL.isDynamic())
     }
 }

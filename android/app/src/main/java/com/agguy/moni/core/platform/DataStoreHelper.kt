@@ -30,7 +30,6 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 object DataStoreHelper {
     private val CURRENCY_SYMBOL_KEY = stringPreferencesKey("currency_symbol")
     private val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
-    private val DYNAMIC_COLOR_KEY = booleanPreferencesKey("dynamic_color")
     private val PRESET_COLOR_SCHEME_KEY = stringPreferencesKey("preset_color_scheme")
 
     /**
@@ -74,32 +73,18 @@ object DataStoreHelper {
     }
 
     /**
-     * 获取动态颜色开关流。
-     */
-    fun dynamicColorFlow(context: Context): Flow<Boolean> = context.dataStore.data.map { preferences ->
-        preferences[DYNAMIC_COLOR_KEY] ?: false
-    }
-
-    /**
-     * 保存动态颜色开关。
-     */
-    suspend fun saveDynamicColor(context: Context, enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[DYNAMIC_COLOR_KEY] = enabled
-        }
-    }
-
-    /**
      * 获取预设配色方案流。
      */
     fun presetColorSchemeFlow(context: Context): Flow<PresetColorScheme> = context.dataStore.data.map { preferences ->
         when (preferences[PRESET_COLOR_SCHEME_KEY]) {
+            "dynamic" -> PresetColorScheme.DYNAMIC
+            "airy_sakura" -> PresetColorScheme.AIRY_SAKURA
             "anime_sky" -> PresetColorScheme.ANIME_SKY
             "crisp_mint" -> PresetColorScheme.CRISP_MINT
             "neon_lavender" -> PresetColorScheme.NEON_LAVENDER
             "oatmeal_gold" -> PresetColorScheme.OATMEAL_GOLD
             "sunset_coral" -> PresetColorScheme.SUNSET_CORAL
-            else -> PresetColorScheme.AIRY_SAKURA
+            else -> PresetColorScheme.DEFAULT
         }
     }
 
@@ -109,6 +94,8 @@ object DataStoreHelper {
     suspend fun savePresetColorScheme(context: Context, scheme: PresetColorScheme) {
         context.dataStore.edit { preferences ->
             preferences[PRESET_COLOR_SCHEME_KEY] = when (scheme) {
+                PresetColorScheme.DEFAULT -> "default"
+                PresetColorScheme.DYNAMIC -> "dynamic"
                 PresetColorScheme.AIRY_SAKURA -> "airy_sakura"
                 PresetColorScheme.ANIME_SKY -> "anime_sky"
                 PresetColorScheme.CRISP_MINT -> "crisp_mint"
@@ -142,11 +129,8 @@ object DataStoreHelper {
                 "theme_mode" to kotlinx.serialization.json.JsonPrimitive(
                     preferences[THEME_MODE_KEY] ?: "system"
                 ),
-                "dynamic_color" to kotlinx.serialization.json.JsonPrimitive(
-                    preferences[DYNAMIC_COLOR_KEY] ?: false
-                ),
                 "preset_color_scheme" to kotlinx.serialization.json.JsonPrimitive(
-                    preferences[PRESET_COLOR_SCHEME_KEY] ?: "airy_sakura"
+                    preferences[PRESET_COLOR_SCHEME_KEY] ?: "default"
                 ),
             )
         ).toString()
@@ -156,7 +140,7 @@ object DataStoreHelper {
      * 从 JSON 字符串恢复设置项。
      *
      * 若 JSON 中不含支持的 schema 版本号，则跳过恢复（避免旧格式或损坏数据）。
-     * 旧数据中的 seed_color 字段会被静默忽略。
+     * 旧数据中的 dynamic_color / seed_color 字段会被静默忽略。
      */
     suspend fun restoreFromJson(context: Context, json: String) {
         val element = Json.parseToJsonElement(json)
@@ -173,9 +157,6 @@ object DataStoreHelper {
             }
             obj["theme_mode"]?.jsonPrimitive?.content?.let {
                 preferences[THEME_MODE_KEY] = it
-            }
-            obj["dynamic_color"]?.jsonPrimitive?.booleanOrNull?.let {
-                preferences[DYNAMIC_COLOR_KEY] = it
             }
             obj["preset_color_scheme"]?.jsonPrimitive?.content?.let {
                 preferences[PRESET_COLOR_SCHEME_KEY] = it

@@ -60,11 +60,7 @@ fun SettingsScreen(
         ThemeMode.SYSTEM -> "跟随系统"
     }
 
-    val appearanceSubtitle = if (themeSettings.dynamicColor) {
-        "$themeModeLabel · 动态颜色"
-    } else {
-        "$themeModeLabel · ${themeSettings.presetColorScheme.displayName}"
-    }
+    val appearanceSubtitle = "$themeModeLabel · ${themeSettings.presetColorScheme.displayName}"
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),

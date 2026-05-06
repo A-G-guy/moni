@@ -26,8 +26,7 @@ import java.time.format.DateTimeFormatter
  */
 data class ThemeSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
-    val dynamicColor: Boolean = false,
-    val presetColorScheme: PresetColorScheme = PresetColorScheme.AIRY_SAKURA
+    val presetColorScheme: PresetColorScheme = PresetColorScheme.DEFAULT
 )
 
 class AppViewModel(
@@ -153,22 +152,14 @@ class AppViewModel(
 
     private suspend fun syncThemeSettingsFromDataStore() {
         val themeMode = DataStoreHelper.themeModeFlow(getApplication()).first()
-        val dynamicColor = DataStoreHelper.dynamicColorFlow(getApplication()).first()
         val presetColorScheme = DataStoreHelper.presetColorSchemeFlow(getApplication()).first()
-        _themeSettings.value = ThemeSettings(themeMode, dynamicColor, presetColorScheme)
+        _themeSettings.value = ThemeSettings(themeMode, presetColorScheme)
     }
 
     fun updateThemeMode(mode: ThemeMode) {
         viewModelScope.launch {
             DataStoreHelper.saveThemeMode(getApplication(), mode)
             _themeSettings.value = _themeSettings.value.copy(themeMode = mode)
-        }
-    }
-
-    fun updateDynamicColor(enabled: Boolean) {
-        viewModelScope.launch {
-            DataStoreHelper.saveDynamicColor(getApplication(), enabled)
-            _themeSettings.value = _themeSettings.value.copy(dynamicColor = enabled)
         }
     }
 

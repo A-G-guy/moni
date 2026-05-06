@@ -23,7 +23,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -48,14 +47,13 @@ import com.agguy.moni.app.theme.seedColor
 /**
  * 外观设置二级页面。
  *
- * 整合主题模式、动态颜色两个设置项，页面内直接展示选择器，选择即时生效。
+ * 整合配色方案、主题模式两个设置项，页面内直接展示选择器，选择即时生效。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThemeSettingsScreen(
     themeSettings: ThemeSettings,
     onUpdateThemeMode: (ThemeMode) -> Unit,
-    onUpdateDynamicColor: (Boolean) -> Unit,
     onUpdatePresetColorScheme: (PresetColorScheme) -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
@@ -104,31 +102,6 @@ fun ThemeSettingsScreen(
                 currentMode = themeSettings.themeMode,
                 onModeSelected = onUpdateThemeMode
             )
-
-            HorizontalDivider()
-
-            // === 动态颜色 ===
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "动态颜色",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = "使用系统壁纸颜色（Android 12+）",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Switch(
-                    checked = themeSettings.dynamicColor,
-                    onCheckedChange = onUpdateDynamicColor
-                )
-            }
 
             Spacer(modifier = Modifier.height(16.dp))
         }

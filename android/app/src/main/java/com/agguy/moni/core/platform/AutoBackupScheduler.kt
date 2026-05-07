@@ -28,41 +28,45 @@ object AutoBackupScheduler {
      * 若配置为 "every_launch" 或未启用，则取消已有的周期任务。
      */
     fun schedule(context: Context, enabled: Boolean, frequency: String) {
-        val workManager = WorkManager.getInstance(context)
+        try {
+            val workManager = WorkManager.getInstance(context)
 
-        if (!enabled || frequency == "every_launch") {
-            workManager.cancelAllWorkByTag(WORK_TAG)
-            LogCollector.i("AutoBackupScheduler", "已取消周期备份任务")
-            return
+            if (!enabled || frequency == "every_launch") {
+                workManager.cancelAllWorkByTag(WORK_TAG)
+                LogCollector.i("AutoBackupScheduler", "已取消周期备份任务")
+                return
+            }
+
+            val repeatInterval = when (frequency) {
+                "daily" -> 1L
+                "weekly" -> 7L
+                "monthly" -> 30L
+                else -> 1L
+            }
+
+            val constraints = Constraints.Builder()
+                .setRequiresBatteryNotLow(true)
+                .setRequiresStorageNotLow(true)
+                .build()
+
+            val request = PeriodicWorkRequestBuilder<AutoBackupWorker>(
+                repeatInterval,
+                TimeUnit.DAYS
+            )
+                .setConstraints(constraints)
+                .addTag(WORK_TAG)
+                .build()
+
+            workManager.enqueueUniquePeriodicWork(
+                WORK_TAG,
+                ExistingPeriodicWorkPolicy.UPDATE,
+                request
+            )
+
+            LogCollector.i("AutoBackupScheduler", "已注册周期备份任务: $frequency, 间隔=${repeatInterval}天")
+        } catch (e: Exception) {
+            LogCollector.e("AutoBackupScheduler", "注册周期备份任务失败", e)
         }
-
-        val repeatInterval = when (frequency) {
-            "daily" -> 1L
-            "weekly" -> 7L
-            "monthly" -> 30L
-            else -> 1L
-        }
-
-        val constraints = Constraints.Builder()
-            .setRequiresBatteryNotLow(true)
-            .setRequiresStorageNotLow(true)
-            .build()
-
-        val request = PeriodicWorkRequestBuilder<AutoBackupWorker>(
-            repeatInterval,
-            TimeUnit.DAYS
-        )
-            .setConstraints(constraints)
-            .addTag(WORK_TAG)
-            .build()
-
-        workManager.enqueueUniquePeriodicWork(
-            WORK_TAG,
-            ExistingPeriodicWorkPolicy.UPDATE,
-            request
-        )
-
-        LogCollector.i("AutoBackupScheduler", "已注册周期备份任务: $frequency, 间隔=${repeatInterval}天")
     }
 
     /**
@@ -71,15 +75,19 @@ object AutoBackupScheduler {
      * 使用 [ExistingWorkPolicy.KEEP] 避免应用频繁重启时任务堆积。
      */
     fun triggerOnce(context: Context) {
-        val workManager = WorkManager.getInstance(context)
-        val request = androidx.work.OneTimeWorkRequestBuilder<AutoBackupWorker>()
-            .addTag(WORK_TAG)
-            .build()
-        workManager.enqueueUniqueWork(
-            "${WORK_TAG}_once",
-            ExistingWorkPolicy.KEEP,
-            request
-        )
-        LogCollector.i("AutoBackupScheduler", "已触发一次性自动备份")
+        try {
+            val workManager = WorkManager.getInstance(context)
+            val request = androidx.work.OneTimeWorkRequestBuilder<AutoBackupWorker>()
+                .addTag(WORK_TAG)
+                .build()
+            workManager.enqueueUniqueWork(
+                "${WORK_TAG}_once",
+                ExistingWorkPolicy.KEEP,
+                request
+            )
+            LogCollector.i("AutoBackupScheduler", "已触发一次性自动备份")
+        } catch (e: Exception) {
+            LogCollector.e("AutoBackupScheduler", "触发一次性备份失败", e)
+        }
     }
 }

@@ -96,7 +96,6 @@ class AppViewModel(
                 dispatch(CoreIntent.BudgetList(yearMonth = currentYearMonth))
                 syncCurrencySymbolFromDataStore()
                 syncThemeSettingsFromDataStore()
-                syncAutoBackupSettings()
             } catch (e: Exception) {
                 LogCollector.e("AppViewModel", "数据库初始化失败，回退到内存模式", e)
                 try {
@@ -109,6 +108,13 @@ class AppViewModel(
                     LogCollector.e("AppViewModel", "内存模式初始化也失败", inner)
                     _uiState.value = _uiState.value.copy(errorMessage = "应用初始化失败，请重启应用")
                 }
+            }
+
+            // 自动备份配置同步独立保护，避免 WorkManager 异常影响正常数据加载
+            try {
+                syncAutoBackupSettings()
+            } catch (e: Exception) {
+                LogCollector.e("AppViewModel", "自动备份配置同步失败", e)
             }
         }
     }

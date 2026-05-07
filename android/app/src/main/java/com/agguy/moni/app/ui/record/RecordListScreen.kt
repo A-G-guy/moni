@@ -38,6 +38,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
+import com.agguy.moni.app.RecordItemDisplaySettings
 import com.agguy.moni.app.components.MonthPickerSheet
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.icons.MoniIcons
@@ -60,6 +61,7 @@ import java.time.format.DateTimeFormatter
 fun RecordListScreen(
     appState: AppState,
     selectedYearMonth: String,
+    recordItemDisplaySettings: RecordItemDisplaySettings,
     onDispatch: (CoreIntent) -> Unit,
     onSelectYearMonth: (String) -> Unit,
     onNavigateToRecordDetail: (Long?) -> Unit,
@@ -125,6 +127,7 @@ fun RecordListScreen(
         RecordListContent(
             appState = appState,
             selectedYearMonth = selectedYearMonth,
+            recordItemDisplaySettings = recordItemDisplaySettings,
             onRecordClick = { onNavigateToRecordDetail(it) },
             modifier = Modifier.padding(innerPadding)
         )
@@ -150,6 +153,7 @@ fun RecordListScreen(
 private fun RecordListContent(
     appState: AppState,
     selectedYearMonth: String,
+    recordItemDisplaySettings: RecordItemDisplaySettings,
     onRecordClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -195,6 +199,10 @@ private fun RecordListContent(
                     RecordListItem(
                         record = record,
                         currencySymbol = appState.currencySymbol,
+                        categories = appState.categories,
+                        showIcon = recordItemDisplaySettings.showIcon,
+                        showFullCategory = recordItemDisplaySettings.showFullCategory,
+                        notePriority = recordItemDisplaySettings.notePriority,
                         onClick = { onRecordClick(record.id) }
                     )
                 }

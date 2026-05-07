@@ -19,6 +19,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.agguy.moni.app.AppState
+import com.agguy.moni.app.RecordItemDisplaySettings
 import com.agguy.moni.app.ThemeSettings
 import com.agguy.moni.app.theme.PresetColorScheme
 import com.agguy.moni.app.theme.ThemeMode
@@ -76,6 +77,7 @@ fun MoniNavHost(
     navController: NavHostController,
     appState: AppState,
     themeSettings: ThemeSettings,
+    recordItemDisplaySettings: RecordItemDisplaySettings,
     selectedYearMonth: String,
     onDispatch: (CoreIntent) -> Unit,
     onSelectYearMonth: (String) -> Unit,
@@ -85,6 +87,9 @@ fun MoniNavHost(
     onNavigateBack: () -> Unit,
     onUpdateThemeMode: (ThemeMode) -> Unit,
     onUpdatePresetColorScheme: (PresetColorScheme) -> Unit,
+    onUpdateRecordShowIcon: (Boolean) -> Unit = {},
+    onUpdateRecordShowFullCategory: (Boolean) -> Unit = {},
+    onUpdateRecordNotePriority: (Boolean) -> Unit = {},
     onNavigateToDeveloperOptions: () -> Unit = {},
     onNavigateToDevLog: () -> Unit = {},
     onClearAllData: () -> Unit = {},
@@ -128,6 +133,7 @@ fun MoniNavHost(
             RecordListScreen(
                 appState = appState,
                 selectedYearMonth = selectedYearMonth,
+                recordItemDisplaySettings = recordItemDisplaySettings,
                 onDispatch = onDispatch,
                 onSelectYearMonth = onSelectYearMonth,
                 onNavigateToRecordDetail = onNavigateToRecordDetail,
@@ -202,8 +208,12 @@ fun MoniNavHost(
         composable<Screen.ThemeSettings> {
             com.agguy.moni.app.ui.settings.ThemeSettingsScreen(
                 themeSettings = themeSettings,
+                recordItemDisplaySettings = recordItemDisplaySettings,
                 onUpdateThemeMode = onUpdateThemeMode,
                 onUpdatePresetColorScheme = onUpdatePresetColorScheme,
+                onUpdateRecordShowIcon = onUpdateRecordShowIcon,
+                onUpdateRecordShowFullCategory = onUpdateRecordShowFullCategory,
+                onUpdateRecordNotePriority = onUpdateRecordNotePriority,
                 onNavigateBack = onNavigateBack
             )
         }

@@ -42,6 +42,11 @@ object DataStoreHelper {
     private val AUTO_BACKUP_EXTERNAL_URI_KEY = stringPreferencesKey("auto_backup_external_uri")
     private val AUTO_BACKUP_LAST_TIME_KEY = stringPreferencesKey("auto_backup_last_time")
 
+    // 账单条目内容显示设置键
+    private val RECORD_SHOW_ICON_KEY = booleanPreferencesKey("record_show_icon")
+    private val RECORD_SHOW_FULL_CATEGORY_KEY = booleanPreferencesKey("record_show_full_category")
+    private val RECORD_NOTE_PRIORITY_KEY = booleanPreferencesKey("record_note_priority")
+
     /**
      * 获取货币符号流。
      */
@@ -226,6 +231,58 @@ object DataStoreHelper {
 
     // endregion
 
+    // region 账单条目内容显示设置
+
+    /**
+     * 获取账单条目显示图标流（默认 true）。
+     */
+    fun recordShowIconFlow(context: Context): Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[RECORD_SHOW_ICON_KEY] ?: true
+    }
+
+    /**
+     * 保存账单条目显示图标设置。
+     */
+    suspend fun saveRecordShowIcon(context: Context, show: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[RECORD_SHOW_ICON_KEY] = show
+        }
+    }
+
+    /**
+     * 获取账单条目显示完整分类流（默认 false）。
+     */
+    fun recordShowFullCategoryFlow(context: Context): Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[RECORD_SHOW_FULL_CATEGORY_KEY] ?: false
+    }
+
+    /**
+     * 保存账单条目显示完整分类设置。
+     */
+    suspend fun saveRecordShowFullCategory(context: Context, show: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[RECORD_SHOW_FULL_CATEGORY_KEY] = show
+        }
+    }
+
+    /**
+     * 获取账单条目备注优先流（默认 false）。
+     */
+    fun recordNotePriorityFlow(context: Context): Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[RECORD_NOTE_PRIORITY_KEY] ?: false
+    }
+
+    /**
+     * 保存账单条目备注优先设置。
+     */
+    suspend fun saveRecordNotePriority(context: Context, priority: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[RECORD_NOTE_PRIORITY_KEY] = priority
+        }
+    }
+
+    // endregion
+
     /**
      * 清空所有设置数据。
      */
@@ -269,6 +326,15 @@ object DataStoreHelper {
                 ),
                 "auto_backup_last_time" to kotlinx.serialization.json.JsonPrimitive(
                     preferences[AUTO_BACKUP_LAST_TIME_KEY]
+                ),
+                "record_show_icon" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[RECORD_SHOW_ICON_KEY] ?: true
+                ),
+                "record_show_full_category" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[RECORD_SHOW_FULL_CATEGORY_KEY] ?: false
+                ),
+                "record_note_priority" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[RECORD_NOTE_PRIORITY_KEY] ?: false
                 ),
             )
         ).toString()
@@ -324,6 +390,17 @@ object DataStoreHelper {
                 is JsonNull -> preferences.remove(AUTO_BACKUP_LAST_TIME_KEY)
                 is JsonPrimitive -> preferences[AUTO_BACKUP_LAST_TIME_KEY] = el.content
                 else -> {}
+            }
+
+            // 账单条目内容显示设置（旧备份可能不含这些字段，缺失时保留当前值）
+            obj["record_show_icon"]?.jsonPrimitive?.booleanOrNull?.let {
+                preferences[RECORD_SHOW_ICON_KEY] = it
+            }
+            obj["record_show_full_category"]?.jsonPrimitive?.booleanOrNull?.let {
+                preferences[RECORD_SHOW_FULL_CATEGORY_KEY] = it
+            }
+            obj["record_note_priority"]?.jsonPrimitive?.booleanOrNull?.let {
+                preferences[RECORD_NOTE_PRIORITY_KEY] = it
             }
         }
     }

@@ -36,7 +36,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import com.agguy.moni.app.RecordItemDisplaySettings
 import com.agguy.moni.app.ThemeSettings
+import com.agguy.moni.app.components.SettingsToggleItem
 import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.PresetColorScheme
 import com.agguy.moni.app.theme.ThemeMode
@@ -53,8 +55,12 @@ import com.agguy.moni.app.theme.seedColor
 @Composable
 fun ThemeSettingsScreen(
     themeSettings: ThemeSettings,
+    recordItemDisplaySettings: RecordItemDisplaySettings,
     onUpdateThemeMode: (ThemeMode) -> Unit,
     onUpdatePresetColorScheme: (PresetColorScheme) -> Unit,
+    onUpdateRecordShowIcon: (Boolean) -> Unit,
+    onUpdateRecordShowFullCategory: (Boolean) -> Unit,
+    onUpdateRecordNotePriority: (Boolean) -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -101,6 +107,32 @@ fun ThemeSettingsScreen(
             ThemeModeSelector(
                 currentMode = themeSettings.themeMode,
                 onModeSelected = onUpdateThemeMode
+            )
+
+            HorizontalDivider()
+
+            // === 账单条目内容 ===
+            SectionTitle("账单条目内容")
+            SettingsToggleItem(
+                icon = MoniIcons.Category,
+                title = "显示图标",
+                subtitle = "在账单条目中显示分类图标",
+                checked = recordItemDisplaySettings.showIcon,
+                onCheckedChange = onUpdateRecordShowIcon
+            )
+            SettingsToggleItem(
+                icon = MoniIcons.FilterList,
+                title = "显示完整分类",
+                subtitle = "同时显示一级和二级分类名称",
+                checked = recordItemDisplaySettings.showFullCategory,
+                onCheckedChange = onUpdateRecordShowFullCategory
+            )
+            SettingsToggleItem(
+                icon = MoniIcons.Edit,
+                title = "备注优先",
+                subtitle = "备注和分类名称的显示位置互换",
+                checked = recordItemDisplaySettings.notePriority,
+                onCheckedChange = onUpdateRecordNotePriority
             )
 
             Spacer(modifier = Modifier.height(16.dp))

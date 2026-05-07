@@ -42,6 +42,9 @@ class AppViewModel(
     private val _themeSettings = MutableStateFlow(ThemeSettings())
     val themeSettings: StateFlow<ThemeSettings> = _themeSettings.asStateFlow()
 
+    private val _recordItemDisplaySettings = MutableStateFlow(RecordItemDisplaySettings())
+    val recordItemDisplaySettings: StateFlow<RecordItemDisplaySettings> = _recordItemDisplaySettings.asStateFlow()
+
     private val _selectedYearMonth = MutableStateFlow("")
     val selectedYearMonth: StateFlow<String> = _selectedYearMonth.asStateFlow()
 
@@ -96,6 +99,7 @@ class AppViewModel(
                 dispatch(CoreIntent.BudgetList(yearMonth = currentYearMonth))
                 syncCurrencySymbolFromDataStore()
                 syncThemeSettingsFromDataStore()
+                syncRecordItemDisplaySettingsFromDataStore()
             } catch (e: Exception) {
                 val err = "数据库初始化失败: ${e.javaClass.simpleName}: ${e.message?.take(100)}"
                 LogCollector.e("AppViewModel", err, e)
@@ -231,6 +235,34 @@ class AppViewModel(
         viewModelScope.launch {
             DataStoreHelper.saveThemeMode(getApplication(), mode)
             _themeSettings.value = _themeSettings.value.copy(themeMode = mode)
+        }
+    }
+
+    private suspend fun syncRecordItemDisplaySettingsFromDataStore() {
+        val showIcon = DataStoreHelper.recordShowIconFlow(getApplication()).first()
+        val showFullCategory = DataStoreHelper.recordShowFullCategoryFlow(getApplication()).first()
+        val notePriority = DataStoreHelper.recordNotePriorityFlow(getApplication()).first()
+        _recordItemDisplaySettings.value = RecordItemDisplaySettings(showIcon, showFullCategory, notePriority)
+    }
+
+    fun updateRecordShowIcon(show: Boolean) {
+        viewModelScope.launch {
+            DataStoreHelper.saveRecordShowIcon(getApplication(), show)
+            _recordItemDisplaySettings.value = _recordItemDisplaySettings.value.copy(showIcon = show)
+        }
+    }
+
+    fun updateRecordShowFullCategory(show: Boolean) {
+        viewModelScope.launch {
+            DataStoreHelper.saveRecordShowFullCategory(getApplication(), show)
+            _recordItemDisplaySettings.value = _recordItemDisplaySettings.value.copy(showFullCategory = show)
+        }
+    }
+
+    fun updateRecordNotePriority(priority: Boolean) {
+        viewModelScope.launch {
+            DataStoreHelper.saveRecordNotePriority(getApplication(), priority)
+            _recordItemDisplaySettings.value = _recordItemDisplaySettings.value.copy(notePriority = priority)
         }
     }
 

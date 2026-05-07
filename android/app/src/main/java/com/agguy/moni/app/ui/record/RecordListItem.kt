@@ -26,6 +26,7 @@ import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.app.theme.iconForCategory
 import com.agguy.moni.app.theme.incomeGreen
+import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreRecord
 import com.agguy.moni.core.util.formatAmount
 import java.time.Instant
@@ -33,10 +34,33 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+/**
+ * 解析账单条目应显示的分类名称。
+ *
+ * @param showFullCategory 为 true 时，若记录属于二级分类，则拼接为 "父分类 › 子分类" 格式。
+ */
+fun resolveCategoryDisplay(
+    record: CoreRecord,
+    categories: List<CoreCategory>,
+    showFullCategory: Boolean
+): String {
+    if (!showFullCategory) return record.categoryName
+
+    val category = categories.find { it.id == record.categoryId } ?: return record.categoryName
+    if (category.parentId == null) return record.categoryName
+
+    val parent = categories.find { it.id == category.parentId }
+    return if (parent != null) "${parent.name} › ${category.name}" else record.categoryName
+}
+
 @Composable
 fun RecordListItem(
     record: CoreRecord,
     currencySymbol: String,
+    categories: List<CoreCategory>,
+    showIcon: Boolean,
+    showFullCategory: Boolean,
+    notePriority: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -44,6 +68,19 @@ fun RecordListItem(
     val amountColor = if (isExpense) MaterialTheme.colorScheme.expenseRed else MaterialTheme.colorScheme.incomeGreen
     val sign = if (isExpense) "-" else "+"
     val amountText = "${sign}${currencySymbol}${formatAmount(record.amountCents)}"
+
+    val categoryDisplay = resolveCategoryDisplay(record, categories, showFullCategory)
+
+    val primaryText: String
+    val secondaryText: String?
+
+    if (notePriority && record.note.isNotBlank()) {
+        primaryText = record.note
+        secondaryText = categoryDisplay
+    } else {
+        primaryText = categoryDisplay
+        secondaryText = record.note.takeIf { it.isNotBlank() }
+    }
 
     MoniCard(
         modifier = modifier
@@ -58,24 +95,23 @@ fun RecordListItem(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 分类图标指示器（浅色圆角方框 + 分类图标）
-            CategoryIndicator(
-                isExpense = isExpense,
-                iconName = record.categoryName
-            )
+            if (showIcon) {
+                CategoryIndicator(
+                    isExpense = isExpense,
+                    iconName = record.categoryName
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+            }
 
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // 分类名称和备注
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = record.categoryName,
+                    text = primaryText,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium
                 )
-                if (record.note.isNotBlank()) {
+                secondaryText?.let {
                     Text(
-                        text = record.note,
+                        text = it,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

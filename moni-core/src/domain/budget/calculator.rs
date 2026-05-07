@@ -194,12 +194,13 @@ fn budget_status(percentage: f64) -> BudgetStatus {
 }
 
 /// 构建完整的 BudgetDto 列表（含实时计算字段）。
+/// 同时返回 category_spending 和 parent_category_spending，供调用方复用，避免重复查询。
 pub fn build_budget_dtos(
     conn: &Connection,
     budgets: &[moni_contracts::budget::Budget],
     categories: &[CategoryDto],
     year_month: &str,
-) -> Result<Vec<BudgetDto>, rusqlite::Error> {
+) -> Result<(Vec<BudgetDto>, HashMap<CategoryId, AmountCents>, HashMap<CategoryId, AmountCents>), rusqlite::Error> {
     let category_spending = compute_category_spending(conn, year_month)?;
     let parent_category_spending = compute_parent_category_spending(conn, year_month)?;
 
@@ -293,5 +294,5 @@ pub fn build_budget_dtos(
         }
     });
 
-    Ok(dtos)
+    Ok((dtos, category_spending, parent_category_spending))
 }

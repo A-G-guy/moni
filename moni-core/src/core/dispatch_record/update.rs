@@ -1,3 +1,4 @@
+use crate::core::dispatch_record::validate_category_for_record;
 use crate::core::error::CoreError;
 use crate::core::runtime::AppCoreRuntime;
 use crate::db::record_repo;
@@ -32,23 +33,8 @@ impl AppCoreRuntime {
             .ok_or_else(|| CoreError::RecordNotFound(id))?;
 
         let new_category = if let Some(cid) = category_id {
-            let cat = crate::db::category_repo::get_by_id(&self.conn, cid)?
-                .ok_or(CoreError::CategoryNotFound(cid))?;
-            if cat.archived_at.is_some() {
-                log::warn!("更新记录失败: 分类已归档, category_id={cid}");
-                return Err(CoreError::InvalidInput("该分类已归档，无法记账".to_string()));
-            }
             let new_type = record_type.unwrap_or(original.record_type);
-            if cat.category_type != new_type {
-                log::warn!(
-                    "更新记录失败: 记录类型与分类类型不匹配, record_type={new_type:?}, category_type={:?}",
-                    cat.category_type
-                );
-                return Err(CoreError::InvalidInput(
-                    "记录类型与分类类型不匹配".to_string(),
-                ));
-            }
-            Some(cat)
+            Some(validate_category_for_record(&self.conn, cid, new_type)?)
         } else {
             None
         };

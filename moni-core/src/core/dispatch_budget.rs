@@ -179,11 +179,8 @@ impl AppCoreRuntime {
         amount_cents: AmountCents,
     ) -> Result<CoreUpdate, CoreError> {
         let raw_budgets = budget_repo::list_for_month(&self.conn, year_month)?;
-        let budget_dtos =
+        let (budget_dtos, category_spending, parent_category_spending) =
             calculator::build_budget_dtos(&self.conn, &raw_budgets, &self.state.categories, year_month)?;
-
-        let category_spending = calculator::compute_category_spending(&self.conn, year_month)?;
-        let parent_category_spending = calculator::compute_parent_category_spending(&self.conn, year_month)?;
 
         let effective = calculator::effective_available(
             category_id,
@@ -236,7 +233,7 @@ impl AppCoreRuntime {
             .map(|s| s.to_string())
             .unwrap_or_else(|| chrono::Local::now().format("%Y-%m").to_string());
         let raw_budgets = budget_repo::list_for_month(&self.conn, &year_month)?;
-        let budget_dtos = calculator::build_budget_dtos(
+        let (budget_dtos, _, _) = calculator::build_budget_dtos(
             &self.conn,
             &raw_budgets,
             &self.state.categories,

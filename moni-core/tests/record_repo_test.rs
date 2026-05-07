@@ -18,7 +18,7 @@ fn create_category(conn: &rusqlite::Connection, name: &str, ty: RecordType) -> i
 fn test_insert_and_get() {
     let conn = setup();
     let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
-    let id = record_repo::insert(&conn, 1234, RecordType::Expense, cat_id, "午餐", None).unwrap();
+    let id = record_repo::insert(&conn, 1234, RecordType::Expense, cat_id, None, "午餐", None).unwrap();
     assert!(id > 0);
 
     let rec = record_repo::get_by_id(&conn, id).unwrap().unwrap();
@@ -31,9 +31,9 @@ fn test_insert_and_get() {
 fn test_list_paginated_ordering() {
     let conn = setup();
     let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
-    record_repo::insert(&conn, 100, RecordType::Expense, cat_id, "", Some(1000)).unwrap();
-    record_repo::insert(&conn, 200, RecordType::Expense, cat_id, "", Some(2000)).unwrap();
-    record_repo::insert(&conn, 300, RecordType::Expense, cat_id, "", Some(1500)).unwrap();
+    record_repo::insert(&conn, 100, RecordType::Expense, cat_id, None, "", Some(1000)).unwrap();
+    record_repo::insert(&conn, 200, RecordType::Expense, cat_id, None, "", Some(2000)).unwrap();
+    record_repo::insert(&conn, 300, RecordType::Expense, cat_id, None, "", Some(1500)).unwrap();
 
     let list = record_repo::list_paginated(&conn, 0, 10).unwrap();
     assert_eq!(list.len(), 3);
@@ -52,6 +52,7 @@ fn test_list_paginated_paging() {
             i64::from(i + 1) * 100,
             RecordType::Expense,
             cat_id,
+            None,
             "",
             Some(i64::from(i) * 1000),
         )
@@ -72,9 +73,9 @@ fn test_list_paginated_paging() {
 fn test_update() {
     let conn = setup();
     let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
-    let id = record_repo::insert(&conn, 100, RecordType::Expense, cat_id, "旧备注", None).unwrap();
+    let id = record_repo::insert(&conn, 100, RecordType::Expense, cat_id, None, "旧备注", None).unwrap();
 
-    record_repo::update(&conn, id, Some(200), None, None, Some("新备注")).unwrap();
+    record_repo::update(&conn, id, Some(200), None, None, None, Some("新备注")).unwrap();
     let rec = record_repo::get_by_id(&conn, id).unwrap().unwrap();
     assert_eq!(rec.amount_cents, 200);
     assert_eq!(rec.note, "新备注");
@@ -84,7 +85,7 @@ fn test_update() {
 fn test_delete() {
     let conn = setup();
     let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
-    let id = record_repo::insert(&conn, 100, RecordType::Expense, cat_id, "", None).unwrap();
+    let id = record_repo::insert(&conn, 100, RecordType::Expense, cat_id, None, "", None).unwrap();
     record_repo::delete(&conn, id).unwrap();
     assert!(record_repo::get_by_id(&conn, id).unwrap().is_none());
 }
@@ -93,9 +94,9 @@ fn test_delete() {
 fn test_list_by_date_range() {
     let conn = setup();
     let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
-    record_repo::insert(&conn, 100, RecordType::Expense, cat_id, "", Some(1000)).unwrap();
-    record_repo::insert(&conn, 200, RecordType::Expense, cat_id, "", Some(2000)).unwrap();
-    record_repo::insert(&conn, 300, RecordType::Expense, cat_id, "", Some(3000)).unwrap();
+    record_repo::insert(&conn, 100, RecordType::Expense, cat_id, None, "", Some(1000)).unwrap();
+    record_repo::insert(&conn, 200, RecordType::Expense, cat_id, None, "", Some(2000)).unwrap();
+    record_repo::insert(&conn, 300, RecordType::Expense, cat_id, None, "", Some(3000)).unwrap();
 
     let list = record_repo::list_by_date_range(&conn, 1500, 2500).unwrap();
     assert_eq!(list.len(), 1);
@@ -107,10 +108,10 @@ fn test_category_aggregates() {
     let conn = setup();
     let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
     // 2024-01-01 00:00:00 UTC = 1704067200
-    record_repo::insert(&conn, 5000, RecordType::Expense, cat_id, "午餐", Some(1704067200),
+    record_repo::insert(&conn, 5000, RecordType::Expense, cat_id, None, "午餐", Some(1704067200),
     ).unwrap();
     record_repo::insert(
-        &conn, 3000, RecordType::Expense, cat_id, "晚餐", Some(1704153600),
+        &conn, 3000, RecordType::Expense, cat_id, None, "晚餐", Some(1704153600),
     ).unwrap();
 
     let agg = record_repo::category_aggregates(&conn, "2024-01"
@@ -136,13 +137,13 @@ fn test_category_aggregates_by_parent() {
 
     // 2024-01-01 00:00:00 UTC = 1704067200
     record_repo::insert(
-        &conn, 5000, RecordType::Expense, parent_id, "正餐", Some(1704067200),
+        &conn, 5000, RecordType::Expense, parent_id, None, "正餐", Some(1704067200),
     ).unwrap();
     record_repo::insert(
-        &conn, 2000, RecordType::Expense, child_id, "早餐", Some(1704153600),
+        &conn, 2000, RecordType::Expense, child_id, Some(parent_id), "早餐", Some(1704153600),
     ).unwrap();
     record_repo::insert(
-        &conn, 3000, RecordType::Expense, other_id, "地铁", Some(1704240000),
+        &conn, 3000, RecordType::Expense, other_id, None, "地铁", Some(1704240000),
     ).unwrap();
 
     let agg = record_repo::category_aggregates_by_parent(

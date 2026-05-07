@@ -193,11 +193,26 @@ fn test_consecutive_dispatch_state_accumulates_and_error_message_persists() {
     rt.block_on(async {
         let snapshot = core.snapshot_json().await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
-        let category_id = state["categories"][0]["id"].as_i64().unwrap();
+        let expense_cat = state["categories"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["categoryType"] == "expense")
+            .unwrap()["id"]
+            .as_i64()
+            .unwrap();
+        let income_cat = state["categories"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["categoryType"] == "income")
+            .unwrap()["id"]
+            .as_i64()
+            .unwrap();
 
-        // 第一次：正常创建记录
+        // 第一次：正常创建支出记录
         let intent = format!(
-            r#"{{"type":"record_create","amount_cents":1000,"record_type":"expense","category_id":{category_id},"note":"第一条","timestamp":null}}"#
+            r#"{{"type":"record_create","amount_cents":1000,"record_type":"expense","category_id":{expense_cat},"note":"第一条","timestamp":null}}"#
         );
         let update = core.dispatch(intent).await.expect("第一次创建应成功");
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
@@ -216,9 +231,9 @@ fn test_consecutive_dispatch_state_accumulates_and_error_message_persists() {
         // 记录数量应保持 1（创建失败不应新增）
         assert_eq!(state["records"].as_array().unwrap().len(), 1);
 
-        // 第三次：再次正常创建，验证 errorMessage 在成功 dispatch 后保留
+        // 第三次：正常创建收入记录，验证 errorMessage 在成功 dispatch 后保留
         let intent = format!(
-            r#"{{"type":"record_create","amount_cents":3000,"record_type":"income","category_id":{category_id},"note":"第二条","timestamp":null}}"#
+            r#"{{"type":"record_create","amount_cents":3000,"record_type":"income","category_id":{income_cat},"note":"第二条","timestamp":null}}"#
         );
         let update = core.dispatch(intent).await.expect("第二次创建应成功");
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();

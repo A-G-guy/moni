@@ -1,3 +1,4 @@
+use crate::core::dispatch_record::validate_category_for_record;
 use crate::core::error::CoreError;
 use crate::core::runtime::AppCoreRuntime;
 use crate::db::record_repo;
@@ -26,21 +27,7 @@ impl AppCoreRuntime {
             log::warn!("创建记录失败: 金额必须大于0, 收到: {amount_cents}");
             return Err(CoreError::InvalidInput("金额必须大于0".to_string()));
         }
-        let category = crate::db::category_repo::get_by_id(&self.conn, category_id)?
-            .ok_or(CoreError::CategoryNotFound(category_id))?;
-        if category.archived_at.is_some() {
-            log::warn!("创建记录失败: 分类已归档, category_id={category_id}");
-            return Err(CoreError::InvalidInput("该分类已归档，无法记账".to_string()));
-        }
-        if category.category_type != record_type {
-            log::warn!(
-                "创建记录失败: 记录类型与分类类型不匹配, record_type={record_type:?}, category_type={:?}",
-                category.category_type
-            );
-            return Err(CoreError::InvalidInput(
-                "记录类型与分类类型不匹配".to_string(),
-            ));
-        }
+        let category = validate_category_for_record(&self.conn, category_id, record_type)?;
 
         let id = record_repo::insert(
             &self.conn,

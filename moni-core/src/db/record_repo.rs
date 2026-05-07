@@ -98,48 +98,18 @@ pub fn update(
     note: Option<&str>,
 ) -> Result<usize, rusqlite::Error> {
     let now = chrono::Utc::now().timestamp();
+    let type_str = record_type.map(|t| match t {
+        RecordType::Income => "income",
+        RecordType::Expense => "expense",
+    });
     match parent_category_id {
         Some(pid) => conn.execute(
-            "UPDATE records SET
-                amount_cents = COALESCE(?2, amount_cents),
-                record_type = COALESCE(?3, record_type),
-                category_id = COALESCE(?4, category_id),
-                parent_category_id = ?5,
-                note = COALESCE(?6, note),
-                updated_at = ?7
-             WHERE id = ?1",
-            (
-                id,
-                amount_cents,
-                record_type.map(|t| match t {
-                    RecordType::Income => "income",
-                    RecordType::Expense => "expense",
-                }),
-                category_id,
-                pid,
-                note,
-                now,
-            ),
+            "UPDATE records SET amount_cents = COALESCE(?2, amount_cents), record_type = COALESCE(?3, record_type), category_id = COALESCE(?4, category_id), parent_category_id = ?5, note = COALESCE(?6, note), updated_at = ?7 WHERE id = ?1",
+            (id, amount_cents, type_str, category_id, pid, note, now),
         ),
         None => conn.execute(
-            "UPDATE records SET
-                amount_cents = COALESCE(?2, amount_cents),
-                record_type = COALESCE(?3, record_type),
-                category_id = COALESCE(?4, category_id),
-                note = COALESCE(?5, note),
-                updated_at = ?6
-             WHERE id = ?1",
-            (
-                id,
-                amount_cents,
-                record_type.map(|t| match t {
-                    RecordType::Income => "income",
-                    RecordType::Expense => "expense",
-                }),
-                category_id,
-                note,
-                now,
-            ),
+            "UPDATE records SET amount_cents = COALESCE(?2, amount_cents), record_type = COALESCE(?3, record_type), category_id = COALESCE(?4, category_id), note = COALESCE(?5, note), updated_at = ?6 WHERE id = ?1",
+            (id, amount_cents, type_str, category_id, note, now),
         ),
     }
 }
@@ -253,14 +223,3 @@ pub fn category_aggregates_by_parent(
     rows.collect()
 }
 
-/// 批量更新某分类的所有记录的 parent_category_id。
-pub fn update_parent_category_id_for_category(
-    conn: &Connection,
-    category_id: CategoryId,
-    parent_category_id: Option<CategoryId>,
-) -> Result<usize, rusqlite::Error> {
-    conn.execute(
-        "UPDATE records SET parent_category_id = ?1 WHERE category_id = ?2",
-        (parent_category_id, category_id),
-    )
-}

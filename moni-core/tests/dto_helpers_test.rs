@@ -27,6 +27,7 @@ fn sample_record(id: i64, category_id: i64, amount: i64, ty: RecordType, ts: i64
         amount_cents: amount,
         record_type: ty,
         category_id,
+        parent_category_id: None,
         note: format!("note-{id}"),
         created_at: ts,
         updated_at: ts,

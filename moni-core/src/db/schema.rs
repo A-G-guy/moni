@@ -122,6 +122,19 @@ fn migrate_old_columns(conn: &Connection) -> Result<(), rusqlite::Error> {
         )?;
     }
 
+    // records.year_month（2026-05-07 迁移：账单年月持久化）
+    let has_records_year_month: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM pragma_table_info('records') WHERE name = 'year_month'",
+        [],
+        |row| row.get(0),
+    )?;
+    if has_records_year_month == 0 {
+        conn.execute(
+            "ALTER TABLE records ADD COLUMN year_month TEXT NULL",
+            [],
+        )?;
+    }
+
     // budgets.year_month（2026-05-07 迁移：预算月度快照）
     let has_year_month: i64 = conn.query_row(
         "SELECT COUNT(*) FROM pragma_table_info('budgets') WHERE name = 'year_month'",

@@ -101,9 +101,14 @@ class RustCoreController {
                 effects = update.effects.map { CoreEffect(it.kind, it.payloadJson) }
             )
         } catch (e: Exception) {
-            LogCollector.e("RustCoreController", "JSON 反序列化失败: ${e.message}, stateJson=${update.stateJson.take(200)}")
+            val err = "JSON 反序列化失败: ${e.javaClass.simpleName}: ${e.message?.take(80)}"
+            LogCollector.e("RustCoreController", err)
+            // 将错误信息和部分原始 JSON 暴露到 UI，便于现场诊断
+            val preview = update.stateJson.take(300).replace("\"", "'")
             CoreMutation(
-                state = CoreAppState(),
+                state = CoreAppState(
+                    ui = CoreUiState(errorMessage = "$err\nJSON 预览: $preview...")
+                ),
                 effects = emptyList()
             )
         }

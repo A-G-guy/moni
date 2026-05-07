@@ -127,6 +127,8 @@ fun RecordListScreen(
             val hasAnyRecords = appState.monthlySummaries.isNotEmpty()
             EmptyRecordList(
                 isMonthEmpty = hasAnyRecords,
+                yearMonth = selectedYearMonth,
+                errorMessage = appState.errorMessage,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
@@ -236,6 +238,8 @@ private fun DayHeader(
 @Composable
 private fun EmptyRecordList(
     isMonthEmpty: Boolean,
+    yearMonth: String,
+    errorMessage: String?,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -256,6 +260,20 @@ private fun EmptyRecordList(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "月份: $yearMonth",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
+            if (!errorMessage.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = errorMessage,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         }
     }
 }

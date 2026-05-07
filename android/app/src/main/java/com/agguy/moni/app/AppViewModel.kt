@@ -97,16 +97,19 @@ class AppViewModel(
                 syncCurrencySymbolFromDataStore()
                 syncThemeSettingsFromDataStore()
             } catch (e: Exception) {
-                LogCollector.e("AppViewModel", "数据库初始化失败，回退到内存模式", e)
+                val err = "数据库初始化失败: ${e.javaClass.simpleName}: ${e.message?.take(100)}"
+                LogCollector.e("AppViewModel", err, e)
                 try {
                     val mutation = rustCore.initialize()
                     applyMutation(mutation)
                     // 内存模式下也要加载基础数据，确保页面正常显示
                     dispatch(CoreIntent.CategoryList)
                     dispatch(CoreIntent.RecordListByMonth(yearMonth = currentYearMonth))
+                    _uiState.value = _uiState.value.copy(errorMessage = "$err (已回退到内存模式，数据未加载)")
                 } catch (inner: Exception) {
-                    LogCollector.e("AppViewModel", "内存模式初始化也失败", inner)
-                    _uiState.value = _uiState.value.copy(errorMessage = "应用初始化失败，请重启应用")
+                    val innerErr = "内存模式初始化也失败: ${inner.message?.take(100)}"
+                    LogCollector.e("AppViewModel", innerErr, inner)
+                    _uiState.value = _uiState.value.copy(errorMessage = "$err; $innerErr")
                 }
             }
 

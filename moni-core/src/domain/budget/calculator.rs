@@ -8,6 +8,7 @@ use crate::dto::{BudgetDto, CategoryDto};
 
 /// 计算指定月份所有分类的支出金额（仅 expense，按 category_id 分组）。
 /// 返回 HashMap<category_id, spent_cents>。
+/// 使用 `strftime` 动态计算本地时区年月，避免依赖持久化列值的一致性。
 pub fn compute_category_spending(
     conn: &Connection,
     year_month: &str,
@@ -16,7 +17,7 @@ pub fn compute_category_spending(
         "SELECT category_id, SUM(amount_cents) as total
          FROM records
          WHERE record_type = 'expense'
-           AND year_month = ?1
+           AND strftime('%Y-%m', datetime(created_at, 'unixepoch', 'localtime')) = ?1
          GROUP BY category_id",
     )?;
     let rows = stmt.query_map([year_month], |row| {
@@ -28,6 +29,7 @@ pub fn compute_category_spending(
 /// 计算指定月份按 parent_category_id 聚合的支出金额（仅 expense）。
 /// 返回 HashMap<parent_category_id, spent_cents>。
 /// 用于一级预算的已用金额计算，基于账单发生时的父级关系（而非当前层级）。
+/// 使用 `strftime` 动态计算本地时区年月，避免依赖持久化列值的一致性。
 pub fn compute_parent_category_spending(
     conn: &Connection,
     year_month: &str,
@@ -37,7 +39,7 @@ pub fn compute_parent_category_spending(
          FROM records
          WHERE record_type = 'expense'
            AND parent_category_id IS NOT NULL
-           AND year_month = ?1
+           AND strftime('%Y-%m', datetime(created_at, 'unixepoch', 'localtime')) = ?1
          GROUP BY parent_category_id",
     )?;
     let rows = stmt.query_map([year_month], |row| {

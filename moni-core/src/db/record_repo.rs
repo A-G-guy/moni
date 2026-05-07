@@ -1,4 +1,3 @@
-use chrono::Datelike;
 use rusqlite::{Connection, OptionalExtension, Row};
 
 use moni_contracts::record::Record;
@@ -137,44 +136,38 @@ pub fn delete(conn: &Connection, id: RecordId) -> Result<usize, rusqlite::Error>
 }
 
 /// 查询指定年月的记录（yyyy-MM 格式）。
+/// 使用 `strftime` 动态计算本地时区年月，避免依赖持久化列值的一致性。
 pub fn list_by_year_month(
     conn: &Connection,
     year_month: &str,
 ) -> Result<Vec<Record>, rusqlite::Error> {
     let mut stmt = conn.prepare(
-        "SELECT * FROM records WHERE year_month = ?1 ORDER BY created_at DESC"
+        "SELECT * FROM records
+         WHERE strftime('%Y-%m', datetime(created_at, 'unixepoch', 'localtime')) = ?1
+         ORDER BY created_at DESC"
     )?;
     let rows = stmt.query_map([year_month], map_record)?;
     rows.collect()
 }
 
 /// 按月聚合收入和支出。
+/// 使用 `strftime` 动态计算本地时区年月，避免依赖持久化列值的一致性。
 pub fn monthly_aggregates(
     conn: &Connection,
     months: u8,
 ) -> Result<Vec<(String, AmountCents, AmountCents)>, rusqlite::Error> {
-    let now = chrono::Utc::now();
-    let start = now - chrono::Months::new(u32::from(months) + 1);
-    let start_date = chrono::NaiveDate::from_ymd_opt(start.year(), start.month(), 1)
-        .ok_or_else(|| rusqlite::Error::InvalidParameterName("无效的日期参数".to_string()))?;
-    let start_datetime = start_date
-        .and_hms_opt(0, 0, 0)
-        .ok_or_else(|| rusqlite::Error::InvalidParameterName("无效的时间参数".to_string()))?;
-    let start_timestamp = start_datetime.and_utc().timestamp();
-    let start_ym = year_month_from_timestamp(start_timestamp);
-
     let mut stmt = conn.prepare(
         "SELECT
-            year_month,
+            strftime('%Y-%m', datetime(created_at, 'unixepoch', 'localtime')) as ym,
             SUM(CASE WHEN record_type = 'income' THEN amount_cents ELSE 0 END) as income,
             SUM(CASE WHEN record_type = 'expense' THEN amount_cents ELSE 0 END) as expense
          FROM records
-         WHERE year_month >= ?1
-         GROUP BY year_month
-         ORDER BY year_month DESC
-         LIMIT ?2",
+         GROUP BY ym
+         HAVING ym IS NOT NULL
+         ORDER BY ym DESC
+         LIMIT ?1",
     )?;
-    let rows = stmt.query_map((start_ym, i64::from(months)), |row| {
+    let rows = stmt.query_map([i64::from(months)], |row| {
         Ok((
             row.get::<_, String>(0)?,
             row.get::<_, Option<AmountCents>>(1)?.unwrap_or(0),
@@ -188,6 +181,7 @@ pub fn monthly_aggregates(
 }
 
 /// 按分类聚合指定月份的支出（最细粒度，按 category_id 分组）。
+/// 使用 `strftime` 动态计算本地时区年月，避免依赖持久化列值的一致性。
 pub fn category_aggregates(
     conn: &Connection,
     year_month: &str,
@@ -200,7 +194,7 @@ pub fn category_aggregates(
          FROM records r
          JOIN categories c ON r.category_id = c.id
          WHERE r.record_type = 'expense'
-           AND r.year_month = ?1
+           AND strftime('%Y-%m', datetime(r.created_at, 'unixepoch', 'localtime')) = ?1
          GROUP BY c.id
          ORDER BY total DESC",
     )?;
@@ -215,6 +209,7 @@ pub fn category_aggregates(
 }
 
 /// 按一级分类聚合指定月份的支出（基于账单固化时的 parent_category_id）。
+/// 使用 `strftime` 动态计算本地时区年月，避免依赖持久化列值的一致性。
 pub fn category_aggregates_by_parent(
     conn: &Connection,
     year_month: &str,
@@ -228,7 +223,7 @@ pub fn category_aggregates_by_parent(
          JOIN categories c ON r.category_id = c.id
          LEFT JOIN categories p ON r.parent_category_id = p.id
          WHERE r.record_type = 'expense'
-           AND r.year_month = ?1
+           AND strftime('%Y-%m', datetime(r.created_at, 'unixepoch', 'localtime')) = ?1
          GROUP BY COALESCE(p.id, c.id)
          ORDER BY total DESC",
     )?;

@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 
 package com.agguy.moni.app.ui.budget
 
@@ -12,13 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -145,25 +144,28 @@ fun BudgetEditorSheet(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            val scopeOptions = listOf(
-                "仅本月" to "this_month",
-                "本月及以后" to "this_and_future",
-                "仅以后" to "future_only"
-            )
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                scopeOptions.forEachIndexed { index, (label, scope) ->
-                    SegmentedButton(
-                        shape = SegmentedButtonDefaults.itemShape(
-                            index = index,
-                            count = scopeOptions.size
-                        ),
-                        onClick = { selectedScope = scope },
-                        selected = selectedScope == scope,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(label, style = MaterialTheme.typography.labelMedium)
-                    }
-                }
+            ButtonGroup(
+                modifier = Modifier.fillMaxWidth(),
+                overflowIndicator = {}
+            ) {
+                toggleableItem(
+                    checked = selectedScope == "this_month",
+                    label = "仅本月",
+                    onCheckedChange = { if (it) selectedScope = "this_month" },
+                    weight = 1f
+                )
+                toggleableItem(
+                    checked = selectedScope == "this_and_future",
+                    label = "本月及以后",
+                    onCheckedChange = { if (it) selectedScope = "this_and_future" },
+                    weight = 1f
+                )
+                toggleableItem(
+                    checked = selectedScope == "future_only",
+                    label = "仅以后",
+                    onCheckedChange = { if (it) selectedScope = "future_only" },
+                    weight = 1f
+                )
             }
 
             // 软冲突提示

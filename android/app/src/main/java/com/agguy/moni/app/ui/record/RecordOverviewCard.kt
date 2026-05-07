@@ -60,7 +60,7 @@ fun RecordOverviewCard(
     modifier: Modifier = Modifier
 ) {
     val metrics = remember(selectedYearMonth, recordGroups, monthlySummaries, budgets) {
-        calculateOverviewMetrics(selectedYearMonth, recordGroups, monthlySummaries, budgets)
+        calculateOverviewMetrics(selectedYearMonth, recordGroups, monthlySummaries, budgets, LocalDate.now())
     }
 
     MoniCard(
@@ -320,7 +320,7 @@ private fun IdealProgressBar(
 /**
  * 概览指标数据。
  */
-private data class OverviewMetrics(
+internal data class OverviewMetrics(
     val monthExpense: Long = 0,
     val monthIncome: Long = 0,
     val monthBalance: Long = 0,
@@ -336,17 +336,17 @@ private data class OverviewMetrics(
 /**
  * 计算概览所需的全部指标。
  */
-private fun calculateOverviewMetrics(
+internal fun calculateOverviewMetrics(
     selectedYearMonth: String,
     recordGroups: List<CoreRecordGroup>,
     monthlySummaries: List<CoreMonthlySummary>,
-    budgets: List<CoreBudget>
+    budgets: List<CoreBudget>,
+    today: LocalDate
 ): OverviewMetrics {
     val yearMonth = parseYearMonth(selectedYearMonth)
         ?: return OverviewMetrics()
 
     val totalDays = yearMonth.lengthOfMonth()
-    val today = LocalDate.now()
     val currentYearMonth = YearMonth.from(today)
 
     val (elapsedDays, remainingDays) = calculateDayCounts(yearMonth, currentYearMonth, today, totalDays)
@@ -398,7 +398,7 @@ private fun calculateOverviewMetrics(
 /**
  * 解析 "YYYY-MM" 字符串为 YearMonth。
  */
-private fun parseYearMonth(yearMonthStr: String): YearMonth? {
+internal fun parseYearMonth(yearMonthStr: String): YearMonth? {
     val parts = yearMonthStr.split("-")
     if (parts.size != 2) return null
     val year = parts[0].toIntOrNull() ?: return null
@@ -413,7 +413,7 @@ private fun parseYearMonth(yearMonthStr: String): YearMonth? {
 /**
  * 计算已过天数、剩余天数。
  */
-private fun calculateDayCounts(
+internal fun calculateDayCounts(
     yearMonth: YearMonth,
     currentYearMonth: YearMonth,
     today: LocalDate,

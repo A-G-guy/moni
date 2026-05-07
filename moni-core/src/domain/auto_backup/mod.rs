@@ -5,7 +5,7 @@ use crate::core::error::CoreError;
 use crate::domain::backup::exporter::backup_export;
 use crate::models::auto_backup::{AutoBackupFrequency, AutoBackupReport};
 
-const AUTO_BACKUP_PREFIX: &str = "AutoBackup_";
+const AUTO_BACKUP_PREFIX: &str = "Moni_Backup_";
 const AUTO_BACKUP_SUFFIX: &str = ".zip";
 
 /// 判断是否应该执行自动备份。

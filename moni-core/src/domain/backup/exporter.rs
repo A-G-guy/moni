@@ -1,7 +1,9 @@
 use std::fs::File;
 use std::io::Write;
+use chrono::{Datelike, Timelike};
 use rusqlite::Connection;
 use zip::write::FileOptions;
+use zip::DateTime as ZipDateTime;
 
 use crate::domain::backup::manifest::{
     BackupManifest, BackupStats, DeviceInfo, FileFingerprint,
@@ -50,6 +52,21 @@ fn dump_db_to_temp(conn: &Connection, tmp_path: &str) -> Result<(), crate::core:
 }
 
 /// 向 ZIP 写入单个文件条目，返回指纹信息。
+/// 获取当前时间的 zip::DateTime，用于 ZIP 条目时间戳。
+fn current_zip_time() -> ZipDateTime {
+    let now = chrono::Local::now();
+    ZipDateTime::from_date_and_time(
+        now.year() as u16,
+        now.month() as u8,
+        now.day() as u8,
+        now.hour() as u8,
+        now.minute() as u8,
+        now.second() as u8,
+    )
+    .unwrap_or_else(|_| ZipDateTime::default())
+}
+
+/// 向 ZIP 写入单个文件条目，返回指纹信息。
 fn write_zip_entry(
     zip: &mut zip::ZipWriter<File>,
     entry_name: &str,
@@ -57,7 +74,8 @@ fn write_zip_entry(
 ) -> Result<FileFingerprint, crate::core::error::CoreError> {
     let options: zip::write::FileOptions<'_, ()> = FileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated)
-        .compression_level(Some(9));
+        .compression_level(Some(9))
+        .last_modified_time(current_zip_time());
     zip.start_file(entry_name, options)
         .map_err(|e| crate::core::error::CoreError::BackupZipError(e.to_string()))?;
     zip.write_all(content)

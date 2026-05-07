@@ -186,9 +186,9 @@ pub fn backup_export(
         .map(|m| m.len())
         .unwrap_or(0);
 
-    // 5. 清理临时文件与目录
+    // 5. 清理临时文件与目录（使用 remove_dir_all 确保彻底清理）
     let _ = std::fs::remove_file(&tmp_db);
-    let _ = std::fs::remove_dir(&tmp_dir);
+    let _ = std::fs::remove_dir_all(&tmp_dir);
     if let Some(cb) = on_progress {
         cb("完成", 100);
     }

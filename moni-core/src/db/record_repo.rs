@@ -29,15 +29,7 @@ fn map_record(row: &Row) -> Result<Record, rusqlite::Error> {
     })
 }
 
-/// 从 UTC 时间戳推导 year_month（"YYYY-MM" 格式）。
-fn year_month_from_timestamp(ts: TimestampSec) -> String {
-    chrono::DateTime::from_timestamp(ts, 0)
-        .map(|dt| dt.format("%Y-%m").to_string())
-        .unwrap_or_else(|| {
-            log::warn!("无法从时间戳 {} 计算 year_month，回退到当前 UTC 月份", ts);
-            chrono::Utc::now().format("%Y-%m").to_string()
-        })
-}
+use crate::shared::types::year_month_from_timestamp;
 
 /// 插入新记录。
 pub fn insert(
@@ -179,7 +171,7 @@ pub fn monthly_aggregates(
          FROM records
          WHERE year_month >= ?1
          GROUP BY year_month
-         ORDER BY year_month ASC
+         ORDER BY year_month DESC
          LIMIT ?2",
     )?;
     let rows = stmt.query_map((start_ym, i64::from(months)), |row| {
@@ -189,7 +181,10 @@ pub fn monthly_aggregates(
             row.get::<_, Option<AmountCents>>(2)?.unwrap_or(0),
         ))
     })?;
-    rows.collect()
+    let mut result: Vec<(String, AmountCents, AmountCents)> = rows.collect::<Result<_, _>>()?;
+    // DESC 查询后反转，保持 UI 时间轴从左到右（旧到新）
+    result.reverse();
+    Ok(result)
 }
 
 /// 按分类聚合指定月份的支出（最细粒度，按 category_id 分组）。

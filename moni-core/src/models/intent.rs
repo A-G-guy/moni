@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use moni_contracts::budget::BudgetScope;
 use moni_contracts::record::RecordType;
 use moni_contracts::types::{AmountCents, BudgetId, CategoryId, RecordId, TimestampSec};
 
@@ -92,12 +93,12 @@ pub enum CoreIntent {
         category_id: Option<CategoryId>,
         amount_cents: AmountCents,
         year_month: String,
-        scope: String,
+        scope: BudgetScope,
     },
     BudgetDelete {
         id: BudgetId,
         year_month: String,
-        scope: String,
+        scope: BudgetScope,
     },
     BudgetList {
         year_month: Option<String>,

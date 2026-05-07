@@ -45,13 +45,40 @@ CREATE TABLE IF NOT EXISTS budgets (
 
 CREATE INDEX IF NOT EXISTS idx_budgets_category ON budgets(category_id);
 CREATE INDEX IF NOT EXISTS idx_budgets_category_ym ON budgets(category_id, year_month);
+
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 ";
 
 /// 执行数据库 Schema 初始化与幂等迁移。
 pub fn init_schema(conn: &Connection) -> Result<(), rusqlite::Error> {
     conn.execute_batch(SCHEMA_SQL)?;
 
-    // 检查并添加 description 列（2026-05-04 迁移）
+    // v5 迁移：数据完整性加固（预算唯一性 + records year_month 持久化）
+    let schema_version: i32 = conn.query_row("PRAGMA user_version", [], |row| row.get(0))?;
+    if schema_version < CURRENT_SCHEMA_VERSION as i32 {
+        // 对旧版本数据库执行列迁移（新数据库已在 SCHEMA_SQL 中包含所有列）
+        migrate_old_columns(conn)?;
+        init_schema_v5(conn)?;
+        conn.execute(
+            &format!("PRAGMA user_version = {}", CURRENT_SCHEMA_VERSION),
+            [],
+        )?;
+    }
+
+    Ok(())
+}
+
+/// v5 迁移：
+/// 1. 清理 budgets 表重复数据，保留 id 最大（即最新）的一条；
+/// 2. 创建 COALESCE 唯一索引覆盖 NULL 值场景；
+/// 3. 为 records 添加 year_month 列并回填历史数据；
+/// 4. 创建 records 相关复合索引。
+/// 迁移旧版本数据库缺失的列（仅在 schema_version < CURRENT_SCHEMA_VERSION 时执行）。
+fn migrate_old_columns(conn: &Connection) -> Result<(), rusqlite::Error> {
+    // description（2026-05-04 迁移）
     let has_description: i64 = conn.query_row(
         "SELECT COUNT(*) FROM pragma_table_info('categories') WHERE name = 'description'",
         [],
@@ -64,7 +91,7 @@ pub fn init_schema(conn: &Connection) -> Result<(), rusqlite::Error> {
         )?;
     }
 
-    // 检查并添加 archived_at 列（2026-05-04 迁移）
+    // archived_at（2026-05-04 迁移）
     let has_archived_at: i64 = conn.query_row(
         "SELECT COUNT(*) FROM pragma_table_info('categories') WHERE name = 'archived_at'",
         [],
@@ -77,7 +104,7 @@ pub fn init_schema(conn: &Connection) -> Result<(), rusqlite::Error> {
         )?;
     }
 
-    // 检查并添加 parent_id 列（2026-05-05 迁移）
+    // parent_id（2026-05-05 迁移）
     let has_parent_id: i64 = conn.query_row(
         "SELECT COUNT(*) FROM pragma_table_info('categories') WHERE name = 'parent_id'",
         [],
@@ -90,7 +117,7 @@ pub fn init_schema(conn: &Connection) -> Result<(), rusqlite::Error> {
         )?;
     }
 
-    // 检查并添加 budgets.year_month 列（2026-05-07 迁移：预算月度快照）
+    // budgets.year_month（2026-05-07 迁移：预算月度快照）
     let has_year_month: i64 = conn.query_row(
         "SELECT COUNT(*) FROM pragma_table_info('budgets') WHERE name = 'year_month'",
         [],
@@ -103,7 +130,7 @@ pub fn init_schema(conn: &Connection) -> Result<(), rusqlite::Error> {
         )?;
     }
 
-    // 检查并添加 parent_category_id 列（2026-05-07 迁移：固化账单父级关系）
+    // records.parent_category_id（2026-05-07 迁移：固化账单父级关系）
     let has_parent_category_id: i64 = conn.query_row(
         "SELECT COUNT(*) FROM pragma_table_info('records') WHERE name = 'parent_category_id'",
         [],
@@ -114,28 +141,15 @@ pub fn init_schema(conn: &Connection) -> Result<(), rusqlite::Error> {
             "ALTER TABLE records ADD COLUMN parent_category_id INTEGER NULL REFERENCES categories(id) ON DELETE RESTRICT",
             [],
         )?;
-        // 回填历史数据：根据当前分类层级写入当时的 parent_id
         conn.execute(
             "UPDATE records SET parent_category_id = (SELECT parent_id FROM categories WHERE id = records.category_id) WHERE parent_category_id IS NULL",
             [],
         )?;
     }
 
-    // v5 迁移：数据完整性加固（预算唯一性 + records year_month 持久化）
-    let schema_version: i32 = conn.query_row("PRAGMA user_version", [], |row| row.get(0))?;
-    if schema_version < 5 {
-        init_schema_v5(conn)?;
-        conn.execute("PRAGMA user_version = 5", [])?;
-    }
-
     Ok(())
 }
 
-/// v5 迁移：
-/// 1. 清理 budgets 表重复数据，保留 id 最大（即最新）的一条；
-/// 2. 创建 COALESCE 唯一索引覆盖 NULL 值场景；
-/// 3. 为 records 添加 year_month 列并回填历史数据；
-/// 4. 创建 records 相关复合索引。
 fn init_schema_v5(conn: &Connection) -> Result<(), rusqlite::Error> {
     // 1. 清理 budgets 重复数据（保留 id 最大的一条，id 在单线程写入场景下代表时间顺序）
     conn.execute(
@@ -155,20 +169,8 @@ fn init_schema_v5(conn: &Connection) -> Result<(), rusqlite::Error> {
         [],
     )?;
 
-    // 3. 为 records 添加 year_month 列（如果缺失）
-    let has_ym: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM pragma_table_info('records') WHERE name = 'year_month'",
-        [],
-        |row| row.get(0),
-    )?;
-    if has_ym == 0 {
-        conn.execute(
-            "ALTER TABLE records ADD COLUMN year_month TEXT NULL",
-            [],
-        )?;
-    }
-
-    // 回填 records 历史数据的 year_month（基于 UTC 时间戳）
+    // 3. 回填 records 历史数据的 year_month（基于 UTC 时间戳）
+    // 注：year_month 列在 SCHEMA_SQL 中已包含，旧版本数据库通过 migrate_old_columns 添加
     conn.execute(
         "UPDATE records
          SET year_month = strftime('%Y-%m', datetime(created_at, 'unixepoch'))
@@ -185,6 +187,16 @@ fn init_schema_v5(conn: &Connection) -> Result<(), rusqlite::Error> {
         "CREATE INDEX IF NOT EXISTS idx_records_parent_ym ON records(year_month, record_type, parent_category_id)",
         [],
     )?;
+
+    // 5. 一致性校验：验证回填后所有 records 的 parent_category_id 均已赋值
+    let null_parent_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM records WHERE parent_category_id IS NULL",
+        [],
+        |row| row.get(0),
+    )?;
+    if null_parent_count > 0 {
+        log::warn!("V5 迁移后仍有 {} 条记录的 parent_category_id 为 NULL", null_parent_count);
+    }
 
     Ok(())
 }

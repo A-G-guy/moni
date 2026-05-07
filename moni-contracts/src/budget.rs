@@ -60,3 +60,25 @@ impl BudgetStatus {
         }
     }
 }
+
+/// 预算操作生效范围
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BudgetScope {
+    /// 仅影响本月（创建快照或删除本月及以后的模板+快照）
+    ThisMonth,
+    /// 影响本月及以后（创建/更新模板，删除从本月起的快照）
+    ThisAndFuture,
+    /// 仅影响以后（创建/更新模板，保留当前月快照）
+    FutureOnly,
+}
+
+impl BudgetScope {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            BudgetScope::ThisMonth => "this_month",
+            BudgetScope::ThisAndFuture => "this_and_future",
+            BudgetScope::FutureOnly => "future_only",
+        }
+    }
+}

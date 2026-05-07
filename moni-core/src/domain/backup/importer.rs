@@ -161,20 +161,21 @@ pub fn backup_restore(
         });
     }
 
-    // 6. 原子替换
+    // 6. 原子替换（rename 在跨文件系统时可能失败，回退到 copy + remove）
     if let Some(cb) = on_progress { cb("应用恢复...", 90); }
-    let replace_result = std::fs::rename(&tmp_db, db_path,
-    );
-    if let Err(e) = replace_result {
-        // 尝试从快照回滚
-        if let Some(snapshot) = pre_restore_snapshot_path {
-            let _ = std::fs::copy(snapshot, db_path);
+    if let Err(e) = std::fs::rename(&tmp_db, db_path) {
+        log::warn!("rename 跨文件系统失败，回退到 copy+remove: {e}");
+        if let Err(copy_err) = std::fs::copy(&tmp_db, db_path) {
+            if let Some(snapshot) = pre_restore_snapshot_path {
+                let _ = std::fs::copy(snapshot, db_path);
+            }
+            let _ = std::fs::remove_file(&tmp_db);
+            return Err(crate::core::error::CoreError::BackupRestoreFailed {
+                stage: "replace".to_string(),
+                reason: format!("rename 失败且 copy 也失败: {copy_err}"),
+            });
         }
         let _ = std::fs::remove_file(&tmp_db);
-        return Err(crate::core::error::CoreError::BackupRestoreFailed {
-            stage: "replace".to_string(),
-            reason: e.to_string(),
-        });
     }
 
     // 7. 提取 settings JSON

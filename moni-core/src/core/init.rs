@@ -27,6 +27,11 @@ impl AppCoreRuntime {
         let categories = crate::db::category_repo::list_all(&self.conn)?;
         self.state.categories = categories.iter().map(CategoryDto::from_category).collect();
 
+        // 加载持久化设置
+        if let Ok(Some(symbol)) = crate::db::settings_repo::get(&self.conn, "currency_symbol") {
+            self.state.settings.currency_symbol = symbol;
+        }
+
         self.finish(Vec::new())
     }
 }

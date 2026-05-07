@@ -1,3 +1,4 @@
+use moni_contracts::budget::BudgetStatus;
 use moni_contracts::record::RecordType;
 use moni_contracts::types::{AmountCents, BudgetId, CategoryId};
 
@@ -46,7 +47,7 @@ impl AppCoreRuntime {
         category_id: Option<CategoryId>,
         year_month: &str,
         amount_cents: AmountCents,
-        scope: &str,
+        scope: &moni_contracts::budget::BudgetScope,
     ) -> Result<CoreUpdate, CoreError> {
         validate_year_month(year_month)?;
 
@@ -69,15 +70,15 @@ impl AppCoreRuntime {
         let tx = self.conn.transaction()?;
 
         match scope {
-            "this_month" => {
+            moni_contracts::budget::BudgetScope::ThisMonth => {
                 budget_repo::upsert(&tx, category_id, Some(year_month), amount_cents,
                 )?;
             }
-            "this_and_future" => {
+            moni_contracts::budget::BudgetScope::ThisAndFuture => {
                 budget_repo::upsert(&tx, category_id, None, amount_cents)?;
                 budget_repo::delete_snapshots_from(&tx, category_id, year_month)?;
             }
-            "future_only" => {
+            moni_contracts::budget::BudgetScope::FutureOnly => {
                 // 若当前月无快照，用旧模板值创建当前月快照以保留当前月
                 let has_snapshot =
                     budget_repo::has_snapshot_for_month(&tx, category_id, year_month)?;
@@ -96,10 +97,6 @@ impl AppCoreRuntime {
                 let next_month = compute_next_month(year_month)?;
                 budget_repo::delete_snapshots_from(
                     &tx, category_id, &next_month)?;
-            }
-            other => {
-                log::warn!("无效的预算范围: {other}");
-                return Err(CoreError::InvalidInput("无效的预算范围".to_string()));
             }
         }
 
@@ -123,7 +120,7 @@ impl AppCoreRuntime {
         &mut self,
         id: BudgetId,
         year_month: &str,
-        scope: &str,
+        scope: &moni_contracts::budget::BudgetScope,
     ) -> Result<CoreUpdate, CoreError> {
         validate_year_month(year_month)?;
 
@@ -133,7 +130,7 @@ impl AppCoreRuntime {
         let tx = self.conn.transaction()?;
 
         match scope {
-            "this_month" => {
+            moni_contracts::budget::BudgetScope::ThisMonth => {
                 // 从本月起停止预算：删除模板 + 删除从当前月开始的所有快照
                 budget_repo::delete_template(&tx, budget.category_id)?;
                 budget_repo::delete_snapshots_from(
@@ -142,7 +139,7 @@ impl AppCoreRuntime {
                     year_month,
                 )?;
             }
-            "future_only" => {
+            moni_contracts::budget::BudgetScope::FutureOnly => {
                 // 保留当前月（无快照则创建）
                 let has_snapshot =
                     budget_repo::has_snapshot_for_month(
@@ -165,9 +162,15 @@ impl AppCoreRuntime {
                     &next_month,
                 )?;
             }
-            other => {
-                log::warn!("无效的删除范围: {other}");
-                return Err(CoreError::InvalidInput("无效的删除范围".to_string()));
+            moni_contracts::budget::BudgetScope::ThisAndFuture => {
+                // BudgetDelete 不支持 ThisAndFuture，按 ThisMonth 处理
+                log::warn!("预算删除不支持 this_and_future 范围，回退到 this_month");
+                budget_repo::delete_template(&tx, budget.category_id)?;
+                budget_repo::delete_snapshots_from(
+                    &tx,
+                    budget.category_id,
+                    year_month,
+                )?;
             }
         }
 
@@ -228,20 +231,21 @@ impl AppCoreRuntime {
             &parent_category_spending,
         );
 
-        // 模拟加上 amount_cents 后的状态
+        // 模拟加上 amount_cents 后的状态（复用 BudgetStatus::from_percentage 统一临界标准）
         let post_save_status = if let Some(eff) = effective {
-            // eff 为负（已超支）时直接判 overrun，避免 i64 下溢
-            if eff < 0 {
-                Some("overrun".to_string())
+            if eff <= 0 {
+                // 已超支或刚好用完
+                Some(BudgetStatus::Overrun.as_str().to_string())
             } else {
                 let remaining_after = eff.saturating_sub(amount_cents);
                 if remaining_after < 0 {
-                Some("overrun".to_string())
-            } else if remaining_after < eff.saturating_mul(20) / 100 {
-                Some("critical".to_string())
-            } else {
-                Some("safe".to_string())
-            }
+                    Some(BudgetStatus::Overrun.as_str().to_string())
+                } else {
+                    #[allow(clippy::cast_precision_loss)]
+                    let percentage =
+                        (eff.saturating_sub(remaining_after) as f64) / (eff as f64);
+                    Some(BudgetStatus::from_percentage(percentage).as_str().to_string())
+                }
             }
         } else {
             None

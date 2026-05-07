@@ -239,9 +239,13 @@ pub fn build_budget_dtos(
             dto.spent_cents = spent;
             dto.remaining_cents = b.amount_cents.saturating_sub(spent);
 
-            // 计算使用率（防止除零，amount_cents > 0 由 schema 保证）
+            // 计算使用率（防御除零，虽然 amount_cents > 0 由 schema 保证）
             #[allow(clippy::cast_precision_loss)]
-            let percentage = (spent as f64) / (b.amount_cents as f64);
+            let percentage = if b.amount_cents > 0 {
+                (spent as f64) / (b.amount_cents as f64)
+            } else {
+                0.0
+            };
             dto.percentage = percentage;
             dto.status = BudgetStatus::from_percentage(percentage).as_str().to_string();
 

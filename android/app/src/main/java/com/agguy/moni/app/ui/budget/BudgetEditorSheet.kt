@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.core.CoreBudget
 import com.agguy.moni.core.CoreIntent
+import com.agguy.moni.core.BudgetScope
 
 private fun centsToInputText(cents: Long): String {
     val yuan = cents / 100
@@ -82,9 +83,9 @@ fun BudgetEditorSheet(
 
     // 默认 scope：编辑快照=仅本月，编辑模板/新建=本月及以后
     val defaultScope = when {
-        budget?.isSnapshot == true -> "this_month"
-        budget != null -> "this_and_future"
-        else -> "this_and_future"
+        budget?.isSnapshot == true -> BudgetScope.THIS_MONTH
+        budget != null -> BudgetScope.THIS_AND_FUTURE
+        else -> BudgetScope.THIS_AND_FUTURE
     }
     var selectedScope by remember(initKey) { mutableStateOf(defaultScope) }
     var deleteConfirmVisible by remember { mutableStateOf(false) }
@@ -156,21 +157,21 @@ fun BudgetEditorSheet(
                 overflowIndicator = {}
             ) {
                 toggleableItem(
-                    checked = selectedScope == "this_month",
+                    checked = selectedScope == BudgetScope.THIS_MONTH,
                     label = "仅本月",
-                    onCheckedChange = { if (it) selectedScope = "this_month" },
+                    onCheckedChange = { if (it) selectedScope = BudgetScope.THIS_MONTH },
                     weight = 1f
                 )
                 toggleableItem(
-                    checked = selectedScope == "this_and_future",
+                    checked = selectedScope == BudgetScope.THIS_AND_FUTURE,
                     label = "本月及以后",
-                    onCheckedChange = { if (it) selectedScope = "this_and_future" },
+                    onCheckedChange = { if (it) selectedScope = BudgetScope.THIS_AND_FUTURE },
                     weight = 1f
                 )
                 toggleableItem(
-                    checked = selectedScope == "future_only",
+                    checked = selectedScope == BudgetScope.FUTURE_ONLY,
                     label = "仅以后",
-                    onCheckedChange = { if (it) selectedScope = "future_only" },
+                    onCheckedChange = { if (it) selectedScope = BudgetScope.FUTURE_ONLY },
                     weight = 1f
                 )
             }
@@ -241,7 +242,7 @@ fun BudgetEditorSheet(
                                 CoreIntent.BudgetDelete(
                                     id = budget.id,
                                     yearMonth = yearMonth,
-                                    scope = "this_month"
+                                    scope = BudgetScope.THIS_MONTH
                                 )
                             )
                             deleteConfirmVisible = false
@@ -256,7 +257,7 @@ fun BudgetEditorSheet(
                                 CoreIntent.BudgetDelete(
                                     id = budget.id,
                                     yearMonth = yearMonth,
-                                    scope = "future_only"
+                                    scope = BudgetScope.FUTURE_ONLY
                                 )
                             )
                             deleteConfirmVisible = false

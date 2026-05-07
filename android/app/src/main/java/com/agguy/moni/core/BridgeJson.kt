@@ -11,6 +11,8 @@ internal val BridgeJson = Json {
     ignoreUnknownKeys = true
     prettyPrint = false
     encodeDefaults = true
+    // 将 Rust 返回的 null 强制转换为默认值，避免非空 Kotlin 字段收到 null 时崩溃
+    coerceInputValues = true
 }
 
 /**

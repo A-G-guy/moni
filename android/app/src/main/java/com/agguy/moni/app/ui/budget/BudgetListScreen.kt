@@ -48,6 +48,7 @@ import com.agguy.moni.app.theme.iconNameToRes
 import com.agguy.moni.core.CoreBudget
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreIntent
+import com.agguy.moni.core.BudgetScope
 import com.agguy.moni.core.util.formatAmount
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -213,7 +214,7 @@ fun BudgetListScreen(
                                 CoreIntent.BudgetDelete(
                                     id = budget.id,
                                     yearMonth = selectedYearMonth,
-                                    scope = "this_month"
+                                    scope = BudgetScope.THIS_MONTH
                                 )
                             )
                             deleteConfirmBudget = null
@@ -227,7 +228,7 @@ fun BudgetListScreen(
                                 CoreIntent.BudgetDelete(
                                     id = budget.id,
                                     yearMonth = selectedYearMonth,
-                                    scope = "future_only"
+                                    scope = BudgetScope.FUTURE_ONLY
                                 )
                             )
                             deleteConfirmBudget = null

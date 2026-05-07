@@ -1,5 +1,6 @@
 use crate::core::error::CoreError;
 use crate::core::runtime::AppCoreRuntime;
+use crate::db::settings_repo;
 use crate::models::effects::CoreUpdate;
 use crate::models::intent::CoreIntent;
 
@@ -10,6 +11,10 @@ impl AppCoreRuntime {
     ) -> Result<CoreUpdate, CoreError> {
         match intent {
             CoreIntent::SettingsUpdateCurrency { symbol } => {
+                settings_repo::set(&self.conn,
+                    "currency_symbol",
+                    &symbol,
+                )?;
                 self.state.settings.currency_symbol = symbol;
                 self.finish(Vec::new())
             }

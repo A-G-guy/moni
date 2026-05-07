@@ -59,6 +59,21 @@ class AppViewModel(
     init {
         effectRunner.onNavigate = { screen ->
             LogCollector.d("MoniNavigate", "Navigate to: $screen")
+            _navController?.let { nav ->
+                when (screen) {
+                    "record_list" -> nav.navigate(Screen.RecordList) { popUpTo(Screen.RecordList) { inclusive = false } }
+                    "stats" -> nav.navigate(Screen.Stats) { popUpTo(Screen.RecordList) { inclusive = false } }
+                    "settings" -> nav.navigate(Screen.Settings) { popUpTo(Screen.RecordList) { inclusive = false } }
+                    "budget_list" -> nav.navigate(Screen.BudgetList)
+                    "category_list" -> nav.navigate(Screen.CategoryList)
+                    "developer_options" -> nav.navigate(Screen.DeveloperOptions)
+                    "archived_categories" -> nav.navigate(Screen.ArchivedCategories)
+                    "data_management" -> nav.navigate(Screen.DataManagement)
+                    "theme_settings" -> nav.navigate(Screen.ThemeSettings)
+                    "dev_log" -> nav.navigate(Screen.DevLog)
+                    else -> LogCollector.w("MoniNavigate", "未知的导航目标: $screen")
+                }
+            }
         }
 
         viewModelScope.launch {
@@ -130,6 +145,11 @@ class AppViewModel(
                             rustCore.dispatch(CoreIntent.StatsMonthlySummary(months = 36))
                         }.onSuccess(::applyMutation).onFailure { e ->
                             LogCollector.e("AppViewModel", "刷新月度统计失败", e)
+                        }
+                        runCatching {
+                            rustCore.dispatch(CoreIntent.StatsCategoryBreakdown(yearMonth = yearMonth, aggregateByParent = false))
+                        }.onSuccess(::applyMutation).onFailure { e ->
+                            LogCollector.e("AppViewModel", "刷新分类统计失败", e)
                         }
                         runCatching {
                             rustCore.dispatch(CoreIntent.BudgetList(yearMonth = yearMonth))

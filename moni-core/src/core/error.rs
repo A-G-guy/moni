@@ -33,6 +33,29 @@ pub enum CoreError {
 
 impl From<rusqlite::Error> for CoreError {
     fn from(err: rusqlite::Error) -> Self {
-        CoreError::Database(err.to_string())
+        match err {
+            rusqlite::Error::SqliteFailure(ref sql_err, ref msg) => {
+                use rusqlite::ffi::ErrorCode;
+                match sql_err.code {
+                    ErrorCode::ConstraintViolation => {
+                        let detail = msg.as_deref().unwrap_or("约束违反");
+                        if detail.contains("FOREIGN KEY") {
+                            CoreError::InvalidInput("分类已被使用，无法删除".to_string())
+                        } else if detail.contains("UNIQUE") {
+                            CoreError::InvalidInput("数据已存在".to_string())
+                        } else {
+                            CoreError::InvalidInput(format!("数据约束违反: {detail}"))
+                        }
+                    }
+                    ErrorCode::DatabaseBusy => CoreError::Database("数据库正忙".to_string()),
+                    ErrorCode::DatabaseLocked => CoreError::Database("数据库被锁定".to_string()),
+                    _ => CoreError::Database(err.to_string()),
+                }
+            }
+            rusqlite::Error::InvalidParameterName(name) => {
+                CoreError::InvalidInput(format!("无效参数: {name}"))
+            }
+            _ => CoreError::Database(err.to_string()),
+        }
     }
 }

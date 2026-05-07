@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.agguy.moni.app.components.MoniBottomBar
@@ -80,14 +81,14 @@ fun MoniApp() {
             bottomBar = {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
-                val showBottomBar = currentRoute?.contains("RecordList") == true ||
-                    currentRoute?.contains("Stats") == true ||
-                    currentRoute?.contains("Settings") == true
+                val showBottomBar = navBackStackEntry?.destination?.hasRoute(Screen.RecordList::class) == true ||
+                    navBackStackEntry?.destination?.hasRoute(Screen.Stats::class) == true ||
+                    navBackStackEntry?.destination?.hasRoute(Screen.Settings::class) == true
 
                 if (showBottomBar) {
                     val activeTab = when {
-                        currentRoute.contains("Stats") -> "stats"
-                        currentRoute.contains("Settings") -> "settings"
+                        navBackStackEntry?.destination?.hasRoute(Screen.Stats::class) == true -> "stats"
+                        navBackStackEntry?.destination?.hasRoute(Screen.Settings::class) == true -> "settings"
                         else -> "records"
                     }
                     MoniBottomBar(

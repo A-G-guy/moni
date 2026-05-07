@@ -232,12 +232,12 @@ impl AppCoreRuntime {
     }
 }
 
-/// 校验描述长度上限。
+/// 校验描述长度上限（按 Unicode 字符数，非字节数）。
 fn validate_description_len(description: Option<&str>) -> Result<(), CoreError> {
     if let Some(desc) = description
-        && desc.len() > crate::shared::constants::CATEGORY_DESCRIPTION_MAX_LEN
+        && desc.chars().count() > crate::shared::constants::CATEGORY_DESCRIPTION_MAX_LEN
     {
-        log::warn!("分类描述长度超限, {} 字符", desc.len());
+        log::warn!("分类描述长度超限, {} 字符", desc.chars().count());
         return Err(CoreError::InvalidInput(format!(
             "描述长度不能超过 {} 字符",
             crate::shared::constants::CATEGORY_DESCRIPTION_MAX_LEN

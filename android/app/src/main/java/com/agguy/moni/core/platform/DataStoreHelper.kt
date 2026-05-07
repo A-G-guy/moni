@@ -151,7 +151,7 @@ object DataStoreHelper {
             return
         }
         context.dataStore.edit { preferences ->
-            preferences.clear()
+            // 不调用 clear()，只覆盖 JSON 中存在的键，保证原子性
             obj["currency_symbol"]?.jsonPrimitive?.content?.let {
                 preferences[CURRENCY_SYMBOL_KEY] = it
             }

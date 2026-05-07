@@ -95,12 +95,13 @@ fun RecordDetailScreen(
         }
     }
 
-    // 监听金额/分类变化，触发预算实时检查
+    // 监听金额/分类变化，触发预算实时检查（300ms debounce，避免快速输入时过度触发）
     LaunchedEffect(state.confirmedAmountCents, state.selectedCategoryId, state.recordType) {
         if (state.recordType == RecordType.EXPENSE &&
             state.confirmedAmountCents > 0 &&
             state.selectedCategoryId != -1L
         ) {
+            kotlinx.coroutines.delay(300)
             val yearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
             onDispatch(
                 CoreIntent.BudgetCheck(
@@ -143,10 +144,11 @@ fun RecordDetailScreen(
                     if (isEditMode) {
                         IconButton(
                             onClick = {
+                                // 乐观删除：立即导航，后台异步执行删除；若失败用户可在列表页看到错误
                                 existingRecord.let {
                                     onDispatch(CoreIntent.RecordDelete(it.id))
-                                    onNavigateBack()
                                 }
+                                onNavigateBack()
                             }
                         ) {
                             MoniIcon(

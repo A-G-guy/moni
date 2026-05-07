@@ -22,6 +22,18 @@ enum class ExportFormat {
 }
 
 @Serializable
+enum class BudgetScope {
+    @SerialName("this_month")
+    THIS_MONTH,
+
+    @SerialName("this_and_future")
+    THIS_AND_FUTURE,
+
+    @SerialName("future_only")
+    FUTURE_ONLY
+}
+
+@Serializable
 enum class MockPreset {
     @SerialName("normal")
     NORMAL,
@@ -131,7 +143,7 @@ sealed class CoreIntent {
         val categoryId: Long? = null,
         val amountCents: Long,
         val yearMonth: String,
-        val scope: String
+        val scope: BudgetScope
     ) : CoreIntent()
 
     @Serializable
@@ -139,7 +151,7 @@ sealed class CoreIntent {
     data class BudgetDelete(
         val id: Long,
         val yearMonth: String,
-        val scope: String
+        val scope: BudgetScope
     ) : CoreIntent()
 
     @Serializable

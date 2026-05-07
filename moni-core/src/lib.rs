@@ -259,9 +259,15 @@ impl MoniCore {
                         Ok(r)
                     }
                     Err(e) => {
-                        // 恢复失败：从快照回滚
-                        let _ = std::fs::copy(&snapshot_path, &db_path);
-                        let _ = std::fs::remove_file(&snapshot_path);
+                        // 恢复失败：从快照回滚（copy 成功后再删快照）
+                        match std::fs::copy(&snapshot_path, &db_path) {
+                            Ok(_) => {
+                                let _ = std::fs::remove_file(&snapshot_path);
+                            }
+                            Err(copy_err) => {
+                                log::error!("回滚时复制快照失败: {copy_err}，保留快照供人工恢复: {}", snapshot_path.display());
+                            }
+                        }
                         inner.conn = match crate::db::connection::open_connection(&db_path) {
                             Ok(conn) => conn,
                             Err(open_err) => {

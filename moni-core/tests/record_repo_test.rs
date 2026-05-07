@@ -104,6 +104,23 @@ fn test_list_by_date_range() {
 }
 
 #[test]
+fn test_list_by_year_month_matches_local_timezone() {
+    let conn = setup();
+    let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
+    // 使用固定时间戳验证 year_month 与本地时区一致
+    let ts = 1_704_067_200i64; // 2024-01-01 00:00:00 UTC
+    let expected_ym = moni_core::shared::types::year_month_from_timestamp(ts);
+
+    let id = record_repo::insert(
+        &conn, 100, RecordType::Expense, cat_id, None, "测试", Some(ts),
+    ).unwrap();
+
+    let list = record_repo::list_by_year_month(&conn, &expected_ym).unwrap();
+    assert_eq!(list.len(), 1);
+    assert_eq!(list[0].id, id);
+}
+
+#[test]
 fn test_category_aggregates() {
     let conn = setup();
     let cat_id = create_category(&conn, "餐饮", RecordType::Expense);

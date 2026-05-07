@@ -2,7 +2,7 @@ use rusqlite::Connection;
 
 /// 当前数据库 schema 版本号。
 /// 每次 schema 发生非向后兼容的变更时同步递增。
-pub const CURRENT_SCHEMA_VERSION: u32 = 5;
+pub const CURRENT_SCHEMA_VERSION: u32 = 6;
 
 const SCHEMA_SQL: &str = "
 CREATE TABLE IF NOT EXISTS categories (
@@ -61,7 +61,12 @@ pub fn init_schema(conn: &Connection) -> Result<(), rusqlite::Error> {
     if schema_version < CURRENT_SCHEMA_VERSION as i32 {
         // 对旧版本数据库执行列迁移（新数据库已在 SCHEMA_SQL 中包含所有列）
         migrate_old_columns(conn)?;
-        init_schema_v5(conn)?;
+        if schema_version < 5 {
+            init_schema_v5(conn)?;
+        }
+        if schema_version < 6 {
+            init_schema_v6(conn)?;
+        }
         conn.execute(
             &format!("PRAGMA user_version = {}", CURRENT_SCHEMA_VERSION),
             [],
@@ -169,11 +174,11 @@ fn init_schema_v5(conn: &Connection) -> Result<(), rusqlite::Error> {
         [],
     )?;
 
-    // 3. 回填 records 历史数据的 year_month（基于 UTC 时间戳）
+    // 3. 回填 records 历史数据的 year_month（基于本地时区）
     // 注：year_month 列在 SCHEMA_SQL 中已包含，旧版本数据库通过 migrate_old_columns 添加
     conn.execute(
         "UPDATE records
-         SET year_month = strftime('%Y-%m', datetime(created_at, 'unixepoch'))
+         SET year_month = strftime('%Y-%m', datetime(created_at, 'unixepoch', 'localtime'))
          WHERE year_month IS NULL",
         [],
     )?;
@@ -197,6 +202,46 @@ fn init_schema_v5(conn: &Connection) -> Result<(), rusqlite::Error> {
     if null_parent_count > 0 {
         log::warn!("V5 迁移后仍有 {} 条记录的 parent_category_id 为 NULL", null_parent_count);
     }
+
+    Ok(())
+}
+
+/// v6 迁移：
+/// 1. 清理 budgets 表中 category_id IS NULL 的重复快照与模板；
+/// 2. 使用本地时区重新回填所有 records.year_month。
+fn init_schema_v6(conn: &Connection) -> Result<(), rusqlite::Error> {
+    // 1. 清理总预算快照重复数据（保留 id 最大的一条）
+    conn.execute(
+        "DELETE FROM budgets
+         WHERE id NOT IN (
+             SELECT MAX(id)
+             FROM budgets
+             WHERE category_id IS NULL AND year_month IS NOT NULL
+             GROUP BY year_month
+         )
+         AND category_id IS NULL AND year_month IS NOT NULL",
+        [],
+    )?;
+
+    // 2. 清理总预算模板重复数据（保留 id 最大的一条）
+    conn.execute(
+        "DELETE FROM budgets
+         WHERE id NOT IN (
+             SELECT MAX(id)
+             FROM budgets
+             WHERE category_id IS NULL AND year_month IS NULL
+         )
+         AND category_id IS NULL AND year_month IS NULL",
+        [],
+    )?;
+
+    // 3. 使用本地时区重新计算所有 records 的 year_month
+    conn.execute(
+        "UPDATE records
+         SET year_month = strftime('%Y-%m', datetime(created_at, 'unixepoch', 'localtime'))
+         WHERE year_month IS NOT NULL",
+        [],
+    )?;
 
     Ok(())
 }

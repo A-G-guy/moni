@@ -933,3 +933,54 @@ fn test_budget_check_result_cleared_on_list() {
         assert!(state["budgetCheckResult"].is_null(), "budget_list 后应清空 budget_check_result");
     });
 }
+
+#[test]
+fn test_total_budget_snapshot_no_duplicate() {
+    let core = common::setup_core_with_presets();
+    let rt = tokio::runtime::Runtime::new().unwrap();
+
+    rt.block_on(async {
+        // 连续三次修改总预算快照（同一月份）
+        core.dispatch(upsert_intent(None, 500000, "this_month")).await.unwrap();
+        core.dispatch(upsert_intent(None, 600000, "this_month")).await.unwrap();
+        core.dispatch(upsert_intent(None, 700000, "this_month")).await.unwrap();
+
+        let update = core.dispatch(format!(
+            r#"{{"type":"budget_list","year_month":"{}"}}"#,
+            CURRENT_YM
+        )).await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
+        let budgets = state["budgets"].as_array().unwrap();
+
+        // 总预算快照应只有一条，且为最新金额
+        let total_budgets: Vec<_> = budgets.iter().filter(|b| b["categoryId"].is_null()).collect();
+        assert_eq!(total_budgets.len(), 1, "总预算快照不应重复插入");
+        assert_eq!(total_budgets[0]["amountCents"], 700000);
+    });
+}
+
+#[test]
+fn test_total_budget_template_no_duplicate() {
+    let core = common::setup_core_with_presets();
+    let rt = tokio::runtime::Runtime::new().unwrap();
+
+    rt.block_on(async {
+        // 连续三次修改总预算模板
+        core.dispatch(upsert_intent(None, 500000, "this_and_future")).await.unwrap();
+        core.dispatch(upsert_intent(None, 600000, "this_and_future")).await.unwrap();
+        core.dispatch(upsert_intent(None, 700000, "this_and_future")).await.unwrap();
+
+        // 查询未来月份应只有一条总预算模板
+        let update = core.dispatch(format!(
+            r#"{{"type":"budget_list","year_month":"{}"}}"#,
+            NEXT_YM
+        )).await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
+        let budgets = state["budgets"].as_array().unwrap();
+
+        let total_budgets: Vec<_> = budgets.iter().filter(|b| b["categoryId"].is_null()).collect();
+        assert_eq!(total_budgets.len(), 1, "总预算模板不应重复插入");
+        assert_eq!(total_budgets[0]["amountCents"], 700000);
+        assert_eq!(total_budgets[0]["isSnapshot"], false);
+    });
+}

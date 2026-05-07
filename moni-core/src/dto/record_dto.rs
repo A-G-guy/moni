@@ -66,7 +66,7 @@ pub fn group_records_by_date(records: &[RecordDto]) -> Vec<RecordDayGroup> {
 
     for record in records {
         let date = chrono::DateTime::from_timestamp(record.created_at, 0)
-            .map(|dt| dt.format("%Y-%m-%d").to_string())
+            .map(|dt| dt.with_timezone(&chrono::Local).format("%Y-%m-%d").to_string())
             .unwrap_or_default();
         groups.entry(date).or_default().push(record.clone());
     }

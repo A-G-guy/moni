@@ -137,7 +137,7 @@ impl AppCoreRuntime {
 
     /// 刷新所有预算的实时状态。
     pub(super) fn refresh_budget_states(&mut self) -> Result<(), CoreError> {
-        let year_month = chrono::Utc::now().format("%Y-%m").to_string();
+        let year_month = chrono::Local::now().format("%Y-%m").to_string();
         let raw_budgets = budget_repo::list_all(&self.conn)?;
         let budget_dtos = calculator::build_budget_dtos(
             &self.conn,

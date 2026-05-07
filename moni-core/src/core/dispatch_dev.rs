@@ -17,6 +17,11 @@ impl AppCoreRuntime {
                     .execute("DELETE FROM records;", [])
                     .map_err(|e| CoreError::Internal(format!("清空记录失败: {e}")))?;
 
+                // 先删除预算（避免 categories 删除时外键约束干扰）
+                self.conn
+                    .execute("DELETE FROM budgets;", [])
+                    .map_err(|e| CoreError::Internal(format!("清空预算失败: {e}")))?;
+
                 // 先删除子分类，再删除一级分类（避免 parent_id 外键约束冲突）
                 self.conn
                     .execute("DELETE FROM categories WHERE parent_id IS NOT NULL;", [])

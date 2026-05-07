@@ -129,7 +129,7 @@ fun BudgetEditorSheet(
 
                 Button(
                     onClick = {
-                        val cents = (amountText.toDoubleOrNull() ?: 0.0 * 100).toLong()
+                        val cents = ((amountText.toDoubleOrNull() ?: 0.0) * 100).toLong()
                         if (cents > 0) {
                             onDispatch(
                                 CoreIntent.BudgetUpsert(

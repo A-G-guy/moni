@@ -47,6 +47,7 @@ fun SettingsScreen(
     onNavigateToThemeSettings: () -> Unit = {},
     onNavigateToDeveloperOptions: () -> Unit = {},
     onNavigateToDataManagement: () -> Unit = {},
+    onNavigateToAutoBackupSettings: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showCurrencyDialog by remember { mutableStateOf(false) }
@@ -104,6 +105,13 @@ fun SettingsScreen(
                 title = "数据管理",
                 subtitle = "备份导出、导入恢复、管理应用内备份",
                 onClick = onNavigateToDataManagement
+            )
+
+            SettingsItem(
+                icon = MoniIcons.Archive,
+                title = "自动备份",
+                subtitle = "定时自动备份到本地或外部目录",
+                onClick = onNavigateToAutoBackupSettings
             )
 
             SettingsItem(

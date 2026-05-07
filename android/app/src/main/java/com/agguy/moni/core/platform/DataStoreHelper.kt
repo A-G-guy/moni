@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.agguy.moni.app.theme.PresetColorScheme
@@ -31,6 +32,14 @@ object DataStoreHelper {
     private val CURRENCY_SYMBOL_KEY = stringPreferencesKey("currency_symbol")
     private val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
     private val PRESET_COLOR_SCHEME_KEY = stringPreferencesKey("preset_color_scheme")
+
+    // 自动备份配置键
+    private val AUTO_BACKUP_ENABLED_KEY = booleanPreferencesKey("auto_backup_enabled")
+    private val AUTO_BACKUP_FREQUENCY_KEY = stringPreferencesKey("auto_backup_frequency")
+    private val AUTO_BACKUP_MAX_COUNT_KEY = intPreferencesKey("auto_backup_max_count")
+    private val AUTO_BACKUP_COPY_TO_EXTERNAL_KEY = booleanPreferencesKey("auto_backup_copy_to_external")
+    private val AUTO_BACKUP_EXTERNAL_URI_KEY = stringPreferencesKey("auto_backup_external_uri")
+    private val AUTO_BACKUP_LAST_TIME_KEY = stringPreferencesKey("auto_backup_last_time")
 
     /**
      * 获取货币符号流。
@@ -105,6 +114,116 @@ object DataStoreHelper {
             }
         }
     }
+
+    // region 自动备份配置读写
+
+    /**
+     * 获取自动备份启用状态流。
+     */
+    fun autoBackupEnabledFlow(context: Context): Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[AUTO_BACKUP_ENABLED_KEY] ?: false
+    }
+
+    /**
+     * 保存自动备份启用状态。
+     */
+    suspend fun saveAutoBackupEnabled(context: Context, enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[AUTO_BACKUP_ENABLED_KEY] = enabled
+        }
+    }
+
+    /**
+     * 获取自动备份频率流。
+     * 返回值："every_launch" | "daily" | "weekly" | "monthly"
+     */
+    fun autoBackupFrequencyFlow(context: Context): Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[AUTO_BACKUP_FREQUENCY_KEY] ?: "daily"
+    }
+
+    /**
+     * 保存自动备份频率。
+     */
+    suspend fun saveAutoBackupFrequency(context: Context, frequency: String) {
+        context.dataStore.edit { preferences ->
+            preferences[AUTO_BACKUP_FREQUENCY_KEY] = frequency
+        }
+    }
+
+    /**
+     * 获取自动备份最大保留数量流（默认 7，范围 3~30）。
+     */
+    fun autoBackupMaxCountFlow(context: Context): Flow<Int> = context.dataStore.data.map { preferences ->
+        val value = preferences[AUTO_BACKUP_MAX_COUNT_KEY] ?: 7
+        value.coerceIn(3, 30)
+    }
+
+    /**
+     * 保存自动备份最大保留数量。
+     */
+    suspend fun saveAutoBackupMaxCount(context: Context, maxCount: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[AUTO_BACKUP_MAX_COUNT_KEY] = maxCount.coerceIn(3, 30)
+        }
+    }
+
+    /**
+     * 获取是否自动复制到外部目录流。
+     */
+    fun autoBackupCopyToExternalFlow(context: Context): Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[AUTO_BACKUP_COPY_TO_EXTERNAL_KEY] ?: false
+    }
+
+    /**
+     * 保存是否自动复制到外部目录。
+     */
+    suspend fun saveAutoBackupCopyToExternal(context: Context, copyToExternal: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[AUTO_BACKUP_COPY_TO_EXTERNAL_KEY] = copyToExternal
+        }
+    }
+
+    /**
+     * 获取外部备份目录 SAF URI 流。
+     */
+    fun autoBackupExternalUriFlow(context: Context): Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[AUTO_BACKUP_EXTERNAL_URI_KEY]
+    }
+
+    /**
+     * 保存外部备份目录 SAF URI。
+     */
+    suspend fun saveAutoBackupExternalUri(context: Context, uri: String?) {
+        context.dataStore.edit { preferences ->
+            if (uri != null) {
+                preferences[AUTO_BACKUP_EXTERNAL_URI_KEY] = uri
+            } else {
+                preferences.remove(AUTO_BACKUP_EXTERNAL_URI_KEY)
+            }
+        }
+    }
+
+    /**
+     * 获取上次自动备份时间 ISO 8601 流。
+     */
+    fun autoBackupLastTimeFlow(context: Context): Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[AUTO_BACKUP_LAST_TIME_KEY]
+    }
+
+    /**
+     * 保存上次自动备份时间。
+     */
+    suspend fun saveAutoBackupLastTime(context: Context, lastTime: String?) {
+        context.dataStore.edit { preferences ->
+            if (lastTime != null) {
+                preferences[AUTO_BACKUP_LAST_TIME_KEY] = lastTime
+            } else {
+                preferences.remove(AUTO_BACKUP_LAST_TIME_KEY)
+            }
+        }
+    }
+
+    // endregion
 
     /**
      * 清空所有设置数据。

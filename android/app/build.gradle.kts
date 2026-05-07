@@ -165,6 +165,8 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.documentfile)
     implementation(variantOf(libs.jna) { artifactType("aar") })
 
     debugImplementation(libs.androidx.compose.ui.tooling)

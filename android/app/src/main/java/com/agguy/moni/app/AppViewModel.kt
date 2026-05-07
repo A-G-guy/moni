@@ -11,6 +11,7 @@ import com.agguy.moni.core.CoreEffectRunner
 import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.RustCoreController
 import com.agguy.moni.core.platform.AppRestarter
+import com.agguy.moni.core.platform.AutoBackupScheduler
 import com.agguy.moni.core.platform.DataStoreHelper
 import com.agguy.moni.core.platform.LogCollector
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -95,6 +96,7 @@ class AppViewModel(
                 dispatch(CoreIntent.BudgetList(yearMonth = currentYearMonth))
                 syncCurrencySymbolFromDataStore()
                 syncThemeSettingsFromDataStore()
+                syncAutoBackupSettings()
             } catch (e: Exception) {
                 LogCollector.e("AppViewModel", "数据库初始化失败，回退到内存模式", e)
                 try {
@@ -199,6 +201,20 @@ class AppViewModel(
         _themeSettings.value = ThemeSettings(themeMode, presetColorScheme)
     }
 
+    private suspend fun syncAutoBackupSettings() {
+        val app = getApplication<Application>()
+        val enabled = DataStoreHelper.autoBackupEnabledFlow(app).first()
+        val frequency = DataStoreHelper.autoBackupFrequencyFlow(app).first()
+
+        // 注册/更新 WorkManager 周期任务
+        AutoBackupScheduler.schedule(app, enabled, frequency)
+
+        // "每次启动"频率：直接触发一次备份
+        if (enabled && frequency == "every_launch") {
+            AutoBackupScheduler.triggerOnce(app)
+        }
+    }
+
     fun updateThemeMode(mode: ThemeMode) {
         viewModelScope.launch {
             DataStoreHelper.saveThemeMode(getApplication(), mode)
@@ -239,6 +255,10 @@ class AppViewModel(
 
     fun navigateToThemeSettings() {
         _navController?.navigate(Screen.ThemeSettings)
+    }
+
+    fun navigateToAutoBackupSettings() {
+        _navController?.navigate(Screen.AutoBackupSettings)
     }
 
     fun navigateBack() {

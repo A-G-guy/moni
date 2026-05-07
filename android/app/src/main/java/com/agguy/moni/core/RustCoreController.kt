@@ -58,6 +58,42 @@ class RustCoreController {
         return core.backupRestore(inZipPath, dbPath, progress)
     }
 
+    suspend fun autoBackupShouldRun(
+        lastBackupTime: String?,
+        frequency: String,
+    ): Boolean {
+        return core.autoBackupShouldRun(lastBackupTime, frequency)
+    }
+
+    suspend fun autoBackupPerform(
+        backupDir: String,
+        settingsJson: String,
+        appVersionName: String,
+        appVersionCode: Long,
+        deviceManufacturer: String,
+        deviceModel: String,
+        androidSdk: Int,
+        progress: uniffi.moni_core.BackupProgressListener? = null,
+    ): uniffi.moni_core.AutoBackupReport {
+        return core.autoBackupPerform(
+            backupDir,
+            settingsJson,
+            appVersionName,
+            appVersionCode,
+            deviceManufacturer,
+            deviceModel,
+            androidSdk,
+            progress,
+        )
+    }
+
+    suspend fun autoBackupCleanup(
+        backupDir: String,
+        maxCount: UInt,
+    ): UInt {
+        return core.autoBackupCleanup(backupDir, maxCount)
+    }
+
     private fun decodeMutation(update: uniffi.moni_core.CoreUpdate): CoreMutation {
         return try {
             CoreMutation(

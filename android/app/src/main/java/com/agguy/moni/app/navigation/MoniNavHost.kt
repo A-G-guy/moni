@@ -88,6 +88,7 @@ fun MoniNavHost(
     onNavigateToDevLog: () -> Unit = {},
     onClearAllData: () -> Unit = {},
     onNavigateToDataManagement: () -> Unit = {},
+    onNavigateToAutoBackupSettings: () -> Unit = {},
     onNavigateToThemeSettings: () -> Unit = {},
     onNavigateToBudgetList: () -> Unit = {},
     backupViewModel: BackupViewModel,
@@ -173,7 +174,8 @@ fun MoniNavHost(
                 onDispatch = onDispatch,
                 onNavigateToThemeSettings = onNavigateToThemeSettings,
                 onNavigateToDeveloperOptions = onNavigateToDeveloperOptions,
-                onNavigateToDataManagement = onNavigateToDataManagement
+                onNavigateToDataManagement = onNavigateToDataManagement,
+                onNavigateToAutoBackupSettings = onNavigateToAutoBackupSettings,
             )
         }
         composable<Screen.DataManagement> {
@@ -211,6 +213,11 @@ fun MoniNavHost(
                 onDispatch = onDispatch,
                 onSelectYearMonth = onSelectYearMonth,
                 onNavigateBack = onNavigateBack
+            )
+        }
+        composable<Screen.AutoBackupSettings> {
+            com.agguy.moni.app.ui.settings.AutoBackupSettingsScreen(
+                onNavigateBack = onNavigateBack,
             )
         }
     }

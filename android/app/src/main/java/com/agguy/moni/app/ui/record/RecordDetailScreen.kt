@@ -75,6 +75,25 @@ fun RecordDetailScreen(
 
     val state = rememberRecordEditorState(existingRecord, appState.categories)
     var showDateSheet by remember { mutableStateOf(false) }
+    var showTimeSheet by remember { mutableStateOf(false) }
+
+    // 缓存最近一次有效的预算检查结果，避免 BudgetCheck 往返延迟导致的闪烁。
+    // 仅在切换分类或切到收入时清空；金额变化期间保持旧值显示直到新结果到达。
+    var displayedCheckResult by remember { mutableStateOf<com.agguy.moni.core.CoreBudgetCheckResult?>(null) }
+
+    LaunchedEffect(state.selectedCategoryId, state.recordType) {
+        if (state.recordType != RecordType.EXPENSE || state.selectedCategoryId == -1L) {
+            displayedCheckResult = null
+        }
+    }
+
+    LaunchedEffect(appState.budgetCheckResult) {
+        appState.budgetCheckResult?.let { result ->
+            if (result.categoryId == state.selectedCategoryId) {
+                displayedCheckResult = result
+            }
+        }
+    }
 
     // 监听金额/分类变化，触发预算实时检查
     LaunchedEffect(state.confirmedAmountCents, state.selectedCategoryId, state.recordType) {
@@ -92,7 +111,6 @@ fun RecordDetailScreen(
             )
         }
     }
-    var showTimeSheet by remember { mutableStateOf(false) }
 
     // 根据当前类型过滤未归档分类
     val filteredCategories = remember(appState.categories, state.recordType) {
@@ -177,10 +195,7 @@ fun RecordDetailScreen(
                 state.selectedCategoryId != -1L
             ) {
                 BudgetWarningBar(
-                    checkResult = appState.budgetCheckResult?.takeIf {
-                        it.categoryId == state.selectedCategoryId &&
-                        it.amountCents == state.confirmedAmountCents
-                    },
+                    checkResult = displayedCheckResult,
                     currencySymbol = appState.currencySymbol
                 )
             }
@@ -192,10 +207,7 @@ fun RecordDetailScreen(
             RecordEditorPanel(
                 state = state,
                 currencySymbol = appState.currencySymbol,
-                budgetCheckResult = appState.budgetCheckResult?.takeIf {
-                    it.categoryId == state.selectedCategoryId &&
-                    it.amountCents == state.confirmedAmountCents
-                },
+                budgetCheckResult = displayedCheckResult,
                 onDateClick = { showDateSheet = true },
                 onTimeClick = { showTimeSheet = true },
                 onNoteClick = { state.startNoteEdit() },

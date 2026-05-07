@@ -15,3 +15,8 @@ pub const DEFAULT_PAGE_SIZE: u32 = 20;
 
 /// 预设分类的数量（12 个一级 + 6 个二级）。
 pub const PRESET_CATEGORY_COUNT: usize = 18;
+
+/// 预算警告临界阈值（80%）
+pub const BUDGET_CRITICAL_THRESHOLD: f64 = 0.80;
+/// 预算超支阈值（100%）
+pub const BUDGET_OVERRUN_THRESHOLD: f64 = 1.00;

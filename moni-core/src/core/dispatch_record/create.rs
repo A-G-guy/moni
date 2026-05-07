@@ -44,6 +44,10 @@ impl AppCoreRuntime {
         self.state.records.insert(0, dto);
         self.state.record_groups = crate::dto::group_records_by_date(&self.state.records);
 
+        if record_type == moni_contracts::record::RecordType::Expense {
+            self.refresh_budget_states()?;
+        }
+
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),
             payload_json: "{\"message\":\"保存成功\"}".to_string(),

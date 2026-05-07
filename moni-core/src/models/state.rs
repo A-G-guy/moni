@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::dto::{CategoryDto, RecordDayGroup, RecordDto};
+use crate::dto::{BudgetDto, CategoryDto, RecordDayGroup, RecordDto};
 use moni_contracts::stats::{CategoryBreakdown, MonthlySummary};
 
 /// 应用状态根
@@ -12,8 +12,21 @@ pub struct AppState {
     pub categories: Vec<CategoryDto>,
     pub monthly_summaries: Vec<MonthlySummary>,
     pub current_month_breakdown: Vec<CategoryBreakdown>,
+    pub budgets: Vec<BudgetDto>,
+    pub budget_check_result: Option<BudgetCheckResult>,
     pub settings: AppSettings,
     pub ui: UiState,
+}
+
+/// 预算检查结果（用于记账页实时预警）
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BudgetCheckResult {
+    pub category_id: i64,
+    pub amount_cents: i64,
+    pub effective_available: Option<i64>,
+    pub bottleneck_budget: Option<String>,
+    pub post_save_status: Option<String>,
 }
 
 /// 应用设置

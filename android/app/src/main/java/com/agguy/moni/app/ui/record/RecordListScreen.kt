@@ -65,6 +65,7 @@ fun RecordListScreen(
     onSelectYearMonth: (String) -> Unit,
     onNavigateToRecordDetail: (Long?) -> Unit,
     onNavigateToCategoryList: () -> Unit,
+    onNavigateToBudgetList: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var sheetVisible by remember { mutableStateOf(false) }
@@ -91,6 +92,12 @@ fun RecordListScreen(
                             text = monthLabel,
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    IconButton(onClick = onNavigateToBudgetList) {
+                        MoniIcon(
+                            icon = MoniIcons.Budget,
+                            contentDescription = "预算管理"
                         )
                     }
                     IconButton(onClick = onNavigateToCategoryList) {

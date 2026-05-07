@@ -77,6 +77,7 @@ class AppViewModel(
                 dispatch(CoreIntent.StatsMonthlySummary(months = 36))
                 dispatch(CoreIntent.RecordListByMonth(yearMonth = currentYearMonth))
                 dispatch(CoreIntent.StatsCategoryBreakdown(yearMonth = currentYearMonth))
+                dispatch(CoreIntent.BudgetList)
                 syncCurrencySymbolFromDataStore()
                 syncThemeSettingsFromDataStore()
             } catch (e: Exception) {
@@ -116,6 +117,8 @@ class AppViewModel(
                     rustCore.dispatch(CoreIntent.RecordListByMonth(yearMonth = yearMonth))
                         .let(::applyMutation)
                     rustCore.dispatch(CoreIntent.StatsMonthlySummary(months = 36))
+                        .let(::applyMutation)
+                    rustCore.dispatch(CoreIntent.BudgetList)
                         .let(::applyMutation)
                 }
             }
@@ -176,6 +179,10 @@ class AppViewModel(
 
     fun navigateToCategoryList() {
         _navController?.navigate(Screen.CategoryList)
+    }
+
+    fun navigateToBudgetList() {
+        _navController?.navigate(Screen.BudgetList)
     }
 
     fun navigateToDevLog() {

@@ -124,6 +124,27 @@ sealed class CoreIntent {
     @SerialName("settings_export_data")
     data class SettingsExportData(val format: ExportFormat) : CoreIntent()
 
+    // 预算相关
+    @Serializable
+    @SerialName("budget_upsert")
+    data class BudgetUpsert(val categoryId: Long? = null, val amountCents: Long) : CoreIntent()
+
+    @Serializable
+    @SerialName("budget_delete")
+    data class BudgetDelete(val id: Long) : CoreIntent()
+
+    @Serializable
+    @SerialName("budget_list")
+    data object BudgetList : CoreIntent()
+
+    @Serializable
+    @SerialName("budget_check")
+    data class BudgetCheck(
+        val categoryId: Long,
+        val yearMonth: String,
+        val amountCents: Long
+    ) : CoreIntent()
+
     // 开发者选项
     @Serializable
     @SerialName("dev_clear_all_data")

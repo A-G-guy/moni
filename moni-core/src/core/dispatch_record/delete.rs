@@ -14,13 +14,16 @@ impl AppCoreRuntime {
             return Err(CoreError::Internal("意图类型不匹配".to_string()));
         };
 
-        if record_repo::get_by_id(&self.conn, id)?.is_none() {
-            return Err(CoreError::RecordNotFound(id));
-        }
+        let record = record_repo::get_by_id(&self.conn, id)?
+            .ok_or(CoreError::RecordNotFound(id))?;
         record_repo::delete(&self.conn, id)?;
         log::info!("记录删除成功: id={id}");
         self.state.records.retain(|r| r.id != id);
         self.state.record_groups = crate::dto::group_records_by_date(&self.state.records);
+
+        if record.record_type == moni_contracts::record::RecordType::Expense {
+            self.refresh_budget_states()?;
+        }
 
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),

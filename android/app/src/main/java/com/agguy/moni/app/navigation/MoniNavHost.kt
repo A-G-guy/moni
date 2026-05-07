@@ -89,6 +89,7 @@ fun MoniNavHost(
     onClearAllData: () -> Unit = {},
     onNavigateToDataManagement: () -> Unit = {},
     onNavigateToThemeSettings: () -> Unit = {},
+    onNavigateToBudgetList: () -> Unit = {},
     backupViewModel: BackupViewModel,
     dbPath: String,
     modifier: Modifier = Modifier
@@ -128,7 +129,8 @@ fun MoniNavHost(
                 onDispatch = onDispatch,
                 onSelectYearMonth = onSelectYearMonth,
                 onNavigateToRecordDetail = onNavigateToRecordDetail,
-                onNavigateToCategoryList = onNavigateToCategoryList
+                onNavigateToCategoryList = onNavigateToCategoryList,
+                onNavigateToBudgetList = onNavigateToBudgetList
             )
         }
         composable<Screen.RecordDetail> { backStackEntry ->
@@ -198,6 +200,13 @@ fun MoniNavHost(
                 themeSettings = themeSettings,
                 onUpdateThemeMode = onUpdateThemeMode,
                 onUpdatePresetColorScheme = onUpdatePresetColorScheme,
+                onNavigateBack = onNavigateBack
+            )
+        }
+        composable<Screen.BudgetList> {
+            com.agguy.moni.app.ui.budget.BudgetListScreen(
+                appState = appState,
+                onDispatch = onDispatch,
                 onNavigateBack = onNavigateBack
             )
         }

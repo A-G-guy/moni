@@ -249,6 +249,10 @@ object MoniIcons {
     val Help = R.drawable.ic_help
     val HelpFilled = R.drawable.ic_help_filled
 
+    // 预算
+    val Budget = R.drawable.ic_budget
+    val BudgetFilled = R.drawable.ic_budget_filled
+
     // 归档与展开
     val Archive = R.drawable.ic_archive
     val Unarchive = R.drawable.ic_unarchive

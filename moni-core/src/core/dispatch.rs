@@ -41,6 +41,10 @@ impl AppCoreRuntime {
             CoreIntent::SettingsUpdateCurrency { .. } => {
                 self.dispatch_settings(intent)
             }
+            CoreIntent::BudgetUpsert { .. }
+            | CoreIntent::BudgetDelete { .. }
+            | CoreIntent::BudgetList
+            | CoreIntent::BudgetCheck { .. } => self.dispatch_budget(intent),
             CoreIntent::DevClearAllData | CoreIntent::DevGenerateMockData { .. } | CoreIntent::DevSeedPresets => {
                 self.dispatch_dev(intent)
             }

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use moni_contracts::record::RecordType;
-use moni_contracts::types::{AmountCents, CategoryId, RecordId, TimestampSec};
+use moni_contracts::types::{AmountCents, BudgetId, CategoryId, RecordId, TimestampSec};
 
 /// Mock 数据预设类型。
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -87,6 +87,21 @@ pub enum CoreIntent {
     SettingsUpdateCurrency {
         symbol: String,
     },
+
+    BudgetUpsert {
+        category_id: Option<CategoryId>,
+        amount_cents: AmountCents,
+    },
+    BudgetDelete {
+        id: BudgetId,
+    },
+    BudgetList,
+    BudgetCheck {
+        category_id: CategoryId,
+        year_month: String,
+        amount_cents: AmountCents,
+    },
+
     DevClearAllData,
     DevGenerateMockData {
         count: u32,

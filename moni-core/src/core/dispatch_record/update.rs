@@ -39,6 +39,9 @@ impl AppCoreRuntime {
             return Err(CoreError::CategoryNotFound(cid));
         }
 
+        let original = record_repo::get_by_id(&self.conn, id)?
+            .ok_or_else(|| CoreError::RecordNotFound(id))?;
+
         record_repo::update(
             &self.conn,
             id,
@@ -54,6 +57,13 @@ impl AppCoreRuntime {
             self.state.records[idx] = dto;
         }
         self.state.record_groups = crate::dto::group_records_by_date(&self.state.records);
+
+        // 若原记录或新记录为支出，刷新预算状态
+        if original.record_type == moni_contracts::record::RecordType::Expense
+            || updated.record_type == moni_contracts::record::RecordType::Expense
+        {
+            self.refresh_budget_states()?;
+        }
 
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),

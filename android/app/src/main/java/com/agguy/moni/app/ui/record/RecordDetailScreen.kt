@@ -23,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,8 +45,11 @@ import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.CoreRecord
 import com.agguy.moni.core.RecordType
 import com.agguy.moni.core.serialName
+import com.agguy.moni.app.ui.record.editor.BudgetWarningBar
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /**
  * 记账详情屏（新增/编辑）。
@@ -71,6 +75,23 @@ fun RecordDetailScreen(
 
     val state = rememberRecordEditorState(existingRecord, appState.categories)
     var showDateSheet by remember { mutableStateOf(false) }
+
+    // 监听金额/分类变化，触发预算实时检查
+    LaunchedEffect(state.confirmedAmountCents, state.selectedCategoryId, state.recordType) {
+        if (state.recordType == RecordType.EXPENSE &&
+            state.confirmedAmountCents > 0 &&
+            state.selectedCategoryId != -1L
+        ) {
+            val yearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
+            onDispatch(
+                CoreIntent.BudgetCheck(
+                    categoryId = state.selectedCategoryId,
+                    yearMonth = yearMonth,
+                    amountCents = state.confirmedAmountCents
+                )
+            )
+        }
+    }
     var showTimeSheet by remember { mutableStateOf(false) }
 
     // 根据当前类型过滤未归档分类
@@ -150,6 +171,20 @@ fun RecordDetailScreen(
                     .padding(bottom = 4.dp)
             )
 
+            // 预算预警条
+            if (state.recordType == RecordType.EXPENSE &&
+                state.confirmedAmountCents > 0 &&
+                state.selectedCategoryId != -1L
+            ) {
+                BudgetWarningBar(
+                    checkResult = appState.budgetCheckResult?.takeIf {
+                        it.categoryId == state.selectedCategoryId &&
+                        it.amountCents == state.confirmedAmountCents
+                    },
+                    currencySymbol = appState.currencySymbol
+                )
+            }
+
             // 弹性间距：将编辑器推至底部，多余空白留在分类与金额之间
             Spacer(modifier = Modifier.weight(1f))
 
@@ -157,6 +192,10 @@ fun RecordDetailScreen(
             RecordEditorPanel(
                 state = state,
                 currencySymbol = appState.currencySymbol,
+                budgetCheckResult = appState.budgetCheckResult?.takeIf {
+                    it.categoryId == state.selectedCategoryId &&
+                    it.amountCents == state.confirmedAmountCents
+                },
                 onDateClick = { showDateSheet = true },
                 onTimeClick = { showTimeSheet = true },
                 onNoteClick = { state.startNoteEdit() },

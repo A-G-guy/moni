@@ -9,3 +9,6 @@ pub type RecordId = i64;
 
 /// 分类 ID
 pub type CategoryId = i64;
+
+/// 预算 ID
+pub type BudgetId = i64;

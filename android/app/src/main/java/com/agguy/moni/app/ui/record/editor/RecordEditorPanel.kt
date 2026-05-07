@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -40,6 +41,8 @@ import androidx.compose.ui.unit.sp
 import com.agguy.moni.app.components.AutoResizeText
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.theme.expenseRed
+import com.agguy.moni.core.CoreBudgetCheckResult
 import com.agguy.moni.core.util.formatAmount
 import java.time.Instant
 import java.time.LocalDate
@@ -58,6 +61,7 @@ import java.time.format.DateTimeFormatter
 fun RecordEditorPanel(
     state: RecordEditorState,
     currencySymbol: String,
+    budgetCheckResult: CoreBudgetCheckResult? = null,
     onDateClick: () -> Unit,
     onTimeClick: () -> Unit,
     onNoteClick: () -> Unit,
@@ -76,7 +80,8 @@ fun RecordEditorPanel(
         // 第一行：金额（居中）
         AmountDisplay(
             state = state,
-            currencySymbol = currencySymbol
+            currencySymbol = currencySymbol,
+            budgetCheckResult = budgetCheckResult
         )
 
         // 第二行：日期、时间、备注
@@ -128,7 +133,8 @@ fun RecordEditorPanel(
 @Composable
 private fun AmountDisplay(
     state: RecordEditorState,
-    currencySymbol: String
+    currencySymbol: String,
+    budgetCheckResult: CoreBudgetCheckResult? = null
 ) {
     val displayAmount = if (state.confirmedAmountCents > 0) {
         currencySymbol + formatAmount(state.confirmedAmountCents)
@@ -136,10 +142,13 @@ private fun AmountDisplay(
         "$currencySymbol${state.amountExpression.ifEmpty { "0" }}"
     }
 
-    val amountColor = if (state.confirmedAmountCents == 0L) {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    } else {
-        MaterialTheme.colorScheme.onSurface
+    val amountColor = when {
+        state.confirmedAmountCents == 0L -> MaterialTheme.colorScheme.onSurfaceVariant
+        budgetCheckResult?.effectiveAvailable != null && budgetCheckResult.effectiveAvailable < 0 ->
+            MaterialTheme.colorScheme.expenseRed
+        budgetCheckResult?.postSaveStatus == "critical" ->
+            Color(0xFFFFA726) // 橙色
+        else -> MaterialTheme.colorScheme.onSurface
     }
 
     Box(

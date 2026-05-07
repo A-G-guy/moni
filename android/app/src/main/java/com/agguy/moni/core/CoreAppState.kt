@@ -9,6 +9,8 @@ data class CoreAppState(
     val categories: List<CoreCategory> = emptyList(),
     val monthlySummaries: List<CoreMonthlySummary> = emptyList(),
     val currentMonthBreakdown: List<CoreCategoryBreakdown> = emptyList(),
+    val budgets: List<CoreBudget> = emptyList(),
+    val budgetCheckResult: CoreBudgetCheckResult? = null,
     val settings: CoreSettings = CoreSettings(),
     val ui: CoreUiState = CoreUiState()
 )
@@ -60,6 +62,30 @@ data class CoreCategoryBreakdown(
     val categoryName: String,
     val amountCents: Long,
     val percentage: Double
+)
+
+@Serializable
+data class CoreBudget(
+    val id: Long,
+    val categoryId: Long?,
+    val categoryName: String?,
+    val amountCents: Long,
+    val periodType: String,
+    val createdAt: Long,
+    val updatedAt: Long,
+    val spentCents: Long,
+    val remainingCents: Long,
+    val percentage: Double,
+    val status: String
+)
+
+@Serializable
+data class CoreBudgetCheckResult(
+    val categoryId: Long,
+    val amountCents: Long,
+    val effectiveAvailable: Long?,
+    val bottleneckBudget: String?,
+    val postSaveStatus: String?
 )
 
 @Serializable

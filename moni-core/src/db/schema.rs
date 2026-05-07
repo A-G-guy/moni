@@ -2,7 +2,7 @@ use rusqlite::Connection;
 
 /// 当前数据库 schema 版本号。
 /// 每次 schema 发生非向后兼容的变更时同步递增。
-pub const CURRENT_SCHEMA_VERSION: u32 = 1;
+pub const CURRENT_SCHEMA_VERSION: u32 = 2;
 
 const SCHEMA_SQL: &str = "
 CREATE TABLE IF NOT EXISTS categories (
@@ -29,6 +29,17 @@ CREATE TABLE IF NOT EXISTS records (
 
 CREATE INDEX IF NOT EXISTS idx_records_created_at ON records(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_records_category ON records(category_id);
+
+CREATE TABLE IF NOT EXISTS budgets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category_id INTEGER NULL REFERENCES categories(id) ON DELETE CASCADE,
+    amount_cents INTEGER NOT NULL CHECK(amount_cents > 0),
+    period_type TEXT NOT NULL DEFAULT 'monthly' CHECK(period_type IN ('monthly')),
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_budgets_category ON budgets(category_id);
 ";
 
 /// 执行数据库 Schema 初始化与幂等迁移。

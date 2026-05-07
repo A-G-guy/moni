@@ -33,4 +33,7 @@ sealed class Screen {
 
     @Serializable
     data object ThemeSettings : Screen()
+
+    @Serializable
+    data object BudgetList : Screen()
 }

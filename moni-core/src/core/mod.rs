@@ -1,4 +1,5 @@
 pub mod dispatch;
+pub mod dispatch_budget;
 pub mod dispatch_category;
 pub mod dispatch_dev;
 pub mod dispatch_record;

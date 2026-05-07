@@ -269,6 +269,7 @@ private fun RecordTypeToggle(
 ) {
     ButtonGroup(
         modifier = modifier.padding(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(0.dp),
         overflowIndicator = {}
     ) {
         toggleableItem(

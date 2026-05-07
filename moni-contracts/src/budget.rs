@@ -9,6 +9,8 @@ pub struct Budget {
     pub id: BudgetId,
     pub category_id: Option<CategoryId>,
     pub amount_cents: AmountCents,
+    /// 预算生效月份。None 表示模板（长期规则），Some("YYYY-MM") 表示月度快照。
+    pub year_month: Option<String>,
     pub period_type: BudgetPeriodType,
     pub created_at: TimestampSec,
     pub updated_at: TimestampSec,

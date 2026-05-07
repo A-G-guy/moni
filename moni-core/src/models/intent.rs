@@ -91,11 +91,17 @@ pub enum CoreIntent {
     BudgetUpsert {
         category_id: Option<CategoryId>,
         amount_cents: AmountCents,
+        year_month: String,
+        scope: String,
     },
     BudgetDelete {
         id: BudgetId,
+        year_month: String,
+        scope: String,
     },
-    BudgetList,
+    BudgetList {
+        year_month: Option<String>,
+    },
     BudgetCheck {
         category_id: CategoryId,
         year_month: String,

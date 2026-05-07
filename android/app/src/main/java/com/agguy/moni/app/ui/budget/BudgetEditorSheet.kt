@@ -10,11 +10,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -35,10 +37,6 @@ import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.core.CoreBudget
 import com.agguy.moni.core.CoreIntent
 
-/**
- * 将金额（分）转换为输入框显示的元字符串。
- * 例如 300000 → "3000"，3050 → "30.50"。
- */
 private fun centsToInputText(cents: Long): String {
     val yuan = cents / 100
     val fen = kotlin.math.abs(cents % 100)
@@ -49,38 +47,24 @@ private fun centsToInputText(cents: Long): String {
     }
 }
 
-/**
- * 将输入框的元字符串转换为分。
- * 例如 "3000" → 300000，"30.50" → 3050。
- * 非法输入返回 0。
- */
 private fun inputTextToCents(text: String): Long {
     if (text.isEmpty() || text == ".") return 0
     val value = text.toDoubleOrNull() ?: return 0
     return (value * 100).toLong()
 }
 
-/**
- * 预算编辑底部弹窗。
- *
- * @param budget 当前预算（null 表示新建）
- * @param categoryName 分类名称（总预算显示"总预算"）
- * @param parentBudget 父级预算（用于软冲突检测）
- * @param onDispatch 意图分发
- * @param onDismiss 关闭回调
- */
 @Composable
 fun BudgetEditorSheet(
     budget: CoreBudget?,
     categoryName: String,
     parentBudget: CoreBudget?,
+    yearMonth: String,
     onDispatch: (CoreIntent) -> Unit,
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val focusRequester = remember { FocusRequester() }
 
-    // 使用独立 key 控制初始化，避免 budget 对象引用变化导致输入丢失
     val initKey = remember { java.util.UUID.randomUUID().toString() }
     var amountText by remember(initKey) {
         mutableStateOf(
@@ -88,10 +72,18 @@ fun BudgetEditorSheet(
         )
     }
 
+    // 默认 scope：编辑快照=仅本月，编辑模板/新建=本月及以后
+    val defaultScope = when {
+        budget?.isSnapshot == true -> "this_month"
+        budget != null -> "this_and_future"
+        else -> "this_and_future"
+    }
+    var selectedScope by remember(initKey) { mutableStateOf(defaultScope) }
+    var deleteConfirmVisible by remember { mutableStateOf(false) }
+
     val amountCents = inputTextToCents(amountText)
     val isValid = amountCents > 0
 
-    // 弹窗打开后自动聚焦输入框
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
@@ -106,25 +98,21 @@ fun BudgetEditorSheet(
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 标题
             Text(
                 text = if (budget == null) "设置预算" else "编辑预算",
                 style = MaterialTheme.typography.titleLarge
             )
 
-            // 分类名称
             Text(
                 text = categoryName,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            // 金额输入
             OutlinedTextField(
                 value = amountText,
                 onValueChange = { newValue ->
                     val filtered = newValue.filter { it.isDigit() || it == '.' }
-                    // 最多一个小数点，且小数点后最多两位
                     val dotIndex = filtered.indexOf('.')
                     val trimmed = if (dotIndex >= 0) {
                         filtered.substring(0, dotIndex + 1) +
@@ -148,6 +136,30 @@ fun BudgetEditorSheet(
                 singleLine = true
             )
 
+            // 预算范围选择
+            Text(
+                text = "生效范围",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Column {
+                ScopeOption(
+                    label = "仅本月",
+                    selected = selectedScope == "this_month",
+                    onClick = { selectedScope = "this_month" }
+                )
+                ScopeOption(
+                    label = "本月及以后",
+                    selected = selectedScope == "this_and_future",
+                    onClick = { selectedScope = "this_and_future" }
+                )
+                ScopeOption(
+                    label = "仅以后月份",
+                    selected = selectedScope == "future_only",
+                    onClick = { selectedScope = "future_only" }
+                )
+            }
+
             // 软冲突提示
             if (parentBudget != null && amountCents > 0) {
                 BudgetSoftConflictWarning(
@@ -158,7 +170,6 @@ fun BudgetEditorSheet(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 操作按钮
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -166,10 +177,7 @@ fun BudgetEditorSheet(
             ) {
                 if (budget != null) {
                     TextButton(
-                        onClick = {
-                            onDispatch(CoreIntent.BudgetDelete(id = budget.id))
-                            onDismiss()
-                        },
+                        onClick = { deleteConfirmVisible = true },
                         modifier = Modifier.weight(1f)
                     ) {
                         Text("删除", color = MaterialTheme.colorScheme.expenseRed)
@@ -183,7 +191,9 @@ fun BudgetEditorSheet(
                             onDispatch(
                                 CoreIntent.BudgetUpsert(
                                     categoryId = budget?.categoryId,
-                                    amountCents = cents
+                                    amountCents = cents,
+                                    yearMonth = yearMonth,
+                                    scope = selectedScope
                                 )
                             )
                             onDismiss()
@@ -198,5 +208,77 @@ fun BudgetEditorSheet(
 
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+
+    // 删除确认对话框
+    if (deleteConfirmVisible && budget != null) {
+        AlertDialog(
+            onDismissRequest = { deleteConfirmVisible = false },
+            title = { Text("删除预算") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("请选择删除范围：")
+                    TextButton(
+                        onClick = {
+                            onDispatch(
+                                CoreIntent.BudgetDelete(
+                                    id = budget.id,
+                                    yearMonth = yearMonth,
+                                    scope = "this_month"
+                                )
+                            )
+                            deleteConfirmVisible = false
+                            onDismiss()
+                        }
+                    ) {
+                        Text("从本月起停止")
+                    }
+                    TextButton(
+                        onClick = {
+                            onDispatch(
+                                CoreIntent.BudgetDelete(
+                                    id = budget.id,
+                                    yearMonth = yearMonth,
+                                    scope = "future_only"
+                                )
+                            )
+                            deleteConfirmVisible = false
+                            onDismiss()
+                        }
+                    ) {
+                        Text("从下月起停止")
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { deleteConfirmVisible = false }) {
+                    Text("取消")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun ScopeOption(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp)
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = onClick
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }

@@ -19,6 +19,8 @@ pub struct BudgetDto {
     pub percentage: f64,
     /// 预算状态：safe / critical / overrun
     pub status: String,
+    /// 是否为月度快照（true=快照，false=继承模板）
+    pub is_snapshot: bool,
 }
 
 impl BudgetDto {
@@ -35,6 +37,7 @@ impl BudgetDto {
             remaining_cents: budget.amount_cents,
             percentage: 0.0,
             status: BudgetStatus::Safe.as_str().to_string(),
+            is_snapshot: budget.year_month.is_some(),
         }
     }
 }

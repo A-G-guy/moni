@@ -206,7 +206,9 @@ fun MoniNavHost(
         composable<Screen.BudgetList> {
             com.agguy.moni.app.ui.budget.BudgetListScreen(
                 appState = appState,
+                selectedYearMonth = selectedYearMonth,
                 onDispatch = onDispatch,
+                onSelectYearMonth = onSelectYearMonth,
                 onNavigateBack = onNavigateBack
             )
         }

@@ -127,15 +127,24 @@ sealed class CoreIntent {
     // 预算相关
     @Serializable
     @SerialName("budget_upsert")
-    data class BudgetUpsert(val categoryId: Long? = null, val amountCents: Long) : CoreIntent()
+    data class BudgetUpsert(
+        val categoryId: Long? = null,
+        val amountCents: Long,
+        val yearMonth: String,
+        val scope: String
+    ) : CoreIntent()
 
     @Serializable
     @SerialName("budget_delete")
-    data class BudgetDelete(val id: Long) : CoreIntent()
+    data class BudgetDelete(
+        val id: Long,
+        val yearMonth: String,
+        val scope: String
+    ) : CoreIntent()
 
     @Serializable
     @SerialName("budget_list")
-    data object BudgetList : CoreIntent()
+    data class BudgetList(val yearMonth: String? = null) : CoreIntent()
 
     @Serializable
     @SerialName("budget_check")

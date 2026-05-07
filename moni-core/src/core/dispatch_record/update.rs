@@ -62,7 +62,7 @@ impl AppCoreRuntime {
         if original.record_type == moni_contracts::record::RecordType::Expense
             || updated.record_type == moni_contracts::record::RecordType::Expense
         {
-            self.refresh_budget_states()?;
+            self.refresh_budget_states(None)?;
         }
 
         self.finish(vec![CoreEffect {

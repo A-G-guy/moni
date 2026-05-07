@@ -2,7 +2,7 @@ use rusqlite::Connection;
 
 /// 当前数据库 schema 版本号。
 /// 每次 schema 发生非向后兼容的变更时同步递增。
-pub const CURRENT_SCHEMA_VERSION: u32 = 2;
+pub const CURRENT_SCHEMA_VERSION: u32 = 3;
 
 const SCHEMA_SQL: &str = "
 CREATE TABLE IF NOT EXISTS categories (
@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS budgets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     category_id INTEGER NULL REFERENCES categories(id) ON DELETE CASCADE,
     amount_cents INTEGER NOT NULL CHECK(amount_cents > 0),
+    year_month TEXT NULL,
     period_type TEXT NOT NULL DEFAULT 'monthly' CHECK(period_type IN ('monthly')),
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
     updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
@@ -81,6 +82,19 @@ pub fn init_schema(conn: &Connection) -> Result<(), rusqlite::Error> {
     if has_parent_id == 0 {
         conn.execute(
             "ALTER TABLE categories ADD COLUMN parent_id INTEGER NULL REFERENCES categories(id) ON DELETE RESTRICT",
+            [],
+        )?;
+    }
+
+    // 检查并添加 year_month 列（2026-05-07 迁移：预算月度快照）
+    let has_year_month: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM pragma_table_info('budgets') WHERE name = 'year_month'",
+        [],
+        |row| row.get(0),
+    )?;
+    if has_year_month == 0 {
+        conn.execute(
+            "ALTER TABLE budgets ADD COLUMN year_month TEXT NULL",
             [],
         )?;
     }

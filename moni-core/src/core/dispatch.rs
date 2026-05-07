@@ -43,7 +43,7 @@ impl AppCoreRuntime {
             }
             CoreIntent::BudgetUpsert { .. }
             | CoreIntent::BudgetDelete { .. }
-            | CoreIntent::BudgetList
+            | CoreIntent::BudgetList { .. }
             | CoreIntent::BudgetCheck { .. } => self.dispatch_budget(intent),
             CoreIntent::DevClearAllData | CoreIntent::DevGenerateMockData { .. } | CoreIntent::DevSeedPresets => {
                 self.dispatch_dev(intent)

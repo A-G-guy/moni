@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
+import com.agguy.moni.app.components.MonthPickerSheet
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.expenseRed
@@ -47,6 +48,8 @@ import com.agguy.moni.core.CoreBudget
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.util.formatAmount
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 /**
  * 预算管理主屏。
@@ -58,7 +61,9 @@ import com.agguy.moni.core.util.formatAmount
 @Composable
 fun BudgetListScreen(
     appState: AppState,
+    selectedYearMonth: String,
     onDispatch: (CoreIntent) -> Unit,
+    onSelectYearMonth: (String) -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -66,6 +71,12 @@ fun BudgetListScreen(
     var editingBudget by remember { mutableStateOf<CoreBudget?>(null) }
     var editingCategory by remember { mutableStateOf<CoreCategory?>(null) }
     var editingParentBudget by remember { mutableStateOf<CoreBudget?>(null) }
+    var monthPickerVisible by remember { mutableStateOf(false) }
+
+    val monthLabel = remember(selectedYearMonth) {
+        val parts = selectedYearMonth.split("-")
+        "${parts[0]}年${parts[1].toInt()}月"
+    }
 
     // 仅支出分类
     val expenseCategories = remember(appState.categories) {
@@ -91,6 +102,15 @@ fun BudgetListScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         MoniIcon(MoniIcons.ArrowBack, contentDescription = "返回")
+                    }
+                },
+                actions = {
+                    TextButton(onClick = { monthPickerVisible = true }) {
+                        Text(
+                            text = monthLabel,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0)
@@ -150,8 +170,23 @@ fun BudgetListScreen(
             budget = editingBudget,
             categoryName = categoryName,
             parentBudget = editingParentBudget,
+            yearMonth = selectedYearMonth,
             onDispatch = onDispatch,
             onDismiss = { editorVisible = false }
+        )
+    }
+
+    if (monthPickerVisible) {
+        val today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
+        MonthPickerSheet(
+            availableYearMonths = emptySet(),
+            currentYearMonth = selectedYearMonth,
+            todayYearMonth = today,
+            onYearMonthSelected = { selected ->
+                monthPickerVisible = false
+                onSelectYearMonth(selected)
+            },
+            onDismiss = { monthPickerVisible = false }
         )
     }
 }

@@ -76,7 +76,8 @@ data class CoreBudget(
     val spentCents: Long,
     val remainingCents: Long,
     val percentage: Double,
-    val status: String
+    val status: String,
+    val isSnapshot: Boolean = false
 )
 
 @Serializable

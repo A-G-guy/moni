@@ -4,14 +4,23 @@ use moni_contracts::budget::{Budget, BudgetPeriodType};
 use moni_contracts::types::{AmountCents, BudgetId, CategoryId};
 
 fn map_budget(row: &Row) -> Result<Budget, rusqlite::Error> {
+    let period_type_str: String = row.get("period_type")?;
+    let period_type = match period_type_str.as_str() {
+        "monthly" => BudgetPeriodType::Monthly,
+        other => {
+            log::warn!("数据库中存在未知的预算周期类型: {other}，id={}", row.get::<_, i64>("id")?);
+            return Err(rusqlite::Error::InvalidColumnType(
+                0,
+                "period_type".to_string(),
+                rusqlite::types::Type::Text,
+            ));
+        }
+    };
     Ok(Budget {
         id: row.get("id")?,
         category_id: row.get("category_id")?,
         amount_cents: row.get("amount_cents")?,
-        period_type: match row.get::<_, String>("period_type")?.as_str() {
-            "monthly" => BudgetPeriodType::Monthly,
-            _ => BudgetPeriodType::Monthly,
-        },
+        period_type,
         created_at: row.get("created_at")?,
         updated_at: row.get("updated_at")?,
     })

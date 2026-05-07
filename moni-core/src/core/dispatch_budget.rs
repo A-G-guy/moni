@@ -103,7 +103,7 @@ impl AppCoreRuntime {
             &category_spending,
         );
 
-        let bottleneck = calculator::bottleneck_budget(
+        let (bottleneck, bottleneck_name) = calculator::bottleneck_budget_with_name(
             category_id,
             &budget_dtos,
             &self.state.categories,
@@ -111,6 +111,7 @@ impl AppCoreRuntime {
         );
 
         // 模拟加上 amount_cents 后的状态
+        // 边界说明：effective 为 0 表示预算刚好用完 → critical；effective 为负表示已超支 → overrun
         let post_save_status = if let Some(eff) = effective {
             let remaining_after = eff - amount_cents;
             if remaining_after < 0 {
@@ -129,6 +130,7 @@ impl AppCoreRuntime {
             amount_cents,
             effective_available: effective,
             bottleneck_budget: bottleneck,
+            bottleneck_category_name: bottleneck_name,
             post_save_status,
         });
 

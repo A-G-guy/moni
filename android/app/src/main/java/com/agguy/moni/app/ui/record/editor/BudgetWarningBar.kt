@@ -50,22 +50,24 @@ fun BudgetWarningBar(
     val message = when {
         isOverrun -> {
             val overrunAmount = formatAmount(-effective)
-            val bottleneck = when (checkResult.bottleneckBudget) {
-                "total" -> "总预算"
-                "parent" -> "父级预算"
-                "self" -> "该分类预算"
-                else -> "预算"
-            }
+            val bottleneck = checkResult.bottleneckCategoryName?.let { "${it}预算" }
+                ?: when (checkResult.bottleneckBudget) {
+                    "total" -> "总预算"
+                    "parent" -> "父级预算"
+                    "self" -> "该分类预算"
+                    else -> "预算"
+                }
             "受${bottleneck}限制，本月已超支 ¥$overrunAmount"
         }
         isCritical -> {
             val remaining = formatAmount(effective)
-            val bottleneck = when (checkResult.bottleneckBudget) {
-                "total" -> "总预算"
-                "parent" -> "父级预算"
-                "self" -> "该分类预算"
-                else -> "预算"
-            }
+            val bottleneck = checkResult.bottleneckCategoryName?.let { "${it}预算" }
+                ?: when (checkResult.bottleneckBudget) {
+                    "total" -> "总预算"
+                    "parent" -> "父级预算"
+                    "self" -> "该分类预算"
+                    else -> "预算"
+                }
             "受${bottleneck}限制，本月建议最多再花 ¥$remaining"
         }
         else -> {

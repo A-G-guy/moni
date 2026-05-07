@@ -85,6 +85,7 @@ data class CoreBudgetCheckResult(
     val amountCents: Long,
     val effectiveAvailable: Long?,
     val bottleneckBudget: String?,
+    val bottleneckCategoryName: String?,
     val postSaveStatus: String?
 )
 

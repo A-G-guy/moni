@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.theme.iconNameToRes
 import com.agguy.moni.core.CoreBudget
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreIntent
@@ -270,7 +271,7 @@ private fun ParentBudgetItem(
 
                     // 分类图标 + 名称
                     MoniIcon(
-                        icon = MoniIcons.Budget,
+                        icon = iconNameToRes(category.iconName),
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
                         tint = MaterialTheme.colorScheme.primary
@@ -347,7 +348,7 @@ private fun ChildBudgetItem(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             MoniIcon(
-                icon = MoniIcons.Budget,
+                icon = iconNameToRes(category.iconName),
                 contentDescription = null,
                 modifier = Modifier.size(20.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant

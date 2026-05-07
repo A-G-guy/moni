@@ -98,40 +98,54 @@ pub fn effective_available(
 }
 
 /// 判断瓶颈层级（路径上最紧张的那条预算线）。
-/// 返回 "total" | "parent" | "self" 之一。
-pub fn bottleneck_budget(
+/// 返回 (瓶颈类型, 瓶颈分类名称)。
+/// 瓶颈类型："total" | "parent" | "self"。
+/// 瓶颈分类名称：total 为 None，parent/self 为对应分类名。
+pub fn bottleneck_budget_with_name(
     category_id: CategoryId,
     budgets: &[BudgetDto],
     categories: &[CategoryDto],
     category_spending: &HashMap<CategoryId, AmountCents>,
-) -> Option<String> {
-    // 使用元组存储 (remaining, bottleneck_name)，避免 unused_assignments 警告
-    let mut best: Option<(AmountCents, String)> = None;
+) -> (Option<String>, Option<String>) {
+    // 使用元组存储 (remaining, bottleneck_type, bottleneck_category_name)
+    let mut best: Option<(AmountCents, String, Option<String>)> = None;
 
     // 总预算
     if let Some(total_budget) = budgets.iter().find(|b| b.category_id.is_none()) {
         let total_spent = compute_total_spent(category_spending);
         let remaining = total_budget.amount_cents - total_spent;
-        best = Some((remaining, "total".to_string()));
+        best = Some((remaining, "total".to_string(), None));
     }
 
-    let category = categories.iter().find(|c| c.id == category_id)?;
+    let Some(category) = categories.iter().find(|c| c.id == category_id) else {
+        let t = best.as_ref().map(|(_, t, _)| t.clone());
+        let n = best.and_then(|(_, _, n)| n);
+        return (t, n);
+    };
 
     if let Some(parent_id) = category.parent_id {
         // 二级路径：先检查父一级
         if let Some(parent_budget) = budgets.iter().find(|b| b.category_id == Some(parent_id)) {
             let parent_spent = compute_parent_spent(parent_id, categories, category_spending);
             let remaining = parent_budget.amount_cents - parent_spent;
-            if best.as_ref().map_or(true, |(min, _)| remaining < *min) {
-                best = Some((remaining, "parent".to_string()));
+            let parent_name = categories
+                .iter()
+                .find(|c| c.id == parent_id)
+                .map(|c| c.name.clone());
+            if best.as_ref().map_or(true, |(min, _, _)| remaining < *min) {
+                best = Some((remaining, "parent".to_string(), parent_name));
             }
         }
         // 再检查二级自身
         if let Some(self_budget) = budgets.iter().find(|b| b.category_id == Some(category_id)) {
             let self_spent = category_spending.get(&category_id).copied().unwrap_or(0);
             let remaining = self_budget.amount_cents - self_spent;
-            if best.as_ref().map_or(true, |(min, _)| remaining < *min) {
-                best = Some((remaining, "self".to_string()));
+            if best.as_ref().map_or(true, |(min, _, _)| remaining < *min) {
+                best = Some((
+                    remaining,
+                    "self".to_string(),
+                    Some(category.name.clone()),
+                ));
             }
         }
     } else {
@@ -139,13 +153,20 @@ pub fn bottleneck_budget(
         if let Some(self_budget) = budgets.iter().find(|b| b.category_id == Some(category_id)) {
             let self_spent = compute_parent_spent(category_id, categories, category_spending);
             let remaining = self_budget.amount_cents - self_spent;
-            if best.as_ref().map_or(true, |(min, _)| remaining < *min) {
-                best = Some((remaining, "self".to_string()));
+            if best.as_ref().map_or(true, |(min, _, _)| remaining < *min) {
+                best = Some((
+                    remaining,
+                    "self".to_string(),
+                    Some(category.name.clone()),
+                ));
             }
         }
     }
 
-    best.map(|(_, name)| name)
+    match best {
+        Some((_, t, n)) => (Some(t), n),
+        None => (None, None),
+    }
 }
 
 /// 计算预算状态。
@@ -162,6 +183,10 @@ pub fn build_budget_dtos(
 ) -> Result<Vec<BudgetDto>, rusqlite::Error> {
     let category_spending = compute_category_spending(conn, year_month)?;
 
+    // 预计算分类索引，避免排序时重复遍历
+    let cat_by_id: std::collections::HashMap<CategoryId, &CategoryDto> =
+        categories.iter().map(|c| (c.id, c)).collect();
+
     let mut dtos: Vec<BudgetDto> = budgets
         .iter()
         .map(|b| {
@@ -169,7 +194,7 @@ pub fn build_budget_dtos(
 
             // 填充分类名称
             if let Some(cid) = b.category_id {
-                if let Some(cat) = categories.iter().find(|c| c.id == cid) {
+                if let Some(cat) = cat_by_id.get(&cid) {
                     dto.category_name = Some(cat.name.clone());
                 }
             } else {
@@ -181,7 +206,7 @@ pub fn build_budget_dtos(
                 // 总预算：当月所有支出
                 compute_total_spent(&category_spending)
             } else if let Some(cid) = b.category_id {
-                if let Some(cat) = categories.iter().find(|c| c.id == cid) {
+                if let Some(cat) = cat_by_id.get(&cid) {
                     if cat.parent_id.is_some() {
                         // 二级预算：该二级分类自身支出
                         category_spending.get(&cid).copied().unwrap_or(0)
@@ -216,17 +241,17 @@ pub fn build_budget_dtos(
             (None, Some(_)) => std::cmp::Ordering::Less,
             (Some(_), None) => std::cmp::Ordering::Greater,
             (Some(a_id), Some(b_id)) => {
-                let a_is_child = categories.iter().any(|c| c.id == a_id && c.parent_id.is_some());
-                let b_is_child = categories.iter().any(|c| c.id == b_id && c.parent_id.is_some());
+                let a_is_child = cat_by_id.get(&a_id).map_or(false, |c| c.parent_id.is_some());
+                let b_is_child = cat_by_id.get(&b_id).map_or(false, |c| c.parent_id.is_some());
 
                 if a_is_child && b_is_child {
                     // 都是二级：按父分类排序
-                    let a_parent = categories.iter().find(|c| c.id == a_id).and_then(|c| c.parent_id);
-                    let b_parent = categories.iter().find(|c| c.id == b_id).and_then(|c| c.parent_id);
+                    let a_parent = cat_by_id.get(&a_id).and_then(|c| c.parent_id);
+                    let b_parent = cat_by_id.get(&b_id).and_then(|c| c.parent_id);
                     a_parent.cmp(&b_parent).then_with(|| a_id.cmp(&b_id))
                 } else if a_is_child {
                     // a 是二级，b 是一级
-                    let a_parent = categories.iter().find(|c| c.id == a_id).and_then(|c| c.parent_id);
+                    let a_parent = cat_by_id.get(&a_id).and_then(|c| c.parent_id);
                     if a_parent == Some(b_id) {
                         std::cmp::Ordering::Greater // 子分类排父分类后面
                     } else {
@@ -234,7 +259,7 @@ pub fn build_budget_dtos(
                     }
                 } else if b_is_child {
                     // a 是一级，b 是二级
-                    let b_parent = categories.iter().find(|c| c.id == b_id).and_then(|c| c.parent_id);
+                    let b_parent = cat_by_id.get(&b_id).and_then(|c| c.parent_id);
                     if b_parent == Some(a_id) {
                         std::cmp::Ordering::Less // 父分类排子分类前面
                     } else {

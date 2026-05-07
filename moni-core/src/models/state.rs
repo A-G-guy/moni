@@ -25,7 +25,10 @@ pub struct BudgetCheckResult {
     pub category_id: i64,
     pub amount_cents: i64,
     pub effective_available: Option<i64>,
+    /// 瓶颈预算类型："total" | "parent" | "self"
     pub bottleneck_budget: Option<String>,
+    /// 瓶颈预算对应的具体分类名称（total 为 None）
+    pub bottleneck_category_name: Option<String>,
     pub post_save_status: Option<String>,
 }
 

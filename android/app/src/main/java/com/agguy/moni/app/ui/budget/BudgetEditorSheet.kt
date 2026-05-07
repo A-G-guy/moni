@@ -146,7 +146,7 @@ fun BudgetEditorSheet(
             )
             ButtonGroup(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(0.dp),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
                 overflowIndicator = {}
             ) {
                 toggleableItem(

@@ -14,8 +14,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 
@@ -35,6 +37,7 @@ fun DatePickerBottomSheet(
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = selectedTimestamp * 1000
     )
+    val scope = rememberCoroutineScope()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -55,7 +58,14 @@ fun DatePickerBottomSheet(
                 horizontalArrangement = Arrangement.End,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                TextButton(onClick = onDismiss) {
+                TextButton(
+                    onClick = {
+                        scope.launch {
+                            sheetState.hide()
+                            onDismiss()
+                        }
+                    }
+                ) {
                     Text("取消")
                 }
                 TextButton(
@@ -70,7 +80,10 @@ fun DatePickerBottomSheet(
                                 .toEpochSecond()
                             onDateSelected(startOfDay)
                         }
-                        onDismiss()
+                        scope.launch {
+                            sheetState.hide()
+                            onDismiss()
+                        }
                     }
                 ) {
                     Text("确定")

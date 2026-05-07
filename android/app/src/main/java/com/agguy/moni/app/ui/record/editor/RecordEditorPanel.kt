@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicTextField
@@ -29,12 +31,20 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,7 +52,9 @@ import com.agguy.moni.app.components.AutoResizeText
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.expenseRed
+import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreBudgetCheckResult
+import com.agguy.moni.core.RecordType
 import com.agguy.moni.core.util.formatAmount
 import java.time.Instant
 import java.time.LocalDate
@@ -73,6 +85,17 @@ fun RecordEditorPanel(
     onSave: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // 监听输入法可见性，收起时自动恢复小键盘
+    val density = LocalDensity.current
+    val imeBottom = WindowInsets.ime.getBottom(density)
+    var lastImeBottom by remember { mutableStateOf(0) }
+    LaunchedEffect(imeBottom) {
+        if (lastImeBottom > 0 && imeBottom == 0 && state.isNoteEditing) {
+            onNoteDone()
+        }
+        lastImeBottom = imeBottom
+    }
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -148,7 +171,8 @@ private fun AmountDisplay(
             MaterialTheme.colorScheme.expenseRed
         budgetCheckResult?.postSaveStatus == "critical" ->
             Color(0xFFFFA726) // 橙色
-        else -> MaterialTheme.colorScheme.onSurface
+        state.recordType == RecordType.INCOME -> MaterialTheme.colorScheme.incomeGreen
+        else -> MaterialTheme.colorScheme.expenseRed
     }
 
     Box(
@@ -187,13 +211,6 @@ private fun InfoRow(
     val timeText = dateTime.format(DateTimeFormatter.ofPattern("HH:mm"))
     val focusRequester = androidx.compose.runtime.remember { FocusRequester() }
 
-    // 备注编辑时自动请求焦点
-    androidx.compose.runtime.LaunchedEffect(state.isNoteEditing) {
-        if (state.isNoteEditing) {
-            focusRequester.requestFocus()
-        }
-    }
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -216,7 +233,7 @@ private fun InfoRow(
                 )
                 Text(
                     text = dateText,
-                    style = MaterialTheme.typography.labelMedium
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
 
@@ -226,7 +243,7 @@ private fun InfoRow(
             ) {
                 Text(
                     text = timeText,
-                    style = MaterialTheme.typography.labelMedium
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
         }
@@ -236,13 +253,30 @@ private fun InfoRow(
 
         // 右侧：备注区域
         if (state.isNoteEditing) {
+            var textFieldValue by remember {
+                mutableStateOf(TextFieldValue(state.note, TextRange(state.note.length)))
+            }
+            LaunchedEffect(state.isNoteEditing) {
+                if (state.isNoteEditing) {
+                    textFieldValue = TextFieldValue(state.note, TextRange(state.note.length))
+                    focusRequester.requestFocus()
+                }
+            }
+            LaunchedEffect(state.note) {
+                if (state.note != textFieldValue.text) {
+                    textFieldValue = TextFieldValue(state.note, TextRange(state.note.length))
+                }
+            }
             BasicTextField(
-                value = state.note,
-                onValueChange = { state.updateNote(it) },
+                value = textFieldValue,
+                onValueChange = {
+                    textFieldValue = it
+                    state.updateNote(it.text)
+                },
                 modifier = Modifier
                     .weight(2f)
                     .focusRequester(focusRequester),
-                textStyle = MaterialTheme.typography.labelMedium.copy(
+                textStyle = MaterialTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.onSurface
                 ),
                 singleLine = true,
@@ -297,7 +331,7 @@ private fun InfoRow(
                 )
                 Text(
                     text = state.note.ifEmpty { "备注" },
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = if (state.note.isEmpty()) {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     } else {

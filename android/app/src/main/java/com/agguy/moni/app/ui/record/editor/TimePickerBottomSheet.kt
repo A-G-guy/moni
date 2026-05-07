@@ -13,8 +13,10 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 
@@ -41,6 +43,7 @@ fun TimePickerBottomSheet(
         initialMinute = currentLocalTime.minute,
         is24Hour = true
     )
+    val scope = rememberCoroutineScope()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -60,13 +63,23 @@ fun TimePickerBottomSheet(
                 horizontalArrangement = Arrangement.End,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                TextButton(onClick = onDismiss) {
+                TextButton(
+                    onClick = {
+                        scope.launch {
+                            sheetState.hide()
+                            onDismiss()
+                        }
+                    }
+                ) {
                     Text("取消")
                 }
                 TextButton(
                     onClick = {
                         onTimeSelected(timePickerState.hour, timePickerState.minute)
-                        onDismiss()
+                        scope.launch {
+                            sheetState.hide()
+                            onDismiss()
+                        }
                     }
                 ) {
                     Text("确定")

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.icons.MoniIcon
 import com.agguy.moni.app.theme.GroupedCategoryIcons
 import com.agguy.moni.app.theme.iconNameToRes
+import com.agguy.moni.core.CoreBudgetCheckResult
 import com.agguy.moni.core.CoreCategory
 
 /** 网格列数 */
@@ -53,6 +54,8 @@ fun CategoryGridPager(
     categories: List<CoreCategory>,
     selectedCategoryId: Long,
     currentGridPage: Int,
+    budgetCheckResult: CoreBudgetCheckResult? = null,
+    currencySymbol: String = "",
     onCategorySelected: (Long) -> Unit,
     onGridPageChanged: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -94,6 +97,15 @@ fun CategoryGridPager(
                 .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
+            // 预算预警条（作为滚动内容顶部，避免挤压底部键盘）
+            if (budgetCheckResult != null && budgetCheckResult.effectiveAvailable != null) {
+                BudgetWarningBar(
+                    checkResult = budgetCheckResult,
+                    currencySymbol = currencySymbol,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+            }
+
             val rows = flatItems.chunked(GRID_COLUMNS)
             rows.forEach { rowItems ->
                 Row(
@@ -224,10 +236,10 @@ private fun SubCategoryItem(
         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
     }
 
-    val borderWidth = if (isSelected) 1.5.dp else 1.dp
+    val borderWidth = if (isSelected) 2.dp else 1.dp
 
     val containerColor = if (isSelected) {
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f)
+        MaterialTheme.colorScheme.primaryContainer
     } else {
         Color.Transparent
     }
@@ -257,12 +269,14 @@ private fun SubCategoryItem(
             MoniIcon(
                 icon = displayIcon,
                 contentDescription = null,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(28.dp),
                 tint = contentColor
             )
             Text(
                 text = category.name,
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.Medium
+                ),
                 color = contentColor,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

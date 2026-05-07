@@ -130,7 +130,7 @@ class RecordEditorState(saved: List<Any?>?) {
     fun appendDigit(digit: String) {
         if (digit == ".") {
             if (isInDecimalMode || amountExpression.isEmpty()) return
-            val lastOpIndex = amountExpression.lastIndexOfAny(charArrayOf('+', '-'))
+            val lastOpIndex = amountExpression.lastIndexOfAny(charArrayOf('+', '-', '×', '÷'))
             val lastOperand = if (lastOpIndex >= 0) {
                 amountExpression.substring(lastOpIndex + 1)
             } else {
@@ -148,7 +148,7 @@ class RecordEditorState(saved: List<Any?>?) {
             decimalDigits++
         }
 
-        val lastOpIndex = amountExpression.lastIndexOfAny(charArrayOf('+', '-'))
+        val lastOpIndex = amountExpression.lastIndexOfAny(charArrayOf('+', '-', '×', '÷'))
         val lastOperand = if (lastOpIndex >= 0) {
             amountExpression.substring(lastOpIndex + 1)
         } else {
@@ -164,7 +164,7 @@ class RecordEditorState(saved: List<Any?>?) {
     /** 追加运算符 */
     fun appendOperator(op: String) {
         if (amountExpression.isEmpty()) return
-        if (amountExpression.last() in setOf('+', '-', '.')) {
+        if (amountExpression.last() in setOf('+', '-', '×', '÷', '.')) {
             amountExpression = amountExpression.dropLast(1)
         }
         amountExpression += op

@@ -17,6 +17,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -46,7 +50,7 @@ fun CustomNumPad(
     val hasPendingOp = ExpressionEvaluator.hasPendingOperation(amountExpression)
     val canSave = amountCents > 0 && hasSelectedCategory && !hasPendingOp
     val canCalculate = hasPendingOp && amountExpression.isNotEmpty()
-            && amountExpression.last() !in setOf('+', '-', '.')
+            && amountExpression.last() !in setOf('+', '-', '×', '÷', '.')
 
     val actionButtonText = when {
         canSave -> "保存"
@@ -56,24 +60,33 @@ fun CustomNumPad(
 
     val actionButtonEnabled = canSave || canCalculate
 
+    var plusOp by remember { mutableStateOf("+") }
+    var minusOp by remember { mutableStateOf("-") }
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        // 第一行: 7 8 9 +
+        // 第一行: 7 8 9 +/×
         KeyRow {
             NumKey("7") { onDigitClick("7") }
             NumKey("8") { onDigitClick("8") }
             NumKey("9") { onDigitClick("9") }
-            OpKey("+") { onOperatorClick("+") }
+            OpKey(plusOp) {
+                onOperatorClick(plusOp)
+                plusOp = if (plusOp == "+") "×" else "+"
+            }
         }
 
-        // 第二行: 4 5 6 -
+        // 第二行: 4 5 6 -/÷
         KeyRow {
             NumKey("4") { onDigitClick("4") }
             NumKey("5") { onDigitClick("5") }
             NumKey("6") { onDigitClick("6") }
-            OpKey("-") { onOperatorClick("-") }
+            OpKey(minusOp) {
+                onOperatorClick(minusOp)
+                minusOp = if (minusOp == "-") "÷" else "-"
+            }
         }
 
         // 第三行 + 第四行合并右侧保存按钮（weight=2f 使内部两行与上方各行等高）

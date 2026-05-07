@@ -45,7 +45,6 @@ import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.CoreRecord
 import com.agguy.moni.core.RecordType
 import com.agguy.moni.core.serialName
-import com.agguy.moni.app.ui.record.editor.BudgetWarningBar
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -95,13 +94,15 @@ fun RecordDetailScreen(
         }
     }
 
-    // 监听金额/分类变化，触发预算实时检查（300ms debounce，避免快速输入时过度触发）
+    // 监听金额/分类变化，触发预算实时检查。
+    // 首次延迟 50ms（几乎立即），后续延迟 150ms（避免快速输入时过度触发）。
     LaunchedEffect(state.confirmedAmountCents, state.selectedCategoryId, state.recordType) {
         if (state.recordType == RecordType.EXPENSE &&
             state.confirmedAmountCents > 0 &&
             state.selectedCategoryId != -1L
         ) {
-            kotlinx.coroutines.delay(300)
+            val delayMs = if (displayedCheckResult == null) 50L else 150L
+            kotlinx.coroutines.delay(delayMs)
             val yearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
             onDispatch(
                 CoreIntent.BudgetCheck(
@@ -184,23 +185,14 @@ fun RecordDetailScreen(
                 categories = filteredCategories,
                 selectedCategoryId = state.selectedCategoryId,
                 currentGridPage = state.currentGridPage,
+                budgetCheckResult = displayedCheckResult,
+                currencySymbol = appState.currencySymbol,
                 onCategorySelected = { state.selectCategory(it) },
                 onGridPageChanged = { state.currentGridPage = it },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 4.dp)
             )
-
-            // 预算预警条
-            if (state.recordType == RecordType.EXPENSE &&
-                state.confirmedAmountCents > 0 &&
-                state.selectedCategoryId != -1L
-            ) {
-                BudgetWarningBar(
-                    checkResult = displayedCheckResult,
-                    currencySymbol = appState.currencySymbol
-                )
-            }
 
             // 弹性间距：将编辑器推至底部，多余空白留在分类与金额之间
             Spacer(modifier = Modifier.weight(1f))

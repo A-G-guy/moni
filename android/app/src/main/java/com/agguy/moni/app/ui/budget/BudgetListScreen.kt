@@ -78,7 +78,11 @@ fun BudgetListScreen(
 
     val monthLabel = remember(selectedYearMonth) {
         val parts = selectedYearMonth.split("-")
-        "${parts[0]}年${parts[1].toInt()}月"
+        if (parts.size == 2) {
+            "${parts[0]}年${parts[1].toInt()}月"
+        } else {
+            ""
+        }
     }
 
     // 仅支出分类

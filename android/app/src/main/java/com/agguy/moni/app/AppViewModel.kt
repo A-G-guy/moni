@@ -78,16 +78,16 @@ class AppViewModel(
         }
 
         viewModelScope.launch {
+            val currentYearMonth = LocalDate.now()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM"))
+            _selectedYearMonth.value = currentYearMonth
+
             try {
                 LogCollector.i("AppViewModel", "开始初始化数据库")
                 val dbPath = application.filesDir.absolutePath + "/moni.db"
                 val mutation = rustCore.initializeWithDb(dbPath)
                 applyMutation(mutation)
                 LogCollector.i("AppViewModel", "数据库初始化完成: $dbPath")
-
-                val currentYearMonth = LocalDate.now()
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM"))
-                _selectedYearMonth.value = currentYearMonth
 
                 dispatch(CoreIntent.CategoryList)
                 dispatch(CoreIntent.StatsMonthlySummary(months = 36))
@@ -102,6 +102,9 @@ class AppViewModel(
                 try {
                     val mutation = rustCore.initialize()
                     applyMutation(mutation)
+                    // 内存模式下也要加载基础数据，确保页面正常显示
+                    dispatch(CoreIntent.CategoryList)
+                    dispatch(CoreIntent.RecordListByMonth(yearMonth = currentYearMonth))
                 } catch (inner: Exception) {
                     LogCollector.e("AppViewModel", "内存模式初始化也失败", inner)
                     _uiState.value = _uiState.value.copy(errorMessage = "应用初始化失败，请重启应用")

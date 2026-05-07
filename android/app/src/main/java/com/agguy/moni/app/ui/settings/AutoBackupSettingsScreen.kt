@@ -66,6 +66,12 @@ fun AutoBackupSettingsScreen(
         .collectAsStateWithLifecycle(initialValue = "daily")
     val maxCount by DataStoreHelper.autoBackupMaxCountFlow(context)
         .collectAsStateWithLifecycle(initialValue = 7)
+    // 滑块本地状态，避免滑动过程中频繁写入 DataStore
+    var sliderValue by remember { mutableStateOf(maxCount.toFloat()) }
+    // 当 DataStore 值变化时同步本地状态（如从其他页面返回）
+    androidx.compose.runtime.LaunchedEffect(maxCount) {
+        sliderValue = maxCount.toFloat()
+    }
     val copyToExternal by DataStoreHelper.autoBackupCopyToExternalFlow(context)
         .collectAsStateWithLifecycle(initialValue = false)
     val externalUri by DataStoreHelper.autoBackupExternalUriFlow(context)
@@ -153,16 +159,17 @@ fun AutoBackupSettingsScreen(
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
-                                "$maxCount 个",
+                                "${sliderValue.toInt()} 个",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
                         Slider(
-                            value = maxCount.toFloat(),
-                            onValueChange = {
+                            value = sliderValue,
+                            onValueChange = { sliderValue = it },
+                            onValueChangeFinished = {
                                 scope.launch {
-                                    DataStoreHelper.saveAutoBackupMaxCount(context, it.toInt())
+                                    DataStoreHelper.saveAutoBackupMaxCount(context, sliderValue.toInt())
                                 }
                             },
                             valueRange = 3f..30f,

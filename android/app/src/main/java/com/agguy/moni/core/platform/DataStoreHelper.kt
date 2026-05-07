@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
@@ -251,6 +252,24 @@ object DataStoreHelper {
                 "preset_color_scheme" to kotlinx.serialization.json.JsonPrimitive(
                     preferences[PRESET_COLOR_SCHEME_KEY] ?: "default"
                 ),
+                "auto_backup_enabled" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[AUTO_BACKUP_ENABLED_KEY] ?: false
+                ),
+                "auto_backup_frequency" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[AUTO_BACKUP_FREQUENCY_KEY] ?: "daily"
+                ),
+                "auto_backup_max_count" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[AUTO_BACKUP_MAX_COUNT_KEY] ?: 7
+                ),
+                "auto_backup_copy_to_external" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[AUTO_BACKUP_COPY_TO_EXTERNAL_KEY] ?: false
+                ),
+                "auto_backup_external_uri" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[AUTO_BACKUP_EXTERNAL_URI_KEY]
+                ),
+                "auto_backup_last_time" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[AUTO_BACKUP_LAST_TIME_KEY]
+                ),
             )
         ).toString()
     }
@@ -279,6 +298,32 @@ object DataStoreHelper {
             }
             obj["preset_color_scheme"]?.jsonPrimitive?.content?.let {
                 preferences[PRESET_COLOR_SCHEME_KEY] = it
+            }
+
+            // 自动备份配置（旧备份可能不含这些字段，缺失时保留当前值）
+            obj["auto_backup_enabled"]?.jsonPrimitive?.booleanOrNull?.let {
+                preferences[AUTO_BACKUP_ENABLED_KEY] = it
+            }
+            obj["auto_backup_frequency"]?.jsonPrimitive?.content?.let {
+                preferences[AUTO_BACKUP_FREQUENCY_KEY] = it
+            }
+            obj["auto_backup_max_count"]?.jsonPrimitive?.intOrNull?.let {
+                preferences[AUTO_BACKUP_MAX_COUNT_KEY] = it.coerceIn(3, 30)
+            }
+            obj["auto_backup_copy_to_external"]?.jsonPrimitive?.booleanOrNull?.let {
+                preferences[AUTO_BACKUP_COPY_TO_EXTERNAL_KEY] = it
+            }
+
+            // 处理可能为 JSON null 的可选字符串字段
+            when (val el = obj["auto_backup_external_uri"]) {
+                is JsonNull -> preferences.remove(AUTO_BACKUP_EXTERNAL_URI_KEY)
+                is JsonPrimitive -> preferences[AUTO_BACKUP_EXTERNAL_URI_KEY] = el.content
+                else -> {}
+            }
+            when (val el = obj["auto_backup_last_time"]) {
+                is JsonNull -> preferences.remove(AUTO_BACKUP_LAST_TIME_KEY)
+                is JsonPrimitive -> preferences[AUTO_BACKUP_LAST_TIME_KEY] = el.content
+                else -> {}
             }
         }
     }

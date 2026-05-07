@@ -83,7 +83,8 @@ pub fn perform_auto_backup(
     std::fs::create_dir_all(backup_dir)
         .map_err(|e| CoreError::BackupIo(format!("创建备份目录失败: {e}")))?;
 
-    let timestamp = chrono::Local::now().format("%Y%m%d_%H%M%S").to_string();
+    let now = chrono::Local::now();
+    let timestamp = now.format("%Y%m%d_%H%M%S").to_string();
     let file_name = format!("{AUTO_BACKUP_PREFIX}{timestamp}{AUTO_BACKUP_SUFFIX}");
     let zip_path = std::path::Path::new(backup_dir).join(&file_name);
     let zip_path_str = zip_path
@@ -108,7 +109,7 @@ pub fn perform_auto_backup(
         record_count: report.record_count,
         category_count: report.category_count,
         settings_count: report.settings_count,
-        created_at: chrono::Local::now().to_rfc3339(),
+        created_at: now.to_rfc3339(),
     })
 }
 
@@ -134,14 +135,17 @@ pub fn cleanup_auto_backups(backup_dir: &str, max_count: u32) -> Result<u32, Cor
         })
         .collect();
 
-    // 按修改时间降序（最新的在前）
+    // 按修改时间降序（最新的在前），时间相同时按文件名降序保证确定性
     entries.sort_by(|a, b| {
         let a_meta = a.metadata().and_then(|m| m.modified()).ok();
         let b_meta = b.metadata().and_then(|m| m.modified()).ok();
-        match (a_meta, b_meta) {
+        let time_cmp = match (a_meta, b_meta) {
             (Some(a_time), Some(b_time)) => b_time.cmp(&a_time),
-            _ => std::cmp::Ordering::Equal,
-        }
+            (Some(_), None) => std::cmp::Ordering::Less,
+            (None, Some(_)) => std::cmp::Ordering::Greater,
+            (None, None) => std::cmp::Ordering::Equal,
+        };
+        time_cmp.then_with(|| b.file_name().cmp(&a.file_name()))
     });
 
     if entries.len() <= max_count as usize {

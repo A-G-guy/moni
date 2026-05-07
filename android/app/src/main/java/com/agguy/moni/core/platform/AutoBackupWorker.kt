@@ -114,7 +114,11 @@ class AutoBackupWorker(
         }
 
         // 7. 更新上次备份时间
-        DataStoreHelper.saveAutoBackupLastTime(ctx, report.createdAt)
+        try {
+            DataStoreHelper.saveAutoBackupLastTime(ctx, report.createdAt)
+        } catch (e: Exception) {
+            LogCollector.e("AutoBackupWorker", "更新上次备份时间失败", e)
+        }
 
         return Result.success()
     }

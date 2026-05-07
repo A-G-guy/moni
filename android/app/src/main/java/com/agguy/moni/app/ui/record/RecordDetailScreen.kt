@@ -180,7 +180,7 @@ fun RecordDetailScreen(
                     .padding(bottom = 4.dp)
             )
 
-            // 中部：分类网格（内容自适应高度，内部垂直滚动）
+            // 中部：分类网格（占满剩余空间，内部垂直滚动，预算条在滚动区内）
             CategoryGridPager(
                 categories = filteredCategories,
                 selectedCategoryId = state.selectedCategoryId,
@@ -191,13 +191,11 @@ fun RecordDetailScreen(
                 onGridPageChanged = { state.currentGridPage = it },
                 modifier = Modifier
                     .fillMaxWidth()
+                    .weight(1f)
                     .padding(bottom = 4.dp)
             )
 
-            // 弹性间距：将编辑器推至底部，多余空白留在分类与金额之间
-            Spacer(modifier = Modifier.weight(1f))
-
-            // 底部：综合控制面板（内容自适应高度）
+            // 底部：综合控制面板（固定高度区域，包含金额/信息行/键盘）
             RecordEditorPanel(
                 state = state,
                 currencySymbol = appState.currencySymbol,

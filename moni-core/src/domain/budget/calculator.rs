@@ -16,7 +16,7 @@ pub fn compute_category_spending(
         "SELECT category_id, SUM(amount_cents) as total
          FROM records
          WHERE record_type = 'expense'
-           AND strftime('%Y-%m', datetime(created_at, 'unixepoch')) = ?1
+           AND year_month = ?1
          GROUP BY category_id",
     )?;
     let rows = stmt.query_map([year_month], |row| {
@@ -37,7 +37,7 @@ pub fn compute_parent_category_spending(
          FROM records
          WHERE record_type = 'expense'
            AND parent_category_id IS NOT NULL
-           AND strftime('%Y-%m', datetime(created_at, 'unixepoch')) = ?1
+           AND year_month = ?1
          GROUP BY parent_category_id",
     )?;
     let rows = stmt.query_map([year_month], |row| {
@@ -118,7 +118,6 @@ pub fn effective_available(
 /// 判断瓶颈层级（路径上最紧张的那条预算线）。
 /// 返回 (瓶颈类型, 瓶颈分类名称)。
 /// 瓶颈类型："total" | "parent" | "self"。
-/// 瓶颈分类名称：total 为 None，parent/self 为对应分类名。
 pub fn bottleneck_budget_with_name(
     category_id: CategoryId,
     budgets: &[BudgetDto],
@@ -188,11 +187,6 @@ pub fn bottleneck_budget_with_name(
     }
 }
 
-/// 计算预算状态。
-fn budget_status(percentage: f64) -> BudgetStatus {
-    BudgetStatus::from_percentage(percentage)
-}
-
 /// 构建完整的 BudgetDto 列表（含实时计算字段）。
 /// 同时返回 category_spending 和 parent_category_spending，供调用方复用，避免重复查询。
 pub fn build_budget_dtos(
@@ -249,13 +243,13 @@ pub fn build_budget_dtos(
             #[allow(clippy::cast_precision_loss)]
             let percentage = (spent as f64) / (b.amount_cents as f64);
             dto.percentage = percentage;
-            dto.status = budget_status(percentage).as_str().to_string();
+            dto.status = BudgetStatus::from_percentage(percentage).as_str().to_string();
 
             dto
         })
         .collect();
 
-    // 排序：总预算在前，然后按一级分类排序，二级分类紧随其后
+    // 排序：总预算在前，然后按一级分类 sort_order 排序，二级分类紧随其父分类
     dtos.sort_by(|a, b| {
         match (a.category_id, b.category_id) {
             (None, None) => std::cmp::Ordering::Equal,
@@ -266,7 +260,7 @@ pub fn build_budget_dtos(
                 let b_is_child = cat_by_id.get(&b_id).map_or(false, |c| c.parent_id.is_some());
 
                 if a_is_child && b_is_child {
-                    // 都是二级：按父分类排序
+                    // 都是二级：先按父分类排序，再按自身排序
                     let a_parent = cat_by_id.get(&a_id).and_then(|c| c.parent_id);
                     let b_parent = cat_by_id.get(&b_id).and_then(|c| c.parent_id);
                     a_parent.cmp(&b_parent).then_with(|| a_id.cmp(&b_id))
@@ -287,8 +281,10 @@ pub fn build_budget_dtos(
                         Some(a_id).cmp(&b_parent)
                     }
                 } else {
-                    // 都是一级：按 ID 排序（或按 sort_order）
-                    a_id.cmp(&b_id)
+                    // 都是一级：按 sort_order 排序，相同时 fallback 到 id
+                    let a_order = cat_by_id.get(&a_id).map(|c| c.sort_order).unwrap_or(0);
+                    let b_order = cat_by_id.get(&b_id).map(|c| c.sort_order).unwrap_or(0);
+                    a_order.cmp(&b_order).then_with(|| a_id.cmp(&b_id))
                 }
             }
         }

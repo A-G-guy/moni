@@ -22,7 +22,8 @@ impl AppCoreRuntime {
         self.state.record_groups = crate::dto::group_records_by_date(&self.state.records);
 
         if record.record_type == moni_contracts::record::RecordType::Expense {
-            self.refresh_budget_states(None)?;
+            let ym = super::year_month_from_timestamp(record.created_at);
+            self.refresh_budget_states(Some(&ym))?;
         }
 
         self.finish(vec![CoreEffect {

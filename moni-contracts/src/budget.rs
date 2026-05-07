@@ -23,6 +23,14 @@ pub enum BudgetPeriodType {
     Monthly,
 }
 
+impl BudgetPeriodType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            BudgetPeriodType::Monthly => "monthly",
+        }
+    }
+}
+
 /// 预算状态
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]

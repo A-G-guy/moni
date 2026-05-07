@@ -50,8 +50,14 @@ private fun centsToInputText(cents: Long): String {
 
 private fun inputTextToCents(text: String): Long {
     if (text.isEmpty() || text == ".") return 0
-    val value = text.toDoubleOrNull() ?: return 0
-    return (value * 100).toLong()
+    val parts = text.split(".")
+    val yuan = parts[0].toLongOrNull() ?: return 0
+    val fen = if (parts.size > 1) {
+        parts[1].padEnd(2, '0').take(2).toLongOrNull() ?: 0
+    } else {
+        0
+    }
+    return yuan * 100 + fen
 }
 
 @Composable

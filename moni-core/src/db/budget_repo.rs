@@ -34,6 +34,8 @@ fn map_budget(row: &Row) -> Result<Budget, rusqlite::Error> {
 /// 插入或更新预算。
 ///
 /// `year_month` 为 `None` 时操作模板，为 `Some("YYYY-MM")` 时操作月度快照。
+/// 快照使用 SQLite upsert 保证原子性；模板因 SQLite UNIQUE 对 NULL 的语义限制，
+/// 仍采用 SELECT-then-UPDATE/INSERT 模式，但 idx_budgets_unique 索引在异常路径下阻止重复。
 pub fn upsert(
     conn: &Connection,
     category_id: Option<CategoryId>,
@@ -42,25 +44,43 @@ pub fn upsert(
 ) -> Result<BudgetId, rusqlite::Error> {
     let now = chrono::Utc::now().timestamp();
 
+    // 快照（year_month 非 NULL）：使用原子 upsert
+    if let Some(ym) = year_month {
+        conn.execute(
+            "INSERT INTO budgets (category_id, amount_cents, year_month, period_type, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+             ON CONFLICT(category_id, year_month) DO UPDATE SET
+                 amount_cents = excluded.amount_cents,
+                 updated_at = excluded.updated_at",
+            (category_id, amount_cents, ym, "monthly", now, now),
+        )?;
+        let id: i64 = conn.query_row(
+            "SELECT id FROM budgets WHERE category_id IS ?1 AND year_month = ?2",
+            (category_id, ym),
+            |row| row.get(0),
+        )?;
+        return Ok(id);
+    }
+
+    // 模板（year_month = NULL）：SQLite UNIQUE 对 NULL 不视为相等，需要手动处理
     let existing: Option<BudgetId> = conn
         .query_row(
-            "SELECT id FROM budgets WHERE category_id IS ?1 AND year_month IS ?2",
-            (category_id, year_month),
+            "SELECT id FROM budgets WHERE category_id IS ?1 AND year_month IS NULL",
+            [category_id],
             |row| row.get(0),
         )
         .optional()?;
-
     if let Some(id) = existing {
         conn.execute(
-            "UPDATE budgets SET amount_cents = ?2, updated_at = ?3 WHERE id = ?1",
-            (id, amount_cents, now),
+            "UPDATE budgets SET amount_cents = ?1, updated_at = ?2 WHERE id = ?3",
+            (amount_cents, now, id),
         )?;
         Ok(id)
     } else {
         conn.execute(
             "INSERT INTO budgets (category_id, amount_cents, year_month, period_type, created_at, updated_at)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-            (category_id, amount_cents, year_month, "monthly", now, now),
+            (category_id, amount_cents, Option::<&str>::None, "monthly", now, now),
         )?;
         Ok(conn.last_insert_rowid())
     }

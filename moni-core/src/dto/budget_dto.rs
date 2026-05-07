@@ -30,7 +30,7 @@ impl BudgetDto {
             category_id: budget.category_id,
             category_name: None,
             amount_cents: budget.amount_cents,
-            period_type: "monthly".to_string(),
+            period_type: budget.period_type.as_str().to_string(),
             created_at: budget.created_at,
             updated_at: budget.updated_at,
             spent_cents: 0,

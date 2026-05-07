@@ -21,6 +21,16 @@ fn map_record(row: &Row) -> Result<Record, rusqlite::Error> {
     })
 }
 
+/// 从 UTC 时间戳推导 year_month（"YYYY-MM" 格式）。
+fn year_month_from_timestamp(ts: TimestampSec) -> String {
+    chrono::DateTime::from_timestamp(ts, 0)
+        .map(|dt| dt.format("%Y-%m").to_string())
+        .unwrap_or_else(|| {
+            log::warn!("无法从时间戳 {} 计算 year_month，回退到当前 UTC 月份", ts);
+            chrono::Utc::now().format("%Y-%m").to_string()
+        })
+}
+
 /// 插入新记录。
 pub fn insert(
     conn: &Connection,
@@ -33,9 +43,11 @@ pub fn insert(
 ) -> Result<RecordId, rusqlite::Error> {
     let now = chrono::Utc::now().timestamp();
     let created_at = timestamp.unwrap_or(now);
+    let year_month = year_month_from_timestamp(created_at);
+
     conn.execute(
-        "INSERT INTO records (amount_cents, record_type, category_id, parent_category_id, note, created_at, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        "INSERT INTO records (amount_cents, record_type, category_id, parent_category_id, note, created_at, updated_at, year_month)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
         (
             amount_cents,
             match record_type {
@@ -47,6 +59,7 @@ pub fn insert(
             note,
             created_at,
             now,
+            year_month,
         ),
     )?;
     Ok(conn.last_insert_rowid())
@@ -125,9 +138,7 @@ pub fn list_by_year_month(
     year_month: &str,
 ) -> Result<Vec<Record>, rusqlite::Error> {
     let mut stmt = conn.prepare(
-        "SELECT * FROM records
-         WHERE strftime('%Y-%m', datetime(created_at, 'unixepoch')) = ?1
-         ORDER BY created_at DESC"
+        "SELECT * FROM records WHERE year_month = ?1 ORDER BY created_at DESC"
     )?;
     let rows = stmt.query_map([year_month], map_record)?;
     rows.collect()
@@ -146,19 +157,20 @@ pub fn monthly_aggregates(
         .and_hms_opt(0, 0, 0)
         .ok_or_else(|| rusqlite::Error::InvalidParameterName("无效的时间参数".to_string()))?;
     let start_timestamp = start_datetime.and_utc().timestamp();
+    let start_ym = year_month_from_timestamp(start_timestamp);
 
     let mut stmt = conn.prepare(
         "SELECT
-            strftime('%Y-%m', datetime(created_at, 'unixepoch')) as year_month,
+            year_month,
             SUM(CASE WHEN record_type = 'income' THEN amount_cents ELSE 0 END) as income,
             SUM(CASE WHEN record_type = 'expense' THEN amount_cents ELSE 0 END) as expense
          FROM records
-         WHERE created_at >= ?1
+         WHERE year_month >= ?1
          GROUP BY year_month
          ORDER BY year_month ASC
          LIMIT ?2",
     )?;
-    let rows = stmt.query_map((start_timestamp, i64::from(months)), |row| {
+    let rows = stmt.query_map((start_ym, i64::from(months)), |row| {
         Ok((
             row.get::<_, String>(0)?,
             row.get::<_, Option<AmountCents>>(1)?.unwrap_or(0),
@@ -181,7 +193,7 @@ pub fn category_aggregates(
          FROM records r
          JOIN categories c ON r.category_id = c.id
          WHERE r.record_type = 'expense'
-           AND strftime('%Y-%m', datetime(r.created_at, 'unixepoch')) = ?1
+           AND r.year_month = ?1
          GROUP BY c.id
          ORDER BY total DESC",
     )?;
@@ -209,7 +221,7 @@ pub fn category_aggregates_by_parent(
          JOIN categories c ON r.category_id = c.id
          LEFT JOIN categories p ON r.parent_category_id = p.id
          WHERE r.record_type = 'expense'
-           AND strftime('%Y-%m', datetime(r.created_at, 'unixepoch')) = ?1
+           AND r.year_month = ?1
          GROUP BY COALESCE(p.id, c.id)
          ORDER BY total DESC",
     )?;
@@ -222,4 +234,3 @@ pub fn category_aggregates_by_parent(
     })?;
     rows.collect()
 }
-

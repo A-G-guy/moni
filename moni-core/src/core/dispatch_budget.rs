@@ -48,6 +48,8 @@ impl AppCoreRuntime {
         amount_cents: AmountCents,
         scope: &str,
     ) -> Result<CoreUpdate, CoreError> {
+        validate_year_month(year_month)?;
+
         if amount_cents <= 0 {
             log::warn!("设置预算失败: 金额必须大于0");
             return Err(CoreError::InvalidInput("预算金额必须大于0".to_string()));
@@ -63,31 +65,36 @@ impl AppCoreRuntime {
             }
         }
 
+        // 多步写入操作需要事务保护
+        let tx = self.conn.transaction()?;
+
         match scope {
             "this_month" => {
-                budget_repo::upsert(&self.conn, category_id, Some(year_month), amount_cents)?;
+                budget_repo::upsert(&tx, category_id, Some(year_month), amount_cents,
+                )?;
             }
             "this_and_future" => {
-                budget_repo::upsert(&self.conn, category_id, None, amount_cents)?;
-                budget_repo::delete_snapshots_from(&self.conn, category_id, year_month)?;
+                budget_repo::upsert(&tx, category_id, None, amount_cents)?;
+                budget_repo::delete_snapshots_from(&tx, category_id, year_month)?;
             }
             "future_only" => {
                 // 若当前月无快照，用旧模板值创建当前月快照以保留当前月
                 let has_snapshot =
-                    budget_repo::has_snapshot_for_month(&self.conn, category_id, year_month)?;
+                    budget_repo::has_snapshot_for_month(&tx, category_id, year_month)?;
                 if !has_snapshot {
-                    if let Some(template) = budget_repo::get_template(&self.conn, category_id)? {
+                    if let Some(template) = budget_repo::get_template(&tx, category_id)? {
                         budget_repo::upsert(
-                            &self.conn,
+                            &tx,
                             category_id,
                             Some(year_month),
                             template.amount_cents,
                         )?;
                     }
                 }
-                budget_repo::upsert(&self.conn, category_id, None, amount_cents)?;
-                let next_month = compute_next_month(year_month);
-                budget_repo::delete_snapshots_from(&self.conn, category_id, &next_month)?;
+                budget_repo::upsert(&tx, category_id, None, amount_cents)?;
+                let next_month = compute_next_month(year_month)?;
+                budget_repo::delete_snapshots_from(
+                    &tx, category_id, &next_month)?;
             }
             other => {
                 log::warn!("无效的预算范围: {other}");
@@ -95,6 +102,9 @@ impl AppCoreRuntime {
             }
         }
 
+        tx.commit()?;
+
+        self.state.budget_check_result = None;
         self.refresh_budget_states(Some(year_month))?;
 
         let msg = if category_id.is_some() {
@@ -114,15 +124,19 @@ impl AppCoreRuntime {
         year_month: &str,
         scope: &str,
     ) -> Result<CoreUpdate, CoreError> {
+        validate_year_month(year_month)?;
+
         let budget = budget_repo::get_by_id(&self.conn, id)?
             .ok_or_else(|| CoreError::Internal("预算不存在".to_string()))?;
+
+        let tx = self.conn.transaction()?;
 
         match scope {
             "this_month" => {
                 // 从本月起停止预算：删除模板 + 删除从当前月开始的所有快照
-                budget_repo::delete_template(&self.conn, budget.category_id)?;
+                budget_repo::delete_template(&tx, budget.category_id)?;
                 budget_repo::delete_snapshots_from(
-                    &self.conn,
+                    &tx,
                     budget.category_id,
                     year_month,
                 )?;
@@ -131,25 +145,21 @@ impl AppCoreRuntime {
                 // 保留当前月（无快照则创建）
                 let has_snapshot =
                     budget_repo::has_snapshot_for_month(
-                        &self.conn, budget.category_id, year_month)?;
+                        &tx, budget.category_id, year_month)?;
                 if !has_snapshot {
                     budget_repo::upsert(
-                        &self.conn,
+                        &tx,
                         budget.category_id,
                         Some(year_month),
                         budget.amount_cents,
                     )?;
                 }
                 // 删除模板
-                if budget.year_month.is_none() {
-                    budget_repo::delete(&self.conn, id)?;
-                } else {
-                    budget_repo::delete_template(&self.conn, budget.category_id)?;
-                }
+                budget_repo::delete_template(&tx, budget.category_id)?;
                 // 删除下月及以后的快照
-                let next_month = compute_next_month(year_month);
+                let next_month = compute_next_month(year_month)?;
                 budget_repo::delete_snapshots_from(
-                    &self.conn,
+                    &tx,
                     budget.category_id,
                     &next_month,
                 )?;
@@ -160,6 +170,9 @@ impl AppCoreRuntime {
             }
         }
 
+        tx.commit()?;
+
+        self.state.budget_check_result = None;
         self.refresh_budget_states(Some(year_month))?;
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),
@@ -167,7 +180,14 @@ impl AppCoreRuntime {
         }])
     }
 
-    fn handle_budget_list(&mut self, year_month: Option<&str>) -> Result<CoreUpdate, CoreError> {
+    fn handle_budget_list(
+        &mut self,
+        year_month: Option<&str>,
+    ) -> Result<CoreUpdate, CoreError> {
+        if let Some(ym) = year_month {
+            validate_year_month(ym)?;
+        }
+        self.state.budget_check_result = None;
         self.refresh_budget_states(year_month)?;
         self.finish(Vec::new())
     }
@@ -178,6 +198,15 @@ impl AppCoreRuntime {
         year_month: &str,
         amount_cents: AmountCents,
     ) -> Result<CoreUpdate, CoreError> {
+        validate_year_month(year_month)?;
+
+        // 校验分类存在且为支出类型
+        let category = category_repo::get_by_id(&self.conn, category_id)?
+            .ok_or(CoreError::CategoryNotFound(category_id))?;
+        if category.category_type != RecordType::Expense {
+            return Err(CoreError::InvalidInput("预算仅支持支出分类".to_string()));
+        }
+
         let raw_budgets = budget_repo::list_for_month(&self.conn, year_month)?;
         let (budget_dtos, category_spending, parent_category_spending) =
             calculator::build_budget_dtos(&self.conn, &raw_budgets, &self.state.categories, year_month)?;
@@ -203,7 +232,7 @@ impl AppCoreRuntime {
             let remaining_after = eff - amount_cents;
             if remaining_after < 0 {
                 Some("overrun".to_string())
-            } else if remaining_after < (eff as f64 * 0.2) as i64 {
+            } else if remaining_after < eff.saturating_mul(20) / 100 {
                 Some("critical".to_string())
             } else {
                 Some("safe".to_string())
@@ -231,7 +260,7 @@ impl AppCoreRuntime {
     ) -> Result<(), CoreError> {
         let year_month = year_month
             .map(|s| s.to_string())
-            .unwrap_or_else(|| chrono::Local::now().format("%Y-%m").to_string());
+            .unwrap_or_else(|| chrono::Utc::now().format("%Y-%m").to_string());
         let raw_budgets = budget_repo::list_for_month(&self.conn, &year_month)?;
         let (budget_dtos, _, _) = calculator::build_budget_dtos(
             &self.conn,
@@ -244,15 +273,69 @@ impl AppCoreRuntime {
     }
 }
 
+/// 校验 year_month 格式是否为 "YYYY-MM"。
+fn validate_year_month(year_month: &str) -> Result<(), CoreError> {
+    if year_month.len() != 7 {
+        return Err(CoreError::InvalidInput(format!(
+            "year_month 长度应为 7（YYYY-MM），收到: {year_month}"
+        )));
+    }
+    let bytes = year_month.as_bytes();
+    if bytes[4] != b'-' {
+        return Err(CoreError::InvalidInput(format!(
+            "year_month 第 5 位应为 '-'，收到: {year_month}"
+        )));
+    }
+    let year_str = &year_month[..4];
+    let month_str = &year_month[5..];
+
+    let year: i32 = year_str.parse().map_err(|_| {
+        CoreError::InvalidInput(format!("year_month 年份无效: {year_month}"))
+    })?;
+    let month: u32 = month_str.parse().map_err(|_| {
+        CoreError::InvalidInput(format!("year_month 月份无效: {year_month}"))
+    })?;
+
+    if year < 1900 || year > 3000 {
+        return Err(CoreError::InvalidInput(format!(
+            "year_month 年份超出范围 [1900, 3000]: {year_month}"
+        )));
+    }
+    if month < 1 || month > 12 {
+        return Err(CoreError::InvalidInput(format!(
+            "year_month 月份超出范围 [1, 12]: {year_month}"
+        )));
+    }
+
+    Ok(())
+}
+
 /// 计算下个月份（格式 "YYYY-MM"）。
 /// 例如 "2025-12" → "2026-01"。
-fn compute_next_month(year_month: &str) -> String {
+fn compute_next_month(year_month: &str) -> Result<String, CoreError> {
     let parts: Vec<&str> = year_month.split('-').collect();
-    let year: i32 = parts[0].parse().unwrap_or(2025);
-    let month: u32 = parts[1].parse().unwrap_or(1);
-    let date = chrono::NaiveDate::from_ymd_opt(year, month, 1).unwrap_or_default();
-    let next = date
-        .checked_add_months(chrono::Months::new(1))
-        .unwrap_or(date);
-    next.format("%Y-%m").to_string()
+    if parts.len() != 2 {
+        return Err(CoreError::InvalidInput(format!(
+            "compute_next_month 输入格式错误，应为 YYYY-MM: {year_month}"
+        )));
+    }
+    let year: i32 = parts[0].parse().map_err(|_| {
+        CoreError::InvalidInput(format!("compute_next_month 年份解析失败: {year_month}"))
+    })?;
+    let month: u32 = parts[1].parse().map_err(|_| {
+        CoreError::InvalidInput(format!("compute_next_month 月份解析失败: {year_month}"))
+    })?;
+
+    if month < 1 || month > 12 {
+        return Err(CoreError::InvalidInput(format!(
+            "compute_next_month 月份超出范围 [1, 12]: {year_month}"
+        )));
+    }
+
+    // 纯整数运算，避免日期构造和时区问题
+    if month == 12 {
+        Ok(format!("{:04}-01", year + 1))
+    } else {
+        Ok(format!("{:04}-{:02}", year, month + 1))
+    }
 }

@@ -30,6 +30,7 @@ import com.agguy.moni.app.ui.dev.DevLogScreen
 import com.agguy.moni.app.ui.dev.DeveloperOptionsScreen
 import com.agguy.moni.app.ui.record.RecordDetailScreen
 import com.agguy.moni.app.ui.record.RecordListScreen
+import com.agguy.moni.app.ui.backup.AutoBackupSettingsScreen
 import com.agguy.moni.app.ui.settings.SettingsScreen
 import com.agguy.moni.app.ui.stats.StatsScreen
 import com.agguy.moni.core.CoreIntent
@@ -175,14 +176,14 @@ fun MoniNavHost(
                 onNavigateToThemeSettings = onNavigateToThemeSettings,
                 onNavigateToDeveloperOptions = onNavigateToDeveloperOptions,
                 onNavigateToDataManagement = onNavigateToDataManagement,
-                onNavigateToAutoBackupSettings = onNavigateToAutoBackupSettings,
             )
         }
         composable<Screen.DataManagement> {
             DataManagementScreen(
                 viewModel = backupViewModel,
                 dbPath = dbPath,
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
+                onNavigateToAutoBackupSettings = onNavigateToAutoBackupSettings,
             )
         }
         composable<Screen.DeveloperOptions> {
@@ -216,7 +217,7 @@ fun MoniNavHost(
             )
         }
         composable<Screen.AutoBackupSettings> {
-            com.agguy.moni.app.ui.settings.AutoBackupSettingsScreen(
+            AutoBackupSettingsScreen(
                 onNavigateBack = onNavigateBack,
             )
         }

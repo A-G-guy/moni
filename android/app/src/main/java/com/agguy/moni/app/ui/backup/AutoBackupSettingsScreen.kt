@@ -1,8 +1,9 @@
 @file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
 
-package com.agguy.moni.app.ui.settings
+package com.agguy.moni.app.ui.backup
 
 import android.content.Context
+import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -96,6 +97,9 @@ fun AutoBackupSettingsScreen(
         ActivityResultContracts.OpenDocumentTree()
     ) { uri ->
         uri?.let {
+            val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            context.contentResolver.takePersistableUriPermission(it, takeFlags)
             scope.launch {
                 DataStoreHelper.saveAutoBackupExternalUri(context, it.toString())
             }

@@ -68,6 +68,7 @@ fun DataManagementScreen(
     viewModel: BackupViewModel,
     dbPath: String,
     onNavigateBack: () -> Unit,
+    onNavigateToAutoBackupSettings: () -> Unit = {},
 ) {
     val backups by viewModel.backups.collectAsState()
     val operationState by viewModel.operationState.collectAsState()
@@ -152,6 +153,45 @@ fun DataManagementScreen(
                     modifier = Modifier.weight(1f),
                     onClick = { importLauncher.launch(arrayOf("application/zip")) }
                 )
+            }
+
+            // 自动备份设置入口
+            Card(
+                onClick = onNavigateToAutoBackupSettings,
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(MoniIcons.Archive),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "自动备份",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            "定时自动备份到本地或外部目录",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text(
+                        "设置",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
 
             AnimatedVisibility(visible = operationState is BackupOperationState.Running) {

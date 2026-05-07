@@ -24,6 +24,14 @@ impl AppCoreRuntime {
                 crate::shared::constants::MAX_PAGE_SIZE,
             )));
         }
+        // page 上限校验：防止 OFFSET 溢出
+        const MAX_PAGE: u32 = 100_000;
+        if page > MAX_PAGE {
+            log::warn!("分页查询失败: 页码过大, 收到: {page}");
+            return Err(CoreError::InvalidInput(format!(
+                "页码不能超过 {MAX_PAGE}"
+            )));
+        }
 
         let list = record_repo::list_paginated(&self.conn, page, page_size)?;
         self.state.records = record_list_to_dto(&list, &self.state.categories);

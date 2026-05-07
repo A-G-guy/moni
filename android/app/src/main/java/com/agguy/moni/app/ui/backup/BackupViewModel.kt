@@ -100,9 +100,8 @@ class BackupViewModel(
     fun exportToSaf(uri: Uri) {
         viewModelScope.launch {
             _operationState.value = BackupOperationState.Running("准备中...", 0)
+            val cacheFile = File(getApplication<Application>().cacheDir, "moni_export_${UUID.randomUUID()}.zip")
             try {
-                // 先导出到缓存（使用 UUID 避免并发冲突）
-                val cacheFile = File(getApplication<Application>().cacheDir, "moni_export_${UUID.randomUUID()}.zip")
                 val settingsJson = DataStoreHelper.snapshotJson(getApplication<Application>())
                 rustCore.backupExport(
                     outZipPath = cacheFile.absolutePath,
@@ -124,10 +123,11 @@ class BackupViewModel(
                         inp.copyTo(out)
                     }
                 }
-                cacheFile.delete()
                 _operationState.value = BackupOperationState.Success("已导出到指定位置")
             } catch (e: Exception) {
                 _operationState.value = BackupOperationState.Error("导出失败：${e.message}")
+            } finally {
+                if (cacheFile.exists()) cacheFile.delete()
             }
         }
     }
@@ -138,8 +138,8 @@ class BackupViewModel(
     fun importFromSaf(uri: Uri, dbPath: String) {
         viewModelScope.launch {
             _operationState.value = BackupOperationState.Running("准备中...", 0)
+            val cacheFile = File(getApplication<Application>().cacheDir, "moni_import_${UUID.randomUUID()}.zip")
             try {
-                val cacheFile = File(getApplication<Application>().cacheDir, "moni_import_${UUID.randomUUID()}.zip")
                 getApplication<Application>().contentResolver.openInputStream(uri)?.use { inp ->
                     cacheFile.outputStream().use { out ->
                         inp.copyTo(out)
@@ -156,7 +156,6 @@ class BackupViewModel(
                 )
                 // 恢复 DataStore 设置
                 DataStoreHelper.restoreFromJson(getApplication<Application>(), report.settingsJson)
-                cacheFile.delete()
                 _operationState.value = BackupOperationState.Success(
                     "恢复完成：${report.restoredRecordCount} 条记录，${report.restoredCategoryCount} 个分类"
                 )
@@ -165,6 +164,8 @@ class BackupViewModel(
                 AppRestarter.restartApp(getApplication<Application>())
             } catch (e: Exception) {
                 _operationState.value = BackupOperationState.Error("恢复失败：${e.message}")
+            } finally {
+                if (cacheFile.exists()) cacheFile.delete()
             }
         }
     }

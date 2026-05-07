@@ -55,12 +55,12 @@ fn compute_parent_spent(
 ) -> AmountCents {
     let direct = category_spending.get(&parent_id).copied().unwrap_or(0);
     let children = parent_category_spending.get(&parent_id).copied().unwrap_or(0);
-    direct + children
+    direct.saturating_add(children)
 }
 
 /// 计算总预算的已用金额（当月所有支出之和）。
 fn compute_total_spent(category_spending: &HashMap<CategoryId, AmountCents>) -> AmountCents {
-    category_spending.values().sum()
+    category_spending.values().fold(0i64, |a, b| a.saturating_add(*b))
 }
 
 /// 计算指定分类路径上的有效可用额度。
@@ -82,7 +82,7 @@ pub fn effective_available(
     // 1. 总预算（category_id = None）
     if let Some(total_budget) = budgets.iter().find(|b| b.category_id.is_none()) {
         let total_spent = compute_total_spent(category_spending);
-        remainings.push(total_budget.amount_cents - total_spent);
+        remainings.push(total_budget.amount_cents.saturating_sub(total_spent));
     }
 
     // 2. 查找当前分类
@@ -93,18 +93,18 @@ pub fn effective_available(
         // 父一级预算
         if let Some(parent_budget) = budgets.iter().find(|b| b.category_id == Some(parent_id)) {
             let parent_spent = compute_parent_spent(parent_id, category_spending, parent_category_spending);
-            remainings.push(parent_budget.amount_cents - parent_spent);
+            remainings.push(parent_budget.amount_cents.saturating_sub(parent_spent));
         }
         // 二级预算自身
         if let Some(self_budget) = budgets.iter().find(|b| b.category_id == Some(category_id)) {
             let self_spent = category_spending.get(&category_id).copied().unwrap_or(0);
-            remainings.push(self_budget.amount_cents - self_spent);
+            remainings.push(self_budget.amount_cents.saturating_sub(self_spent));
         }
     } else {
         // 一级分类路径
         if let Some(self_budget) = budgets.iter().find(|b| b.category_id == Some(category_id)) {
             let self_spent = compute_parent_spent(category_id, category_spending, parent_category_spending);
-            remainings.push(self_budget.amount_cents - self_spent);
+            remainings.push(self_budget.amount_cents.saturating_sub(self_spent));
         }
     }
 
@@ -131,7 +131,7 @@ pub fn bottleneck_budget_with_name(
     // 总预算
     if let Some(total_budget) = budgets.iter().find(|b| b.category_id.is_none()) {
         let total_spent = compute_total_spent(category_spending);
-        let remaining = total_budget.amount_cents - total_spent;
+        let remaining = total_budget.amount_cents.saturating_sub(total_spent);
         best = Some((remaining, "total".to_string(), None));
     }
 
@@ -145,7 +145,7 @@ pub fn bottleneck_budget_with_name(
         // 二级路径：先检查父一级
         if let Some(parent_budget) = budgets.iter().find(|b| b.category_id == Some(parent_id)) {
             let parent_spent = compute_parent_spent(parent_id, category_spending, parent_category_spending);
-            let remaining = parent_budget.amount_cents - parent_spent;
+            let remaining = parent_budget.amount_cents.saturating_sub(parent_spent);
             let parent_name = categories
                 .iter()
                 .find(|c| c.id == parent_id)
@@ -157,7 +157,7 @@ pub fn bottleneck_budget_with_name(
         // 再检查二级自身
         if let Some(self_budget) = budgets.iter().find(|b| b.category_id == Some(category_id)) {
             let self_spent = category_spending.get(&category_id).copied().unwrap_or(0);
-            let remaining = self_budget.amount_cents - self_spent;
+            let remaining = self_budget.amount_cents.saturating_sub(self_spent);
             if best.as_ref().map_or(true, |(min, _, _)| remaining < *min) {
                 best = Some((
                     remaining,
@@ -170,7 +170,7 @@ pub fn bottleneck_budget_with_name(
         // 一级路径
         if let Some(self_budget) = budgets.iter().find(|b| b.category_id == Some(category_id)) {
             let self_spent = compute_parent_spent(category_id, category_spending, parent_category_spending);
-            let remaining = self_budget.amount_cents - self_spent;
+            let remaining = self_budget.amount_cents.saturating_sub(self_spent);
             if best.as_ref().map_or(true, |(min, _, _)| remaining < *min) {
                 best = Some((
                     remaining,
@@ -237,7 +237,7 @@ pub fn build_budget_dtos(
             };
 
             dto.spent_cents = spent;
-            dto.remaining_cents = b.amount_cents - spent;
+            dto.remaining_cents = b.amount_cents.saturating_sub(spent);
 
             // 计算使用率（防止除零，amount_cents > 0 由 schema 保证）
             #[allow(clippy::cast_precision_loss)]

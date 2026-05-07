@@ -194,8 +194,12 @@ impl AppCoreRuntime {
 
         // 归档时清理预算：删除模板 + 删除从当前月开始的所有快照
         let current_year_month = chrono::Utc::now().format("%Y-%m").to_string();
-        budget_repo::delete_template(&self.conn, Some(id))?;
-        budget_repo::delete_snapshots_from(&self.conn, Some(id), &current_year_month)?;
+        {
+            let tx = self.conn.transaction()?;
+            budget_repo::delete_template(&tx, Some(id))?;
+            budget_repo::delete_snapshots_from(&tx, Some(id), &current_year_month)?;
+            tx.commit()?;
+        }
         self.refresh_budget_states(None)?;
 
         self.finish(vec![CoreEffect {

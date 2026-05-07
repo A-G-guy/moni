@@ -12,25 +12,25 @@ impl AppCoreRuntime {
             CoreIntent::DevClearAllData => {
                 log::warn!("执行清空所有数据");
 
-                // 先删除记录（避免外键约束冲突）
-                self.conn
-                    .execute("DELETE FROM records;", [])
-                    .map_err(|e| CoreError::Internal(format!("清空记录失败: {e}")))?;
+                {
+                    let tx = self.conn.transaction()
+                        .map_err(|e| CoreError::Internal(format!("开启事务失败: {e}")))?;
+                    // 先删除记录（避免外键约束冲突）
+                    tx.execute("DELETE FROM records;", [])
+                        .map_err(|e| CoreError::Internal(format!("清空记录失败: {e}")))?;
+                    // 先删除预算（避免 categories 删除时外键约束干扰）
+                    tx.execute("DELETE FROM budgets;", [])
+                        .map_err(|e| CoreError::Internal(format!("清空预算失败: {e}")))?;
+                    // 先删除子分类，再删除一级分类（避免 parent_id 外键约束冲突）
+                    tx.execute("DELETE FROM categories WHERE parent_id IS NOT NULL;", [])
+                        .map_err(|e| CoreError::Internal(format!("清空子分类失败: {e}")))?;
+                    tx.execute("DELETE FROM categories;", [])
+                        .map_err(|e| CoreError::Internal(format!("清空分类失败: {e}")))?;
+                    tx.commit()
+                        .map_err(|e| CoreError::Internal(format!("提交事务失败: {e}")))?;
+                }
 
-                // 先删除预算（避免 categories 删除时外键约束干扰）
-                self.conn
-                    .execute("DELETE FROM budgets;", [])
-                    .map_err(|e| CoreError::Internal(format!("清空预算失败: {e}")))?;
-
-                // 先删除子分类，再删除一级分类（避免 parent_id 外键约束冲突）
-                self.conn
-                    .execute("DELETE FROM categories WHERE parent_id IS NOT NULL;", [])
-                    .map_err(|e| CoreError::Internal(format!("清空子分类失败: {e}")))?;
-                self.conn
-                    .execute("DELETE FROM categories;", [])
-                    .map_err(|e| CoreError::Internal(format!("清空分类失败: {e}")))?;
-
-                // 压缩数据库
+                // VACUUM 不能在事务内执行，单独执行
                 self.conn
                     .execute("VACUUM;", [])
                     .map_err(|e| CoreError::Internal(format!("VACUUM 失败: {e}")))?;

@@ -1,5 +1,6 @@
 package com.agguy.moni.core
 
+import com.agguy.moni.core.platform.LogCollector
 import kotlinx.serialization.encodeToString
 import uniffi.moni_core.MoniCore
 
@@ -57,8 +58,18 @@ class RustCoreController {
         return core.backupRestore(inZipPath, dbPath, progress)
     }
 
-    private fun decodeMutation(update: uniffi.moni_core.CoreUpdate): CoreMutation = CoreMutation(
-        state = BridgeJson.decodeFromString(CoreAppState.serializer(), update.stateJson),
-        effects = update.effects.map { CoreEffect(it.kind, it.payloadJson) }
-    )
+    private fun decodeMutation(update: uniffi.moni_core.CoreUpdate): CoreMutation {
+        return try {
+            CoreMutation(
+                state = BridgeJson.decodeFromString(CoreAppState.serializer(), update.stateJson),
+                effects = update.effects.map { CoreEffect(it.kind, it.payloadJson) }
+            )
+        } catch (e: Exception) {
+            LogCollector.e("RustCoreController", "JSON 反序列化失败: ${e.message}, stateJson=${update.stateJson.take(200)}")
+            CoreMutation(
+                state = CoreAppState(),
+                effects = emptyList()
+            )
+        }
+    }
 }

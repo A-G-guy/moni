@@ -11,7 +11,15 @@ fn map_record(row: &Row) -> Result<Record, rusqlite::Error> {
         amount_cents: row.get("amount_cents")?,
         record_type: match row.get::<_, String>("record_type")?.as_str() {
             "income" => RecordType::Income,
-            _ => RecordType::Expense,
+            "expense" => RecordType::Expense,
+            other => {
+                log::warn!("数据库中存在未知的记录类型: {other}, id={}", row.get::<_, i64>("id")?);
+                return Err(rusqlite::Error::InvalidColumnType(
+                    0,
+                    "record_type".to_string(),
+                    rusqlite::types::Type::Text,
+                ));
+            }
         },
         category_id: row.get("category_id")?,
         parent_category_id: row.get("parent_category_id")?,
@@ -80,6 +88,10 @@ pub fn list_paginated(
     let offset = i64::from(page)
         .checked_mul(i64::from(page_size))
         .unwrap_or(i64::MAX);
+    // OFFSET 溢出时直接返回空结果，避免 SQLite 全表扫描
+    if offset == i64::MAX {
+        return Ok(Vec::new());
+    }
     let limit = i64::from(page_size);
     let mut stmt =
         conn.prepare("SELECT * FROM records ORDER BY created_at DESC LIMIT ?1 OFFSET ?2")?;

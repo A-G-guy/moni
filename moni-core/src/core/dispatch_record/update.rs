@@ -29,6 +29,15 @@ impl AppCoreRuntime {
             log::warn!("更新记录失败: 金额必须大于0, 收到: {amt}");
             return Err(CoreError::InvalidInput("金额必须大于0".to_string()));
         }
+        if let Some(ref n) = note
+            && n.len() > crate::shared::constants::NOTE_MAX_LEN
+        {
+            log::warn!("更新记录失败: 备注过长, {} 字节", n.len());
+            return Err(CoreError::InvalidInput(format!(
+                "备注长度不能超过 {} 字符",
+                crate::shared::constants::NOTE_MAX_LEN
+            )));
+        }
         let original = record_repo::get_by_id(&self.conn, id)?
             .ok_or_else(|| CoreError::RecordNotFound(id))?;
 

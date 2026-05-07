@@ -227,22 +227,59 @@ impl MoniCore {
 
                 match report {
                     Ok(r) => {
-                        // 恢复成功：重新打开连接、刷新状态
+                        // 恢复成功：重新打开连接、全面刷新状态
                         let _ = std::fs::remove_file(&snapshot_path);
                         inner.conn = crate::db::connection::open_connection(&db_path)
                             .map_err(|e| CoreError::Database(format!("重新打开数据库失败: {e}")))?;
                         crate::db::schema::init_schema(&inner.conn)
                             .map_err(|e| CoreError::Database(format!("Schema 初始化失败: {e}")))?;
+
+                        // 全面刷新内存状态
                         let categories = crate::db::category_repo::list_all(&inner.conn)?;
                         inner.state.categories = categories.iter().map(crate::dto::CategoryDto::from_category).collect();
+
+                        let records = crate::db::record_repo::list_paginated(&inner.conn, 0, crate::shared::constants::DEFAULT_PAGE_SIZE)?;
+                        inner.state.records = crate::dto::record_list_to_dto(&records, &inner.state.categories);
+                        inner.state.record_groups = crate::dto::group_records_by_date(&inner.state.records);
+
+                        // 刷新预算状态
+                        let ym = chrono::Utc::now().format("%Y-%m").to_string();
+                        let raw_budgets = crate::db::budget_repo::list_for_month(&inner.conn, &ym)?;
+                        let (budget_dtos, _, _) = crate::domain::budget::calculator::build_budget_dtos(
+                            &inner.conn,
+                            &raw_budgets,
+                            &inner.state.categories,
+                            &ym,
+                        )?;
+                        inner.state.budgets = budget_dtos;
+
+                        let aggregates = crate::db::record_repo::monthly_aggregates(&inner.conn, 6)?;
+                        inner.state.monthly_summaries = crate::domain::stats::calculator::calculate_monthly_summary(aggregates);
+
                         Ok(r)
                     }
                     Err(e) => {
                         // 恢复失败：从快照回滚
                         let _ = std::fs::copy(&snapshot_path, &db_path);
                         let _ = std::fs::remove_file(&snapshot_path);
-                        inner.conn = crate::db::connection::open_connection(&db_path)
-                            .unwrap_or_else(|_| rusqlite::Connection::open_in_memory().expect("内存数据库创建失败"));
+                        inner.conn = match crate::db::connection::open_connection(&db_path) {
+                            Ok(conn) => conn,
+                            Err(open_err) => {
+                                log::error!("回滚时重新打开数据库失败: {open_err}，尝试内存数据库");
+                                match rusqlite::Connection::open_in_memory() {
+                                    Ok(mem_conn) => {
+                                        let _ = crate::db::schema::init_schema(&mem_conn);
+                                        mem_conn
+                                    }
+                                    Err(mem_err) => {
+                                        log::error!("内存数据库创建也失败: {mem_err}");
+                                        return Err(CoreError::Database(format!(
+                                            "恢复失败且回滚也失败: 原错误={e}, 回滚错误={open_err}, 内存错误={mem_err}"
+                                        )));
+                                    }
+                                }
+                            }
+                        };
                         let _ = crate::db::schema::init_schema(&inner.conn);
                         Err(e)
                     }

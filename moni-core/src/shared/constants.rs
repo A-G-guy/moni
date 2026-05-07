@@ -20,3 +20,6 @@ pub const PRESET_CATEGORY_COUNT: usize = 18;
 pub const BUDGET_CRITICAL_THRESHOLD: f64 = 0.80;
 /// 预算超支阈值（100%）
 pub const BUDGET_OVERRUN_THRESHOLD: f64 = 1.00;
+
+/// 记录备注的最大字节长度。
+pub const NOTE_MAX_LEN: usize = 2000;

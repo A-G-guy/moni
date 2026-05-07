@@ -82,8 +82,13 @@ class AppViewModel(
                 syncThemeSettingsFromDataStore()
             } catch (e: Exception) {
                 LogCollector.e("AppViewModel", "数据库初始化失败，回退到内存模式", e)
-                val mutation = rustCore.initialize()
-                applyMutation(mutation)
+                try {
+                    val mutation = rustCore.initialize()
+                    applyMutation(mutation)
+                } catch (inner: Exception) {
+                    LogCollector.e("AppViewModel", "内存模式初始化也失败", inner)
+                    _uiState.value = _uiState.value.copy(errorMessage = "应用初始化失败，请重启应用")
+                }
             }
         }
     }
@@ -99,29 +104,43 @@ class AppViewModel(
     fun dispatch(intent: CoreIntent) {
         viewModelScope.launch {
             LogCollector.i("AppViewModel", "Dispatch intent: ${intent::class.simpleName}")
-            if (intent is CoreIntent.SettingsUpdateCurrency) {
-                DataStoreHelper.saveCurrencySymbol(
-                    getApplication(),
-                    intent.symbol
-                )
-            }
-            val mutation = rustCore.dispatch(intent)
-            applyMutation(mutation)
-
-            // 记录变更后自动刷新当前月份数据及月度汇总
-            if (intent is CoreIntent.RecordCreate ||
-                intent is CoreIntent.RecordDelete ||
-                intent is CoreIntent.RecordUpdate
-            ) {
-                val yearMonth = _selectedYearMonth.value
-                if (yearMonth.isNotEmpty()) {
-                    rustCore.dispatch(CoreIntent.RecordListByMonth(yearMonth = yearMonth))
-                        .let(::applyMutation)
-                    rustCore.dispatch(CoreIntent.StatsMonthlySummary(months = 36))
-                        .let(::applyMutation)
-                    rustCore.dispatch(CoreIntent.BudgetList(yearMonth = yearMonth))
-                        .let(::applyMutation)
+            try {
+                if (intent is CoreIntent.SettingsUpdateCurrency) {
+                    DataStoreHelper.saveCurrencySymbol(
+                        getApplication(),
+                        intent.symbol
+                    )
                 }
+                val mutation = rustCore.dispatch(intent)
+                applyMutation(mutation)
+
+                // 记录变更后自动刷新当前月份数据及月度汇总
+                if (intent is CoreIntent.RecordCreate ||
+                    intent is CoreIntent.RecordDelete ||
+                    intent is CoreIntent.RecordUpdate
+                ) {
+                    val yearMonth = _selectedYearMonth.value
+                    if (yearMonth.isNotEmpty()) {
+                        runCatching {
+                            rustCore.dispatch(CoreIntent.RecordListByMonth(yearMonth = yearMonth))
+                        }.onSuccess(::applyMutation).onFailure { e ->
+                            LogCollector.e("AppViewModel", "刷新记录列表失败", e)
+                        }
+                        runCatching {
+                            rustCore.dispatch(CoreIntent.StatsMonthlySummary(months = 36))
+                        }.onSuccess(::applyMutation).onFailure { e ->
+                            LogCollector.e("AppViewModel", "刷新月度统计失败", e)
+                        }
+                        runCatching {
+                            rustCore.dispatch(CoreIntent.BudgetList(yearMonth = yearMonth))
+                        }.onSuccess(::applyMutation).onFailure { e ->
+                            LogCollector.e("AppViewModel", "刷新预算列表失败", e)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                LogCollector.e("AppViewModel", "Dispatch 失败: ${intent::class.simpleName}", e)
+                _uiState.value = _uiState.value.copy(errorMessage = "操作失败: ${e.message}")
             }
         }
     }

@@ -27,6 +27,13 @@ impl AppCoreRuntime {
             log::warn!("创建记录失败: 金额必须大于0, 收到: {amount_cents}");
             return Err(CoreError::InvalidInput("金额必须大于0".to_string()));
         }
+        if note.len() > crate::shared::constants::NOTE_MAX_LEN {
+            log::warn!("创建记录失败: 备注过长, {} 字节", note.len());
+            return Err(CoreError::InvalidInput(format!(
+                "备注长度不能超过 {} 字符",
+                crate::shared::constants::NOTE_MAX_LEN
+            )));
+        }
         let category = validate_category_for_record(&self.conn, category_id, record_type)?;
 
         let id = record_repo::insert(

@@ -82,14 +82,15 @@ impl AppCoreRuntime {
                 let has_snapshot =
                     budget_repo::has_snapshot_for_month(&tx, category_id, year_month)?;
                 if !has_snapshot {
-                    if let Some(template) = budget_repo::get_template(&tx, category_id)? {
-                        budget_repo::upsert(
-                            &tx,
-                            category_id,
-                            Some(year_month),
-                            template.amount_cents,
-                        )?;
-                    }
+                    let snapshot_amount = budget_repo::get_template(&tx, category_id)?
+                        .map(|t| t.amount_cents)
+                        .unwrap_or(0);
+                    budget_repo::upsert(
+                        &tx,
+                        category_id,
+                        Some(year_month),
+                        snapshot_amount,
+                    )?;
                 }
                 budget_repo::upsert(&tx, category_id, None, amount_cents)?;
                 let next_month = compute_next_month(year_month)?;
@@ -229,13 +230,18 @@ impl AppCoreRuntime {
 
         // 模拟加上 amount_cents 后的状态
         let post_save_status = if let Some(eff) = effective {
-            let remaining_after = eff - amount_cents;
-            if remaining_after < 0 {
+            // eff 为负（已超支）时直接判 overrun，避免 i64 下溢
+            if eff < 0 {
+                Some("overrun".to_string())
+            } else {
+                let remaining_after = eff.saturating_sub(amount_cents);
+                if remaining_after < 0 {
                 Some("overrun".to_string())
             } else if remaining_after < eff.saturating_mul(20) / 100 {
                 Some("critical".to_string())
             } else {
                 Some("safe".to_string())
+            }
             }
         } else {
             None

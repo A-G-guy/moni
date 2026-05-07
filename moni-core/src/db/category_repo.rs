@@ -11,7 +11,15 @@ fn map_category(row: &Row) -> Result<Category, rusqlite::Error> {
         description: row.get("description")?,
         category_type: match row.get::<_, String>("category_type")?.as_str() {
             "income" => RecordType::Income,
-            _ => RecordType::Expense,
+            "expense" => RecordType::Expense,
+            other => {
+                log::warn!("数据库中存在未知的分类类型: {other}, id={}", row.get::<_, i64>("id")?);
+                return Err(rusqlite::Error::InvalidColumnType(
+                    0,
+                    "category_type".to_string(),
+                    rusqlite::types::Type::Text,
+                ));
+            }
         },
         icon_name: row.get("icon_name")?,
         sort_order: row.get("sort_order")?,

@@ -168,6 +168,7 @@ fun BudgetListScreen(
         val categoryName = editingCategory?.name ?: "总预算"
         BudgetEditorSheet(
             budget = editingBudget,
+            categoryId = editingCategory?.id,
             categoryName = categoryName,
             parentBudget = editingParentBudget,
             yearMonth = selectedYearMonth,

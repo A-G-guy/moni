@@ -56,6 +56,7 @@ private fun inputTextToCents(text: String): Long {
 @Composable
 fun BudgetEditorSheet(
     budget: CoreBudget?,
+    categoryId: Long?,
     categoryName: String,
     parentBudget: CoreBudget?,
     yearMonth: String,
@@ -188,9 +189,11 @@ fun BudgetEditorSheet(
                     onClick = {
                         val cents = inputTextToCents(amountText)
                         if (cents > 0) {
+                            // 新建预算时 budget 为 null，需用传入的 categoryId；编辑时两者一致
+                            val effectiveCategoryId = categoryId ?: budget?.categoryId
                             onDispatch(
                                 CoreIntent.BudgetUpsert(
-                                    categoryId = budget?.categoryId,
+                                    categoryId = effectiveCategoryId,
                                     amountCents = cents,
                                     yearMonth = yearMonth,
                                     scope = selectedScope

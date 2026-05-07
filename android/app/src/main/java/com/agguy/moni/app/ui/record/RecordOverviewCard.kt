@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.components.MoniCard
 import com.agguy.moni.app.components.MoniCardVariant
 import com.agguy.moni.app.theme.expenseRed
+import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreBudget
 import com.agguy.moni.core.CoreMonthlySummary
 import com.agguy.moni.core.CoreRecordGroup
@@ -46,9 +47,9 @@ import java.time.YearMonth
  * 账单页顶部月度概览卡片。
  *
  * 三行布局：
- * - 第一行：本月总支出 + 月结余（主题色）
+ * - 第一行：本月总支出（红色）+ 月结余（正绿负红）
  * - 第二行（条件渲染）：总预算进度条，含理想进度标记
- * - 第三行：今日支出 + 日均支出 + 日均剩余（白色）
+ * - 第三行：今日支出 + 日均支出 + 日均剩余（主题色）
  */
 @Composable
 fun RecordOverviewCard(
@@ -73,7 +74,7 @@ fun RecordOverviewCard(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 第一行：本月总支出 + 月结余（主题色）
+            // 第一行：本月总支出（红色）+ 月结余（正绿负红）
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -83,14 +84,18 @@ fun RecordOverviewCard(
                     label = "本月总支出",
                     amountCents = metrics.monthExpense,
                     currencySymbol = currencySymbol,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.expenseRed,
                     isLarge = true
                 )
                 OverviewStatItem(
                     label = "月结余",
                     amountCents = metrics.monthBalance,
                     currencySymbol = currencySymbol,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = if (metrics.monthBalance >= 0) {
+                        MaterialTheme.colorScheme.incomeGreen
+                    } else {
+                        MaterialTheme.colorScheme.expenseRed
+                    },
                     isLarge = true,
                     alignEnd = true
                 )

@@ -396,7 +396,7 @@ private fun formatYearMonth(yearMonth: String): String {
     }
 }
 
-private fun formatMonthOnly(yearMonth: String): String {
+fun formatMonthOnly(yearMonth: String): String {
     // yearMonth 形如 "2026-05" → "5月"，去掉年份让 56dp 侧卡能塞下
     val parts = yearMonth.split('-')
     return if (parts.size == 2) {

@@ -8,12 +8,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.components.MoniCard
 import com.agguy.moni.app.components.MoniCardVariant
+import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.app.ui.budget.BudgetProgressBar
 import com.agguy.moni.app.ui.budget.BudgetStatusLabel
 import com.agguy.moni.core.CoreBudget
@@ -22,13 +25,7 @@ import com.agguy.moni.core.util.formatAmount
 /**
  * 统计页预算健康概览卡片。
  *
- * 回答三个问题：这个月整体是否安全？哪里最紧张？有多少项需要关注？
  * 预算存在才渲染；无预算时 StatsScreen 不显示此卡片。
- *
- * @param budgets 当前月份的预算列表（已含实时计算字段）
- * @param currencySymbol 货币符号，如 "¥"
- * @param yearMonth 当前选中年月，如 "2026-05"
- * @param onNavigateToBudget 点击「查看全部预算」的回调
  */
 @Composable
 fun StatsBudgetCard(
@@ -38,15 +35,16 @@ fun StatsBudgetCard(
     onNavigateToBudget: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val (totalBudgets, categoryBudgets) = budgets.partition { it.categoryId == null }
-    val totalBudget = totalBudgets.firstOrNull()
+    val (totalBudget, categoryBudgets, riskCount, sortedRisks) = remember(budgets) {
+        val (totals, categories) = budgets.partition { it.categoryId == null }
+        val risks = categories
+            .sortedByDescending { it.percentage }
+            .take(3)
+        val riskCnt = categories.count { it.status == "critical" || it.status == "overrun" }
+        Quadruple(totals.firstOrNull(), categories, riskCnt, risks)
+    }
 
-    val riskCount = categoryBudgets.count { it.status == "critical" || it.status == "overrun" }
-    val sortedRisks = categoryBudgets
-        .sortedByDescending { it.percentage }
-        .take(3)
-
-    val monthLabel = formatYearMonth(yearMonth)
+    val monthLabel = remember(yearMonth) { formatMonthOnly(yearMonth) }
 
     MoniCard(
         modifier = modifier
@@ -61,7 +59,6 @@ fun StatsBudgetCard(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 标题
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -78,14 +75,12 @@ fun StatsBudgetCard(
                 )
             }
 
-            // 主状态区
             if (totalBudget != null) {
                 TotalBudgetHeader(totalBudget, currencySymbol)
             } else {
                 CategoryBudgetHeader(riskCount, categoryBudgets)
             }
 
-            // 风险列表
             if (sortedRisks.isNotEmpty()) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -99,6 +94,13 @@ fun StatsBudgetCard(
         }
     }
 }
+
+private data class Quadruple<A, B, C, D>(
+    val first: A,
+    val second: B,
+    val third: C,
+    val fourth: D
+)
 
 @Composable
 private fun TotalBudgetHeader(
@@ -117,7 +119,8 @@ private fun TotalBudgetHeader(
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = when (totalBudget.status) {
-                "overrun" -> MaterialTheme.colorScheme.error
+                "overrun" -> MaterialTheme.colorScheme.expenseRed
+                "critical" -> Color(0xFFFFA726)
                 else -> MaterialTheme.colorScheme.onSurface
             }
         )
@@ -141,12 +144,11 @@ private fun CategoryBudgetHeader(
 ) {
     val statusText = when {
         riskCount > 0 -> "${riskCount} 项需要留意"
-        categoryBudgets.isNotEmpty() -> "预算状态良好"
-        else -> ""
+        else -> "预算状态良好"
     }
 
     val statusColor = when {
-        riskCount > 0 -> MaterialTheme.colorScheme.error
+        riskCount > 0 -> MaterialTheme.colorScheme.expenseRed
         else -> MaterialTheme.colorScheme.primary
     }
 
@@ -205,17 +207,5 @@ private fun BudgetRiskItem(
                 .fillMaxWidth()
                 .padding(top = 2.dp)
         )
-    }
-}
-
-/**
- * 将 "yyyy-MM" 格式化为中文月份标题，如 "2026-05" → "5月"。
- */
-private fun formatYearMonth(yearMonth: String): String {
-    return try {
-        val month = yearMonth.substringAfter("-").toInt()
-        "${month}月"
-    } catch (_: Exception) {
-        "本月"
     }
 }

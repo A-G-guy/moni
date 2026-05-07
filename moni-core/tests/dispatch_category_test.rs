@@ -579,3 +579,180 @@ fn test_category_archive_without_children_ok() {
         assert!(state["ui"]["errorMessage"].is_null(), "无子分类应可归档");
     });
 }
+
+#[test]
+fn test_category_reorder_parents_success() {
+    let core = common::setup_core_with_presets();
+    let rt = tokio::runtime::Runtime::new().unwrap();
+
+    rt.block_on(async {
+        let snapshot = core.snapshot_json().await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
+        let categories = state["categories"].as_array().unwrap();
+
+        // 找到前两个支出一级分类
+        let parents: Vec<i64> = categories
+            .iter()
+            .filter(|c| c["parentId"].is_null() && c["categoryType"] == "expense")
+            .map(|c| c["id"].as_i64().unwrap())
+            .collect();
+
+        assert!(parents.len() >= 2, "需要至少两个支出一级分类");
+
+        // 交换前两个一级分类的顺序
+        let mut reordered = parents.clone();
+        reordered.swap(0, 1);
+        let ids_json = reordered.iter().map(|id| id.to_string()).collect::<Vec<_>>().join(",");
+        let reorder_intent = format!(r#"{{"type":"category_reorder","ordered_ids":[{ids_json}]}}"#);
+        let update = core.dispatch(reorder_intent).await.expect("排序应成功");
+        let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
+        assert!(state["ui"]["errorMessage"].is_null(), "不应有错误");
+
+        // 验证顺序已更新
+        let updated_categories = state["categories"].as_array().unwrap();
+        let updated_parents: Vec<i64> = updated_categories
+            .iter()
+            .filter(|c| c["parentId"].is_null() && c["categoryType"] == "expense")
+            .map(|c| c["id"].as_i64().unwrap())
+            .collect();
+        assert_eq!(updated_parents[0], reordered[0]);
+        assert_eq!(updated_parents[1], reordered[1]);
+    });
+}
+
+#[test]
+fn test_category_reorder_children_success() {
+    let core = common::setup_core_with_presets();
+    let rt = tokio::runtime::Runtime::new().unwrap();
+
+    rt.block_on(async {
+        let snapshot = core.snapshot_json().await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
+        let categories = state["categories"].as_array().unwrap();
+
+        // 找到"餐饮"分类及其子分类
+        let catering_id = categories
+            .iter()
+            .find(|c| c["name"] == "餐饮")
+            .unwrap()["id"]
+            .as_i64()
+            .unwrap();
+
+        let children: Vec<i64> = categories
+            .iter()
+            .filter(|c| c["parentId"].as_i64() == Some(catering_id))
+            .map(|c| c["id"].as_i64().unwrap())
+            .collect();
+
+        assert!(children.len() >= 2, "需要至少两个子分类");
+
+        // 交换子分类顺序
+        let mut reordered = children.clone();
+        reordered.swap(0, 1);
+        let ids_json = reordered.iter().map(|id| id.to_string()).collect::<Vec<_>>().join(",");
+        let reorder_intent = format!(r#"{{"type":"category_reorder","ordered_ids":[{ids_json}]}}"#);
+        let update = core.dispatch(reorder_intent).await.expect("排序应成功");
+        let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
+        assert!(state["ui"]["errorMessage"].is_null(), "不应有错误");
+    });
+}
+
+#[test]
+fn test_category_reorder_mixed_levels_fails() {
+    let core = common::setup_core_with_presets();
+    let rt = tokio::runtime::Runtime::new().unwrap();
+
+    rt.block_on(async {
+        let snapshot = core.snapshot_json().await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
+        let categories = state["categories"].as_array().unwrap();
+
+        let parent_id = categories
+            .iter()
+            .find(|c| c["parentId"].is_null() && c["categoryType"] == "expense")
+            .unwrap()["id"]
+            .as_i64()
+            .unwrap();
+        let child_id = categories
+            .iter()
+            .find(|c| c["parentId"].as_i64() == Some(parent_id))
+            .unwrap()["id"]
+            .as_i64()
+            .unwrap();
+
+        // 混合一级和二级分类应失败
+        let reorder_intent = format!(
+            r#"{{"type":"category_reorder","ordered_ids":[{parent_id},{child_id}]}}"#
+        );
+        let update = core.dispatch(reorder_intent).await.expect("dispatch 不应失败");
+        let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
+        assert!(
+            !state["ui"]["errorMessage"].is_null(),
+            "混合层级排序应返回业务错误"
+        );
+    });
+}
+
+#[test]
+fn test_category_reorder_includes_archived_fails() {
+    let core = common::setup_core_with_presets();
+    let rt = tokio::runtime::Runtime::new().unwrap();
+
+    rt.block_on(async {
+        // 创建自定义分类并归档
+        let intent = r#"{"type":"category_create","name":"待归档","category_type":"expense","icon_name":"star"}"#.to_string();
+        core.dispatch(intent).await.unwrap();
+
+        let snapshot = core.snapshot_json().await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
+        let archived_id = state["categories"]
+            .as_array().unwrap()
+            .iter().find(|c| c["name"] == "待归档").unwrap()["id"]
+            .as_i64().unwrap();
+
+        core.dispatch(format!(r#"{{"type":"category_archive","id":{archived_id}}}"#)).await.unwrap();
+
+        // 获取一个未归档的分类
+        let snapshot = core.snapshot_json().await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
+        let active_id = state["categories"]
+            .as_array().unwrap()
+            .iter().find(|c| c["parentId"].is_null() && c["archivedAt"].is_null() && c["name"] != "待归档")
+            .unwrap()["id"]
+            .as_i64().unwrap();
+
+        // 包含已归档分类应失败
+        let reorder_intent = format!(
+            r#"{{"type":"category_reorder","ordered_ids":[{active_id},{archived_id}]}}"#
+        );
+        let update = core.dispatch(reorder_intent).await.expect("dispatch 不应失败");
+        let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
+        assert!(
+            !state["ui"]["errorMessage"].is_null(),
+            "包含已归档分类应返回业务错误"
+        );
+    });
+}
+
+#[test]
+fn test_category_reorder_invalid_id_fails() {
+    let core = common::setup_core_with_presets();
+    let rt = tokio::runtime::Runtime::new().unwrap();
+
+    rt.block_on(async {
+        let snapshot = core.snapshot_json().await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
+        let valid_id = state["categories"][0]["id"].as_i64().unwrap();
+
+        // 包含不存在的 ID 应失败
+        let reorder_intent = format!(
+            r#"{{"type":"category_reorder","ordered_ids":[{valid_id},99999]}}"#
+        );
+        let update = core.dispatch(reorder_intent).await.expect("dispatch 不应失败");
+        let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
+        assert!(
+            !state["ui"]["errorMessage"].is_null(),
+            "包含无效 ID 应返回业务错误"
+        );
+    });
+}

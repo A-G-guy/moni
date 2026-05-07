@@ -15,6 +15,7 @@ import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -57,6 +58,7 @@ fun CategoryListScreen(
     var categoryToEdit by remember { mutableStateOf<CoreCategory?>(null) }
     var showAddSheet by remember { mutableStateOf(false) }
     var categoryToArchive by remember { mutableStateOf<CoreCategory?>(null) }
+    var isReorderMode by remember { mutableStateOf(false) }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
@@ -82,19 +84,26 @@ fun CategoryListScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onNavigateToArchivedCategories) {
-                        MoniIcon(MoniIcons.Archive, contentDescription = "已归档分类")
+                    if (!isReorderMode) {
+                        IconButton(onClick = onNavigateToArchivedCategories) {
+                            MoniIcon(MoniIcons.Archive, contentDescription = "已归档分类")
+                        }
+                    }
+                    TextButton(onClick = { isReorderMode = !isReorderMode }) {
+                        Text(if (isReorderMode) "完成" else "排序")
                     }
                 },
                 scrollBehavior = scrollBehavior
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddSheet = true },
-                shape = MaterialTheme.shapes.large
-            ) {
-                MoniIcon(MoniIcons.AddFilled, contentDescription = "添加分类")
+            if (!isReorderMode) {
+                FloatingActionButton(
+                    onClick = { showAddSheet = true },
+                    shape = MaterialTheme.shapes.large
+                ) {
+                    MoniIcon(MoniIcons.AddFilled, contentDescription = "添加分类")
+                }
             }
         }
     ) { innerPadding ->
@@ -127,7 +136,9 @@ fun CategoryListScreen(
                 CategoryListContent(
                     categories = typeCategories,
                     onArchiveRequest = { categoryToArchive = it },
-                    onEditRequest = { categoryToEdit = it }
+                    onEditRequest = { categoryToEdit = it },
+                    isReorderMode = isReorderMode,
+                    onDispatch = onDispatch
                 )
             }
         }

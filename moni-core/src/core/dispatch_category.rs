@@ -45,6 +45,7 @@ impl AppCoreRuntime {
             CoreIntent::CategoryArchive { id } => self.handle_category_archive(id),
             CoreIntent::CategoryUnarchive { id } => self.handle_category_unarchive(id),
             CoreIntent::CategoryList => self.handle_category_list(),
+            CoreIntent::CategoryReorder { ordered_ids } => self.handle_category_reorder(ordered_ids),
             _ => {
                 log::warn!("分类模块收到未支持的意图类型");
                 Err(CoreError::Internal("未支持的意图类型".to_string()))
@@ -229,6 +230,62 @@ impl AppCoreRuntime {
         let list = category_repo::list_all(&self.conn)?;
         self.state.categories = list.iter().map(CategoryDto::from_category).collect();
         self.finish(Vec::new())
+    }
+
+    fn handle_category_reorder(
+        &mut self,
+        ordered_ids: Vec<CategoryId>,
+    ) -> Result<CoreUpdate, CoreError> {
+        if ordered_ids.is_empty() {
+            log::warn!("分类排序失败: ordered_ids 为空");
+            return Err(CoreError::InvalidInput("排序列表不能为空".to_string()));
+        }
+
+        // 查找第一个分类确定层级
+        let first = category_repo::get_by_id(&self.conn, ordered_ids[0])?
+            .ok_or_else(|| {
+                log::warn!("分类排序失败: 分类不存在, id={}", ordered_ids[0]);
+                CoreError::CategoryNotFound(ordered_ids[0])
+            })?;
+
+        let expected_parent_id = first.parent_id;
+
+        // 验证所有分类属于同一层级且未归档
+        for &id in &ordered_ids {
+            let category = category_repo::get_by_id(&self.conn, id)?.ok_or_else(|| {
+                log::warn!("分类排序失败: 分类不存在, id={id}");
+                CoreError::CategoryNotFound(id)
+            })?;
+
+            if category.archived_at.is_some() {
+                log::warn!("分类排序失败: 分类已归档, id={id}");
+                return Err(CoreError::InvalidInput(
+                    "已归档分类不能参与排序".to_string(),
+                ));
+            }
+
+            if category.parent_id != expected_parent_id {
+                log::warn!(
+                    "分类排序失败: 分类层级不一致, id={id}, parent_id={:?}, expected={:?}",
+                    category.parent_id,
+                    expected_parent_id
+                );
+                return Err(CoreError::InvalidInput(
+                    "只能对同一层级的分类进行排序".to_string(),
+                ));
+            }
+        }
+
+        category_repo::reorder(&mut self.conn, &ordered_ids)?;
+
+        // 更新内存态: 重新加载所有分类并按 sort_order 排序
+        let list = category_repo::list_all(&self.conn)?;
+        self.state.categories = list.iter().map(CategoryDto::from_category).collect();
+
+        self.finish(vec![CoreEffect {
+            kind: "show_snackbar".to_string(),
+            payload_json: r#"{"message":"排序已保存"}"#.to_string(),
+        }])
     }
 }
 

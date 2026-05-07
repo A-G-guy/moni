@@ -38,6 +38,7 @@ import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.app.theme.iconNameToRes
 import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreCategory
+import com.agguy.moni.core.CoreIntent
 
 /**
  * 根据分类类型字符串获取对应的主题色。
@@ -75,9 +76,12 @@ fun CategoryListContent(
     categories: List<CoreCategory>,
     onArchiveRequest: (CoreCategory) -> Unit,
     onEditRequest: (CoreCategory) -> Unit,
+    isReorderMode: Boolean = false,
+    onDispatch: (CoreIntent) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val flatList: List<Pair<CoreCategory, Boolean>> = remember(categories) { flattenCategoriesWithHierarchy(categories) }
+    val parentIds = remember(flatList) { flatList.filter { !it.second }.map { it.first.id } }
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -87,11 +91,60 @@ fun CategoryListContent(
             items = flatList,
             key = { (cat, _) -> cat.id }
         ) { (category, isSub) ->
+            val canMoveUp = remember(category.id, flatList, isReorderMode) {
+                if (!isReorderMode) false
+                else if (isSub) {
+                    val siblingIds = flatList.filter { it.second && it.first.parentId == category.parentId }.map { it.first.id }
+                    siblingIds.indexOf(category.id) > 0
+                } else {
+                    parentIds.indexOf(category.id) > 0
+                }
+            }
+            val canMoveDown = remember(category.id, flatList, isReorderMode) {
+                if (!isReorderMode) false
+                else if (isSub) {
+                    val siblingIds = flatList.filter { it.second && it.first.parentId == category.parentId }.map { it.first.id }
+                    val idx = siblingIds.indexOf(category.id)
+                    idx >= 0 && idx < siblingIds.size - 1
+                } else {
+                    val idx = parentIds.indexOf(category.id)
+                    idx >= 0 && idx < parentIds.size - 1
+                }
+            }
             CategoryListItem(
                 category = category,
                 isSubCategory = isSub,
+                isReorderMode = isReorderMode,
+                canMoveUp = canMoveUp,
+                canMoveDown = canMoveDown,
                 onArchiveClick = { onArchiveRequest(category) },
-                onEditClick = { onEditRequest(category) }
+                onEditClick = { onEditRequest(category) },
+                onMoveUp = {
+                    val siblings = if (category.parentId == null) {
+                        categories.filter { it.parentId == null && it.archivedAt == null }.sortedBy { it.sortOrder }
+                    } else {
+                        categories.filter { it.parentId == category.parentId && it.archivedAt == null }.sortedBy { it.sortOrder }
+                    }
+                    val currentIndex = siblings.indexOfFirst { it.id == category.id }
+                    if (currentIndex > 0) {
+                        val newOrder = siblings.toMutableList()
+                        java.util.Collections.swap(newOrder, currentIndex, currentIndex - 1)
+                        onDispatch(CoreIntent.CategoryReorder(newOrder.map { it.id }))
+                    }
+                },
+                onMoveDown = {
+                    val siblings = if (category.parentId == null) {
+                        categories.filter { it.parentId == null && it.archivedAt == null }.sortedBy { it.sortOrder }
+                    } else {
+                        categories.filter { it.parentId == category.parentId && it.archivedAt == null }.sortedBy { it.sortOrder }
+                    }
+                    val currentIndex = siblings.indexOfFirst { it.id == category.id }
+                    if (currentIndex >= 0 && currentIndex < siblings.size - 1) {
+                        val newOrder = siblings.toMutableList()
+                        java.util.Collections.swap(newOrder, currentIndex, currentIndex + 1)
+                        onDispatch(CoreIntent.CategoryReorder(newOrder.map { it.id }))
+                    }
+                }
             )
         }
     }
@@ -101,8 +154,13 @@ fun CategoryListContent(
 fun CategoryListItem(
     category: CoreCategory,
     isSubCategory: Boolean = false,
+    isReorderMode: Boolean = false,
+    canMoveUp: Boolean = false,
+    canMoveDown: Boolean = false,
     onArchiveClick: () -> Unit,
     onEditClick: () -> Unit,
+    onMoveUp: () -> Unit = {},
+    onMoveDown: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val categoryColor = categoryColorForType(category.categoryType)
@@ -115,7 +173,7 @@ fun CategoryListItem(
                 .fillMaxWidth()
                 .padding(
                     start = if (isSubCategory) 40.dp else 16.dp,
-                    end = 16.dp,
+                    end = if (isReorderMode) 8.dp else 16.dp,
                     top = 12.dp,
                     bottom = 12.dp
                 ),
@@ -153,20 +211,56 @@ fun CategoryListItem(
                 }
             }
 
-            IconButton(onClick = onEditClick) {
-                MoniIcon(
-                    icon = MoniIcons.Edit,
-                    contentDescription = "编辑",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            if (isReorderMode) {
+                // 排序模式：显示上移/下移按钮
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
+                ) {
+                    IconButton(
+                        onClick = onMoveUp,
+                        enabled = canMoveUp,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        MoniIcon(
+                            icon = MoniIcons.ExpandLess,
+                            contentDescription = "上移",
+                            modifier = Modifier.size(20.dp),
+                            tint = if (canMoveUp) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                        )
+                    }
+                    IconButton(
+                        onClick = onMoveDown,
+                        enabled = canMoveDown,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        MoniIcon(
+                            icon = MoniIcons.ExpandMore,
+                            contentDescription = "下移",
+                            modifier = Modifier.size(20.dp),
+                            tint = if (canMoveDown) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                        )
+                    }
+                }
+            } else {
+                // 普通模式：显示编辑/归档按钮
+                IconButton(onClick = onEditClick) {
+                    MoniIcon(
+                        icon = MoniIcons.Edit,
+                        contentDescription = "编辑",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
-            IconButton(onClick = onArchiveClick) {
-                MoniIcon(
-                    icon = MoniIcons.Archive,
-                    contentDescription = "归档",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                IconButton(onClick = onArchiveClick) {
+                    MoniIcon(
+                        icon = MoniIcons.Archive,
+                        contentDescription = "归档",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }

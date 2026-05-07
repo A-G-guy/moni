@@ -76,6 +76,9 @@ pub enum CoreIntent {
         id: CategoryId,
     },
     CategoryList,
+    CategoryReorder {
+        ordered_ids: Vec<CategoryId>,
+    },
 
     StatsMonthlySummary {
         months: u8,

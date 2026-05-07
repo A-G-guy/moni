@@ -115,6 +115,10 @@ sealed class CoreIntent {
     @SerialName("category_list")
     data object CategoryList : CoreIntent()
 
+    @Serializable
+    @SerialName("category_reorder")
+    data class CategoryReorder(val orderedIds: List<Long>) : CoreIntent()
+
     // 统计相关
     @Serializable
     @SerialName("stats_monthly_summary")

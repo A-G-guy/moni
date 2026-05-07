@@ -168,6 +168,22 @@ pub fn is_in_use(conn: &Connection, id: CategoryId) -> Result<bool, rusqlite::Er
     Ok(count > 0)
 }
 
+/// 按指定顺序批量更新分类的 sort_order。
+/// ordered_ids 中的顺序即为新的排序顺序，sort_order 按 (index + 1) * 10 分配。
+pub fn reorder(conn: &mut Connection, ordered_ids: &[CategoryId]) -> Result<(), rusqlite::Error> {
+    let tx = conn.transaction()?;
+    let now = chrono::Utc::now().timestamp();
+    for (index, &id) in ordered_ids.iter().enumerate() {
+        let sort_order = (index as i32 + 1) * 10;
+        tx.execute(
+            "UPDATE categories SET sort_order = ?1, updated_at = ?2 WHERE id = ?3",
+            (sort_order, now, id),
+        )?;
+    }
+    tx.commit()?;
+    Ok(())
+}
+
 /// 插入预设分类（仅在表为空时执行）。
 pub fn seed_presets(conn: &Connection) -> Result<(), rusqlite::Error> {
     let count: i64 = conn.query_row("SELECT COUNT(*) FROM categories", [], |row| row.get(0))?;

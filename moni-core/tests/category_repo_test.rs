@@ -313,3 +313,71 @@ fn test_seed_presets_has_sub_categories() {
     assert!(child_names.contains(&"早餐"));
     assert!(child_names.contains(&"地铁"));
 }
+
+#[test]
+fn test_reorder_parents() {
+    let mut conn = setup();
+    let id_a = category_repo::insert(
+        &conn, "分类A", None, RecordType::Expense, "a", 1, None,
+    ).unwrap();
+    let id_b = category_repo::insert(
+        &conn, "分类B", None, RecordType::Expense, "b", 2, None,
+    ).unwrap();
+
+    // 交换顺序
+    category_repo::reorder(&mut conn, &[ id_b, id_a ]).unwrap();
+
+    let list = category_repo::list_all(&conn).unwrap();
+    assert_eq!(list[0].name, "分类B");
+    assert_eq!(list[1].name, "分类A");
+    assert_eq!(list[0].sort_order, 10);
+    assert_eq!(list[1].sort_order, 20);
+}
+
+#[test]
+fn test_reorder_children() {
+    let mut conn = setup();
+    let parent_id = category_repo::insert(
+        &conn, "父分类", None, RecordType::Expense, "parent", 1, None,
+    ).unwrap();
+    let id_a = category_repo::insert(
+        &conn, "子A", None, RecordType::Expense, "a", 1, Some(parent_id),
+    ).unwrap();
+    let id_b = category_repo::insert(
+        &conn, "子B", None, RecordType::Expense, "b", 2, Some(parent_id),
+    ).unwrap();
+
+    // 交换顺序
+    category_repo::reorder(&mut conn, &[ id_b, id_a ]).unwrap();
+
+    let children = category_repo::list_by_parent(&conn, parent_id).unwrap();
+    assert_eq!(children[0].name, "子B");
+    assert_eq!(children[1].name, "子A");
+    assert_eq!(children[0].sort_order, 10);
+    assert_eq!(children[1].sort_order, 20);
+}
+
+#[test]
+fn test_reorder_persists_sort_order() {
+    let mut conn = setup();
+    let id_a = category_repo::insert(
+        &conn, "分类A", None, RecordType::Expense, "a", 5, None,
+    ).unwrap();
+    let id_b = category_repo::insert(
+        &conn, "分类B", None, RecordType::Expense, "b", 10, None,
+    ).unwrap();
+    let id_c = category_repo::insert(
+        &conn, "分类C", None, RecordType::Expense, "c", 1, None,
+    ).unwrap();
+
+    // 重新排序为 C, A, B
+    category_repo::reorder(&mut conn, &[ id_c, id_a, id_b ]).unwrap();
+
+    let cat_a = category_repo::get_by_id(&conn, id_a).unwrap().unwrap();
+    let cat_b = category_repo::get_by_id(&conn, id_b).unwrap().unwrap();
+    let cat_c = category_repo::get_by_id(&conn, id_c).unwrap().unwrap();
+
+    assert_eq!(cat_a.sort_order, 20);
+    assert_eq!(cat_b.sort_order, 30);
+    assert_eq!(cat_c.sort_order, 10);
+}

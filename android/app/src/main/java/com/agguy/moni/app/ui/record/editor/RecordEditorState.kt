@@ -2,6 +2,7 @@ package com.agguy.moni.app.ui.record.editor
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.listSaver
@@ -53,7 +54,7 @@ class RecordEditorState(saved: List<Any?>?) {
     var isNoteEditing by mutableStateOf(false)
         private set
 
-    var currentGridPage by mutableStateOf(0)
+    var currentGridPage by mutableIntStateOf(0)
 
     var isInSubCategoryView by mutableStateOf(false)
         private set
@@ -62,7 +63,7 @@ class RecordEditorState(saved: List<Any?>?) {
     private var isInDecimalMode by mutableStateOf(false)
 
     /** 当前小数位数（0-2） */
-    private var decimalDigits by mutableStateOf(0)
+    private var decimalDigits by mutableIntStateOf(0)
 
     /** 当前显示文本：表达式或计算结果 */
     val displayText: String

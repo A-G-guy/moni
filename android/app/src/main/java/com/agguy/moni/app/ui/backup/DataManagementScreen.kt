@@ -246,7 +246,7 @@ fun DataManagementScreen(
 
     // 导出数据对话框
     if (showExportDialog) {
-        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val timestamp = formatBackupTimestamp()
         ExportDataDialog(
             operationState = operationState,
             onExportToInternal = {
@@ -372,8 +372,7 @@ private fun BackupItemCard(
                     )
                     Text(
                         formatFileSize(item.file.length()) + " · " +
-                            SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-                                .format(Date(item.file.lastModified())),
+                            formatFileDateTime(item.file.lastModified()),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -397,8 +396,16 @@ private fun BackupItemCard(
 
 private fun formatFileSize(bytes: Long): String {
     return when {
-        bytes >= 1024 * 1024 -> String.format(Locale.getDefault(), "%.2f MB", bytes / (1024.0 * 1024.0))
-        bytes >= 1024 -> String.format(Locale.getDefault(), "%.2f KB", bytes / 1024.0)
+        bytes >= 1024 * 1024 -> String.format(Locale.ROOT, "%.2f MB", bytes / (1024.0 * 1024.0))
+        bytes >= 1024 -> String.format(Locale.ROOT, "%.2f KB", bytes / 1024.0)
         else -> "$bytes B"
     }
+}
+
+private fun formatBackupTimestamp(): String {
+    return SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+}
+
+private fun formatFileDateTime(timestamp: Long): String {
+    return SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(timestamp))
 }

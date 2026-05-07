@@ -29,6 +29,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -68,7 +69,7 @@ fun AutoBackupSettingsScreen(
     val maxCount by DataStoreHelper.autoBackupMaxCountFlow(context)
         .collectAsStateWithLifecycle(initialValue = 7)
     // 滑块本地状态，避免滑动过程中频繁写入 DataStore
-    var sliderValue by remember { mutableStateOf(maxCount.toFloat()) }
+    var sliderValue by remember { mutableFloatStateOf(maxCount.toFloat()) }
     // 当 DataStore 值变化时同步本地状态（如从其他页面返回）
     androidx.compose.runtime.LaunchedEffect(maxCount) {
         sliderValue = maxCount.toFloat()

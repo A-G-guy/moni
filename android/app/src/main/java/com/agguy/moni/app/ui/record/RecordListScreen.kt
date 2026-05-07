@@ -44,7 +44,6 @@ import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreIntent
-import com.agguy.moni.core.CoreRecordGroup
 import com.agguy.moni.core.util.formatAmount
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -123,24 +122,12 @@ fun RecordListScreen(
             }
         }
     ) { innerPadding ->
-        if (appState.recordGroups.isEmpty()) {
-            val hasAnyRecords = appState.monthlySummaries.isNotEmpty()
-            EmptyRecordList(
-                isMonthEmpty = hasAnyRecords,
-                yearMonth = selectedYearMonth,
-                errorMessage = appState.errorMessage,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            )
-        } else {
-            RecordListContent(
-                recordGroups = appState.recordGroups,
-                currencySymbol = appState.currencySymbol,
-                onRecordClick = { onNavigateToRecordDetail(it) },
-                modifier = Modifier.padding(innerPadding)
-            )
-        }
+        RecordListContent(
+            appState = appState,
+            selectedYearMonth = selectedYearMonth,
+            onRecordClick = { onNavigateToRecordDetail(it) },
+            modifier = Modifier.padding(innerPadding)
+        )
     }
 
     if (sheetVisible) {
@@ -161,8 +148,8 @@ fun RecordListScreen(
 
 @Composable
 private fun RecordListContent(
-    recordGroups: List<CoreRecordGroup>,
-    currencySymbol: String,
+    appState: AppState,
+    selectedYearMonth: String,
     onRecordClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -171,23 +158,46 @@ private fun RecordListContent(
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 80.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        recordGroups.forEach { group ->
-            item(key = "header_${group.date}") {
-                DayHeader(
-                    date = group.date,
-                    incomeCents = group.incomeCents,
-                    expenseCents = group.expenseCents,
-                    currencySymbol = currencySymbol,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+        item(key = "overview") {
+            RecordOverviewCard(
+                selectedYearMonth = selectedYearMonth,
+                recordGroups = appState.recordGroups,
+                monthlySummaries = appState.monthlySummaries,
+                budgets = appState.budgets,
+                currencySymbol = appState.currencySymbol,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+
+        if (appState.recordGroups.isEmpty()) {
+            item(key = "empty") {
+                val hasAnyRecords = appState.monthlySummaries.isNotEmpty()
+                EmptyRecordList(
+                    isMonthEmpty = hasAnyRecords,
+                    yearMonth = selectedYearMonth,
+                    errorMessage = appState.errorMessage,
+                    modifier = Modifier.fillParentMaxSize()
                 )
             }
+        } else {
+            appState.recordGroups.forEach { group ->
+                item(key = "header_${group.date}") {
+                    DayHeader(
+                        date = group.date,
+                        incomeCents = group.incomeCents,
+                        expenseCents = group.expenseCents,
+                        currencySymbol = appState.currencySymbol,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                    )
+                }
 
-            items(group.records, key = { it.id }) { record ->
-                RecordListItem(
-                    record = record,
-                    currencySymbol = currencySymbol,
-                    onClick = { onRecordClick(record.id) }
-                )
+                items(group.records, key = { it.id }) { record ->
+                    RecordListItem(
+                        record = record,
+                        currencySymbol = appState.currencySymbol,
+                        onClick = { onRecordClick(record.id) }
+                    )
+                }
             }
         }
     }

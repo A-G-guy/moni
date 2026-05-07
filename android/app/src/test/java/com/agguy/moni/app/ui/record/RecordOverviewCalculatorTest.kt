@@ -79,7 +79,7 @@ class RecordOverviewCalculatorTest {
         assertEquals(5_000L, metrics.monthBalance)
         assertEquals(2_000L, metrics.todayExpense)
         assertEquals(1_000L, metrics.dailyAvg) // 15000 / 15
-        assertEquals(312L, metrics.dailyRemaining) // 5000 / 16 = 312
+        assertEquals(937L, metrics.dailyRemaining) // (30000 - 15000) / 16 = 937
         assertEquals(15, metrics.elapsedDays)
         assertEquals(16, metrics.remainingDays)
         assertEquals(31, metrics.totalDays)
@@ -120,7 +120,7 @@ class RecordOverviewCalculatorTest {
         assertEquals(2_000L, metrics.monthBalance)
         assertNull(metrics.todayExpense)
         assertNull(metrics.dailyAvg) // 未来月不显示
-        assertEquals(66L, metrics.dailyRemaining) // 2000 / 30 = 66
+        assertEquals(66L, metrics.dailyRemaining) // 无总预算：月结余 / 剩余天数 = 2000 / 30 = 66
         assertEquals(0, metrics.elapsedDays)
         assertEquals(30, metrics.remainingDays)
     }
@@ -139,7 +139,7 @@ class RecordOverviewCalculatorTest {
         assertEquals(0L, metrics.monthBalance)
         assertEquals(0L, metrics.todayExpense) // 当前月但无记录，今日支出为0
         assertEquals(0L, metrics.dailyAvg) // 0 / 15 = 0
-        assertEquals(0L, metrics.dailyRemaining) // 0 / 16 = 0
+        assertEquals(0L, metrics.dailyRemaining) // 无总预算：月结余 / 剩余天数 = 0 / 16 = 0
         assertEquals(15, metrics.elapsedDays)
         assertEquals(16, metrics.remainingDays)
         assertNull(metrics.totalBudget)
@@ -188,7 +188,7 @@ class RecordOverviewCalculatorTest {
     }
 
     @Test
-    fun `月结余为负时日均剩余为负数`() {
+    fun `无总预算时日均剩余按月结余计算`() {
         val metrics = calculateOverviewMetrics(
             selectedYearMonth = "2024-03",
             recordGroups = emptyList(),
@@ -198,7 +198,35 @@ class RecordOverviewCalculatorTest {
         )
 
         assertEquals(-5_000L, metrics.monthBalance)
-        assertEquals(-312L, metrics.dailyRemaining) // -5000 / 16
+        assertEquals(-312L, metrics.dailyRemaining) // 月结余 / 剩余天数 = -5000 / 16
+    }
+
+    @Test
+    fun `有总预算时日均剩余按剩余总预算计算`() {
+        val metrics = calculateOverviewMetrics(
+            selectedYearMonth = "2024-03",
+            recordGroups = emptyList(),
+            monthlySummaries = listOf(monthlySummary("2024-03", income = 20_000, expense = 15_000)),
+            budgets = listOf(totalBudget(amount = 30_000, spent = 15_000)),
+            today = fixedToday
+        )
+
+        // (30000 - 15000) / 16 = 937
+        assertEquals(937L, metrics.dailyRemaining)
+    }
+
+    @Test
+    fun `有总预算且超支时日均剩余为负数`() {
+        val metrics = calculateOverviewMetrics(
+            selectedYearMonth = "2024-03",
+            recordGroups = emptyList(),
+            monthlySummaries = listOf(monthlySummary("2024-03", income = 5_000, expense = 35_000)),
+            budgets = listOf(totalBudget(amount = 30_000, spent = 35_000)),
+            today = fixedToday
+        )
+
+        // (30000 - 35000) / 16 = -312
+        assertEquals(-312L, metrics.dailyRemaining)
     }
 
     // ==================== parseYearMonth ====================

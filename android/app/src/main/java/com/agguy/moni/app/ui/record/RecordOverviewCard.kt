@@ -118,14 +118,14 @@ fun RecordOverviewCard(
                     label = "今日支出",
                     amountCents = metrics.todayExpense,
                     currencySymbol = currencySymbol,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
                 OverviewStatItem(
                     label = "日均支出",
                     amountCents = metrics.dailyAvg,
                     currencySymbol = currencySymbol,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f),
                     alignCenter = true
                 )
@@ -133,7 +133,7 @@ fun RecordOverviewCard(
                     label = "日均剩余",
                     amountCents = metrics.dailyRemaining,
                     currencySymbol = currencySymbol,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f),
                     alignEnd = true
                 )
@@ -374,9 +374,13 @@ internal fun calculateOverviewMetrics(
     // 总预算
     val totalBudget = budgets.find { it.categoryId == null }
 
-    // 日均剩余 = 月结余 / 本月剩余天数
+    // 日均剩余：有总预算时为"剩余总预算 / 剩余天数"，否则为"月结余 / 剩余天数"
     val dailyRemaining = if (remainingDays > 0) {
-        monthBalance / remainingDays
+        if (totalBudget != null) {
+            (totalBudget.amountCents - monthExpense) / remainingDays
+        } else {
+            monthBalance / remainingDays
+        }
     } else {
         null
     }

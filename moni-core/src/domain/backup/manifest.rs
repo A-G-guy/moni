@@ -25,6 +25,8 @@ pub struct DeviceInfo {
 pub struct BackupStats {
     pub record_count: u64,
     pub category_count: u64,
+    #[serde(default)]
+    pub budget_count: Option<u64>,
     pub settings_count: u64,
 }
 

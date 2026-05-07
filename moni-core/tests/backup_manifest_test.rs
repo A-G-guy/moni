@@ -23,6 +23,7 @@ fn sample_manifest() -> BackupManifest {
         stats: BackupStats {
             record_count: 10,
             category_count: 5,
+            budget_count: Some(0),
             settings_count: 4,
         },
         files: vec![

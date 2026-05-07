@@ -16,18 +16,28 @@ const PRODUCT_NAME: &str = "Moni";
 const PACKAGE_NAME: &str = "com.agguy.moni";
 
 /// 收集数据库统计信息。
-fn collect_stats(conn: &Connection) -> Result<BackupStats, crate::core::error::CoreError> {
+#[doc(hidden)]
+pub fn collect_stats(
+    conn: &Connection,
+    settings_json: &str,
+) -> Result<BackupStats, crate::core::error::CoreError> {
     let record_count: u64 = conn
         .query_row("SELECT COUNT(*) FROM records", [], |row| row.get(0))
         .map_err(|e| crate::core::error::CoreError::Database(e.to_string()))?;
     let category_count: u64 = conn
         .query_row("SELECT COUNT(*) FROM categories", [], |row| row.get(0))
         .map_err(|e| crate::core::error::CoreError::Database(e.to_string()))?;
-    let settings_count = 4u64;
+    let budget_count: u64 = conn
+        .query_row("SELECT COUNT(*) FROM budgets", [], |row| row.get(0))
+        .map_err(|e| crate::core::error::CoreError::Database(e.to_string()))?;
+    let settings_count = serde_json::from_str::<serde_json::Value>(settings_json)
+        .map(|v| v.as_object().map(|o| o.len() as u64).unwrap_or(0))
+        .unwrap_or(0);
 
     Ok(BackupStats {
         record_count,
         category_count,
+        budget_count: Some(budget_count),
         settings_count,
     })
 }
@@ -119,7 +129,7 @@ pub fn backup_export(
     if let Some(cb) = on_progress {
         cb("统计数据中...", 5);
     }
-    let stats = collect_stats(conn)?;
+    let stats = collect_stats(conn, settings_json)?;
 
     // 1. 准备临时数据库副本
     if let Some(cb) = on_progress {

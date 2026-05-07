@@ -256,6 +256,10 @@ impl MoniCore {
                         let aggregates = crate::db::record_repo::monthly_aggregates(&inner.conn, 6)?;
                         inner.state.monthly_summaries = crate::domain::stats::calculator::calculate_monthly_summary(aggregates);
 
+                        let breakdown_aggregates = crate::db::record_repo::category_aggregates(&inner.conn, &ym)?;
+                        inner.state.current_month_breakdown =
+                            crate::domain::stats::calculator::calculate_category_breakdown(breakdown_aggregates);
+
                         Ok(r)
                     }
                     Err(e) => {
@@ -290,6 +294,74 @@ impl MoniCore {
                         Err(e)
                     }
                 }
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
+    pub async fn auto_backup_should_run(
+        &self,
+        last_backup_time: Option<String>,
+        frequency: String,
+    ) -> Result<bool, CoreError> {
+        let freq = crate::models::auto_backup::AutoBackupFrequency::from_str(&frequency)
+            .ok_or_else(|| CoreError::Internal(format!("无效的自动备份频率: {frequency}")))?;
+        let now = chrono::Local::now().to_rfc3339();
+        Ok(crate::domain::auto_backup::should_auto_backup(
+            last_backup_time.as_deref(),
+            freq,
+            &now,
+        ))
+    }
+
+    pub async fn auto_backup_perform(
+        &self,
+        backup_dir: String,
+        settings_json: String,
+        app_version_name: String,
+        app_version_code: i64,
+        device_manufacturer: String,
+        device_model: String,
+        android_sdk: i32,
+        progress: Option<Box<dyn crate::models::backup::BackupProgressListener>>,
+    ) -> Result<crate::models::auto_backup::AutoBackupReport, CoreError> {
+        let inner = Arc::clone(&self.inner);
+        self.runtime
+            .spawn_blocking(move || {
+                let inner = inner
+                    .lock()
+                    .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
+
+                let on_progress = |stage: &str, percent: i32| {
+                    if let Some(ref p) = progress {
+                        p.on_stage(stage.to_string(), percent);
+                    }
+                };
+
+                crate::domain::auto_backup::perform_auto_backup(
+                    &inner.conn,
+                    &backup_dir,
+                    &settings_json,
+                    &app_version_name,
+                    app_version_code,
+                    &device_manufacturer,
+                    &device_model,
+                    android_sdk,
+                    Some(&on_progress),
+                )
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
+    pub async fn auto_backup_cleanup(
+        &self,
+        backup_dir: String,
+        max_count: u32,
+    ) -> Result<u32, CoreError> {
+        self.runtime
+            .spawn_blocking(move || {
+                crate::domain::auto_backup::cleanup_auto_backups(&backup_dir, max_count)
             })
             .await
             .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?

@@ -50,10 +50,12 @@ fn extract_entry<R: Read + std::io::Seek>(
 }
 
 /// 验证解压后的数据库基本完整性（能打开、有预期表、行数合理）。
-fn validate_restored_db(
+#[doc(hidden)]
+pub fn validate_restored_db(
     db_path: &str,
     expected_record_count: u64,
     expected_category_count: u64,
+    expected_budget_count: Option<u64>,
 ) -> Result<(), crate::core::error::CoreError> {
     let conn = Connection::open(db_path)
         .map_err(|e| crate::core::error::CoreError::Database(format!(
@@ -74,6 +76,21 @@ fn validate_restored_db(
             reason: format!(
                 "恢复后行数不匹配: records {actual_records}/{expected_record_count}, categories {actual_categories}/{expected_category_count}"),
         });
+    }
+
+    // budgets 校验仅在 manifest 包含 budget_count 时执行（兼容旧备份）
+    if let Some(expected) = expected_budget_count {
+        let actual_budgets: u64 = conn
+            .query_row("SELECT COUNT(*) FROM budgets", [], |row| row.get(0))
+            .map_err(|e| crate::core::error::CoreError::Database(format!(
+                "恢复后 budgets 表查询失败: {e}")))?;
+        if actual_budgets != expected {
+            return Err(crate::core::error::CoreError::BackupRestoreFailed {
+                stage: "db_validation".to_string(),
+                reason: format!(
+                    "恢复后 budgets 行数不匹配: {actual_budgets}/{expected}"),
+            });
+        }
     }
 
     Ok(())
@@ -152,6 +169,7 @@ pub fn backup_restore(
         tmp_db.to_str().unwrap_or(""),
         manifest.stats.record_count,
         manifest.stats.category_count,
+        manifest.stats.budget_count,
     );
     if let Err(e) = result {
         let _ = std::fs::remove_file(&tmp_db);

@@ -32,6 +32,7 @@ fn minimal_manifest() -> BackupManifest {
         stats: BackupStats {
             record_count: 0,
             category_count: 0,
+            budget_count: Some(0),
             settings_count: 0,
         },
         files: vec![],
@@ -274,6 +275,7 @@ fn test_backup_restore_format_version_too_new() {
             record_count: 0,
             category_count: 0,
             settings_count: 0,
+            budget_count: Some(0),
         };
         manifest.files = vec![
             FileFingerprint {
@@ -352,6 +354,7 @@ fn test_backup_restore_manifest_integrity_mismatch() {
             record_count: 0,
             category_count: 0,
             settings_count: 0,
+            budget_count: Some(0),
         };
         manifest.files = vec![
             FileFingerprint {
@@ -433,6 +436,7 @@ fn test_backup_restore_db_checksum_mismatch() {
             record_count: 0,
             category_count: 0,
             settings_count: 0,
+            budget_count: Some(0),
         };
         manifest.files = vec![
             FileFingerprint {
@@ -511,6 +515,7 @@ fn test_backup_restore_malformed_sqlite() {
             record_count: 0,
             category_count: 0,
             settings_count: 0,
+            budget_count: Some(0),
         };
         manifest.files = vec![
             FileFingerprint {
@@ -587,6 +592,7 @@ fn test_backup_restore_rename_failure_rollback() {
         record_count: 0,
         category_count: 0,
         settings_count: 0,
+        budget_count: Some(0),
     };
     manifest.files = vec![
         FileFingerprint {
@@ -671,6 +677,7 @@ fn test_backup_restore_manifest_skip_self_checksum() {
             record_count: 0,
             category_count: 0,
             settings_count: 0,
+            budget_count: Some(0),
         };
         manifest.files = vec![
             FileFingerprint {

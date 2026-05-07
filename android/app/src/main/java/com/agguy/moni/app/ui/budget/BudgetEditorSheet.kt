@@ -16,7 +16,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -143,22 +145,25 @@ fun BudgetEditorSheet(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Column {
-                ScopeOption(
-                    label = "仅本月",
-                    selected = selectedScope == "this_month",
-                    onClick = { selectedScope = "this_month" }
-                )
-                ScopeOption(
-                    label = "本月及以后",
-                    selected = selectedScope == "this_and_future",
-                    onClick = { selectedScope = "this_and_future" }
-                )
-                ScopeOption(
-                    label = "仅以后月份",
-                    selected = selectedScope == "future_only",
-                    onClick = { selectedScope = "future_only" }
-                )
+            val scopeOptions = listOf(
+                "仅本月" to "this_month",
+                "本月及以后" to "this_and_future",
+                "仅以后" to "future_only"
+            )
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                scopeOptions.forEachIndexed { index, (label, scope) ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = scopeOptions.size
+                        ),
+                        onClick = { selectedScope = scope },
+                        selected = selectedScope == scope,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(label, style = MaterialTheme.typography.labelMedium)
+                    }
+                }
             }
 
             // 软冲突提示
@@ -263,25 +268,3 @@ fun BudgetEditorSheet(
     }
 }
 
-@Composable
-private fun ScopeOption(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 2.dp)
-    ) {
-        RadioButton(
-            selected = selected,
-            onClick = onClick
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium
-        )
-    }
-}

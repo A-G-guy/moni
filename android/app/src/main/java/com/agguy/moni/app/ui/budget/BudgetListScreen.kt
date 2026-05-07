@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -72,6 +73,7 @@ fun BudgetListScreen(
     var editingCategory by remember { mutableStateOf<CoreCategory?>(null) }
     var editingParentBudget by remember { mutableStateOf<CoreBudget?>(null) }
     var monthPickerVisible by remember { mutableStateOf(false) }
+    var deleteConfirmBudget by remember { mutableStateOf<CoreBudget?>(null) }
 
     val monthLabel = remember(selectedYearMonth) {
         val parts = selectedYearMonth.split("-")
@@ -133,7 +135,8 @@ fun BudgetListScreen(
                         editingCategory = null
                         editingParentBudget = null
                         editorVisible = true
-                    }
+                    },
+                    onDelete = { findBudget(null)?.let { deleteConfirmBudget = it } }
                 )
             }
 
@@ -153,11 +156,15 @@ fun BudgetListScreen(
                         editingParentBudget = null
                         editorVisible = true
                     },
+                    onParentDelete = { parentBudget?.let { deleteConfirmBudget = it } },
                     onChildClick = { child ->
                         editingBudget = findBudget(child.id)
                         editingCategory = child
                         editingParentBudget = parentBudget
                         editorVisible = true
+                    },
+                    onChildDelete = { child ->
+                        findBudget(child.id)?.let { deleteConfirmBudget = it }
                     }
                 )
             }
@@ -190,6 +197,54 @@ fun BudgetListScreen(
             onDismiss = { monthPickerVisible = false }
         )
     }
+
+    // 列表直接删除确认
+    if (deleteConfirmBudget != null) {
+        val budget = deleteConfirmBudget!!
+        AlertDialog(
+            onDismissRequest = { deleteConfirmBudget = null },
+            title = { Text("删除预算") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("请选择删除范围：")
+                    TextButton(
+                        onClick = {
+                            onDispatch(
+                                CoreIntent.BudgetDelete(
+                                    id = budget.id,
+                                    yearMonth = selectedYearMonth,
+                                    scope = "this_month"
+                                )
+                            )
+                            deleteConfirmBudget = null
+                        }
+                    ) {
+                        Text("从本月起停止")
+                    }
+                    TextButton(
+                        onClick = {
+                            onDispatch(
+                                CoreIntent.BudgetDelete(
+                                    id = budget.id,
+                                    yearMonth = selectedYearMonth,
+                                    scope = "future_only"
+                                )
+                            )
+                            deleteConfirmBudget = null
+                        }
+                    ) {
+                        Text("从下月起停止")
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { deleteConfirmBudget = null }) {
+                    Text("取消")
+                }
+            }
+        )
+    }
 }
 
 /**
@@ -198,7 +253,8 @@ fun BudgetListScreen(
 @Composable
 private fun TotalBudgetCard(
     totalBudget: CoreBudget?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -222,8 +278,17 @@ private fun TotalBudgetCard(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
-                if (totalBudget != null) {
-                    BudgetStatusDot(status = totalBudget.status)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (totalBudget != null) {
+                        BudgetStatusDot(status = totalBudget.status)
+                        IconButton(onClick = onDelete) {
+                            MoniIcon(
+                                icon = MoniIcons.Delete,
+                                contentDescription = "删除总预算",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             }
 
@@ -277,7 +342,9 @@ private fun ParentBudgetItem(
     children: List<CoreCategory>,
     childrenBudgets: List<CoreBudget?>,
     onParentClick: () -> Unit,
-    onChildClick: (CoreCategory) -> Unit
+    onParentDelete: () -> Unit,
+    onChildClick: (CoreCategory) -> Unit,
+    onChildDelete: (CoreCategory) -> Unit
 ) {
     // 所有分类默认展开
     val hasChildren = children.isNotEmpty()
@@ -332,18 +399,27 @@ private fun ParentBudgetItem(
 
                 // 右侧：预算信息或设置按钮
                 if (budget != null) {
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = "¥${formatAmount(budget.amountCents)}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = "已用 ¥${formatAmount(budget.spentCents)}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        BudgetStatusLabel(status = budget.status)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = "¥${formatAmount(budget.amountCents)}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "已用 ¥${formatAmount(budget.spentCents)}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            BudgetStatusLabel(status = budget.status)
+                        }
+                        IconButton(onClick = onParentDelete) {
+                            MoniIcon(
+                                icon = MoniIcons.Delete,
+                                contentDescription = "删除预算",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 } else {
                     TextButton(onClick = onParentClick) {
@@ -369,7 +445,8 @@ private fun ParentBudgetItem(
                             category = child,
                             budget = childBudget,
                             parentBudget = budget,
-                            onClick = { onChildClick(child) }
+                            onClick = { onChildClick(child) },
+                            onDelete = { onChildDelete(child) }
                         )
                     }
                 }
@@ -386,7 +463,8 @@ private fun ChildBudgetItem(
     category: CoreCategory,
     budget: CoreBudget?,
     parentBudget: CoreBudget?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -413,18 +491,27 @@ private fun ChildBudgetItem(
         }
 
         if (budget != null) {
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = "¥${formatAmount(budget.amountCents)}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = "已用 ¥${formatAmount(budget.spentCents)}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                BudgetStatusLabel(status = budget.status)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "¥${formatAmount(budget.amountCents)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = "已用 ¥${formatAmount(budget.spentCents)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    BudgetStatusLabel(status = budget.status)
+                }
+                IconButton(onClick = onDelete) {
+                    MoniIcon(
+                        icon = MoniIcons.Delete,
+                        contentDescription = "删除预算",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         } else {
             TextButton(onClick = onClick) {

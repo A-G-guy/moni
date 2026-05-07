@@ -3,36 +3,38 @@
 package com.agguy.moni.app.ui.record
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.components.MoniCard
 import com.agguy.moni.app.components.MoniCardVariant
 import com.agguy.moni.app.theme.expenseRed
-import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreBudget
 import com.agguy.moni.core.CoreMonthlySummary
 import com.agguy.moni.core.CoreRecordGroup
@@ -44,9 +46,9 @@ import java.time.YearMonth
  * 账单页顶部月度概览卡片。
  *
  * 三行布局：
- * - 第一行：本月总支出 + 月结余
- * - 第二行（条件渲染）：总预算进度条（含理想进度标记）
- * - 第三行：今日支出 + 日均支出 + 日均剩余
+ * - 第一行：本月总支出 + 月结余（主题色）
+ * - 第二行（条件渲染）：总预算进度条，含理想进度标记
+ * - 第三行：今日支出 + 日均支出 + 日均剩余（白色）
  */
 @Composable
 fun RecordOverviewCard(
@@ -71,7 +73,7 @@ fun RecordOverviewCard(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 第一行：本月总支出 + 月结余
+            // 第一行：本月总支出 + 月结余（主题色）
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -81,18 +83,14 @@ fun RecordOverviewCard(
                     label = "本月总支出",
                     amountCents = metrics.monthExpense,
                     currencySymbol = currencySymbol,
-                    color = MaterialTheme.colorScheme.expenseRed,
+                    color = MaterialTheme.colorScheme.primary,
                     isLarge = true
                 )
                 OverviewStatItem(
                     label = "月结余",
                     amountCents = metrics.monthBalance,
                     currencySymbol = currencySymbol,
-                    color = if (metrics.monthBalance >= 0) {
-                        MaterialTheme.colorScheme.incomeGreen
-                    } else {
-                        MaterialTheme.colorScheme.expenseRed
-                    },
+                    color = MaterialTheme.colorScheme.primary,
                     isLarge = true,
                     alignEnd = true
                 )
@@ -111,32 +109,31 @@ fun RecordOverviewCard(
                 }
             }
 
-            // 第三行：今日支出 + 日均支出 + 日均剩余
+            // 第三行：今日支出 + 日均支出 + 日均剩余（白色）
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
                 OverviewStatItem(
                     label = "今日支出",
                     amountCents = metrics.todayExpense,
                     currencySymbol = currencySymbol,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = Color.White,
                     modifier = Modifier.weight(1f)
                 )
                 OverviewStatItem(
                     label = "日均支出",
                     amountCents = metrics.dailyAvg,
                     currencySymbol = currencySymbol,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = Color.White,
                     modifier = Modifier.weight(1f),
-                    alignEnd = true
+                    alignCenter = true
                 )
                 OverviewStatItem(
                     label = "日均剩余",
                     amountCents = metrics.dailyRemaining,
                     currencySymbol = currencySymbol,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = Color.White,
                     modifier = Modifier.weight(1f),
                     alignEnd = true
                 )
@@ -149,7 +146,8 @@ fun RecordOverviewCard(
  * 单个指标项：标签 + 金额。
  *
  * @param amountCents null 时显示 "-"
- * @param alignEnd 是否右对齐（用于多列布局中的右侧列）
+ * @param alignEnd 是否右对齐
+ * @param alignCenter 是否居中对齐（优先级低于 alignEnd）
  * @param isLarge 是否使用大字号（第一行）
  */
 @Composable
@@ -160,6 +158,7 @@ private fun OverviewStatItem(
     color: Color,
     modifier: Modifier = Modifier,
     alignEnd: Boolean = false,
+    alignCenter: Boolean = false,
     isLarge: Boolean = false
 ) {
     val amountText = if (amountCents != null) {
@@ -168,9 +167,15 @@ private fun OverviewStatItem(
         "-"
     }
 
+    val horizontalAlignment = when {
+        alignEnd -> Alignment.End
+        alignCenter -> Alignment.CenterHorizontally
+        else -> Alignment.Start
+    }
+
     Column(
         modifier = modifier,
-        horizontalAlignment = if (alignEnd) Alignment.End else Alignment.Start
+        horizontalAlignment = horizontalAlignment
     ) {
         Text(
             text = label,
@@ -195,7 +200,7 @@ private fun OverviewStatItem(
 }
 
 /**
- * 预算进度区域：文本标签 + 带理想进度标记的进度条。
+ * 预算进度区域：文本标签 + 带理想进度标记的原生进度条。
  */
 @Composable
 private fun BudgetProgressSection(
@@ -249,7 +254,7 @@ private fun BudgetProgressSection(
             )
         }
 
-        OverviewProgressBar(
+        IdealProgressBar(
             actualPercentage = actualPercentage,
             idealPercentage = idealPercentage
         )
@@ -257,20 +262,19 @@ private fun BudgetProgressSection(
 }
 
 /**
- * 带理想进度标记的进度条。
+ * 使用 Material 3 LinearProgressIndicator 作为基础，叠加理想进度标记。
  *
- * - 底层灰色轨道
- * - 填充层：实际支出进度（颜色按状态变化）
- * - 游标：竖线标记理想进度位置
+ * 底层使用官方 LinearProgressIndicator 渲染实际进度；
+ * 通过 Canvas 在指示器轨道上方绘制理想进度竖线标记。
  */
 @Composable
-private fun OverviewProgressBar(
+private fun IdealProgressBar(
     actualPercentage: Double,
     idealPercentage: Double,
     modifier: Modifier = Modifier
 ) {
-    val clampedActual = actualPercentage.coerceIn(0.0, 1.0)
-    val clampedIdeal = idealPercentage.coerceIn(0.0, 1.0)
+    val clampedActual = actualPercentage.coerceIn(0.0, 1.0).toFloat()
+    val clampedIdeal = idealPercentage.coerceIn(0.0, 1.0).toFloat()
 
     val progressColor = when {
         actualPercentage > 1.0 -> MaterialTheme.colorScheme.expenseRed
@@ -278,52 +282,39 @@ private fun OverviewProgressBar(
         else -> MaterialTheme.colorScheme.primary
     }
 
-    BoxWithConstraints(
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .height(8.dp)
     ) {
-        val width = maxWidth
-
-        // 轨道
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(4.dp))
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+        // 原生进度条：实际支出进度
+        LinearProgressIndicator(
+            progress = { clampedActual },
+            modifier = Modifier.fillMaxSize(),
+            color = progressColor,
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            strokeCap = StrokeCap.Round,
+            gapSize = 0.dp
         )
 
-        // 实际进度填充
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(width * clampedActual.toFloat())
-                .clip(RoundedCornerShape(4.dp))
-                .background(progressColor)
-        )
+        // 理想进度标记：竖线
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val trackWidth = size.width
+            val trackHeight = size.height
+            val markerX = trackWidth * clampedIdeal
+            val markerWidth = 2.dp.toPx().coerceAtLeast(1f)
 
-        // 理想进度标记（竖线）
-        val markerOffset = calculateMarkerOffset(width, clampedIdeal)
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(2.dp)
-                .offset(x = markerOffset)
-                .background(
-                    MaterialTheme.colorScheme.onSurfaceVariant,
-                    RoundedCornerShape(1.dp)
-                )
-        )
+            // 竖线
+            drawRect(
+                color = Color.White,
+                topLeft = Offset(
+                    x = (markerX - markerWidth / 2f).coerceIn(0f, trackWidth - markerWidth),
+                    y = 0f
+                ),
+                size = Size(width = markerWidth, height = trackHeight)
+            )
+        }
     }
-}
-
-/**
- * 计算标记偏移量，确保不超出轨道边界。
- */
-private fun calculateMarkerOffset(totalWidth: Dp, idealFraction: Double): Dp {
-    val markerWidth = 2.dp
-    val rawOffset = totalWidth * idealFraction.toFloat() - markerWidth / 2
-    return rawOffset.coerceIn(0.dp, (totalWidth - markerWidth).coerceAtLeast(0.dp))
 }
 
 /**
@@ -383,9 +374,9 @@ private fun calculateOverviewMetrics(
     // 总预算
     val totalBudget = budgets.find { it.categoryId == null }
 
-    // 日均剩余（有预算且还有剩余天数时计算）
-    val dailyRemaining = if (totalBudget != null && remainingDays > 0) {
-        (totalBudget.amountCents - monthExpense) / remainingDays
+    // 日均剩余 = 月结余 / 本月剩余天数
+    val dailyRemaining = if (remainingDays > 0) {
+        monthBalance / remainingDays
     } else {
         null
     }

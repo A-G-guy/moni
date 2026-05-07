@@ -26,8 +26,20 @@ impl AppCoreRuntime {
             log::warn!("创建记录失败: 金额必须大于0, 收到: {amount_cents}");
             return Err(CoreError::InvalidInput("金额必须大于0".to_string()));
         }
-        if crate::db::category_repo::get_by_id(&self.conn, category_id)?.is_none() {
-            return Err(CoreError::CategoryNotFound(category_id));
+        let category = crate::db::category_repo::get_by_id(&self.conn, category_id)?
+            .ok_or(CoreError::CategoryNotFound(category_id))?;
+        if category.archived_at.is_some() {
+            log::warn!("创建记录失败: 分类已归档, category_id={category_id}");
+            return Err(CoreError::InvalidInput("该分类已归档，无法记账".to_string()));
+        }
+        if category.category_type != record_type {
+            log::warn!(
+                "创建记录失败: 记录类型与分类类型不匹配, record_type={record_type:?}, category_type={:?}",
+                category.category_type
+            );
+            return Err(CoreError::InvalidInput(
+                "记录类型与分类类型不匹配".to_string(),
+            ));
         }
 
         let id = record_repo::insert(
@@ -35,6 +47,7 @@ impl AppCoreRuntime {
             amount_cents,
             record_type,
             category_id,
+            category.parent_id,
             &note,
             timestamp,
         )?;

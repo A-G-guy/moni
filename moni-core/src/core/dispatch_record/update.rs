@@ -28,19 +28,37 @@ impl AppCoreRuntime {
             log::warn!("更新记录失败: 金额必须大于0, 收到: {amt}");
             return Err(CoreError::InvalidInput("金额必须大于0".to_string()));
         }
-        if record_repo::get_by_id(&self.conn, id)?.is_none() {
-            log::warn!("更新记录失败: 记录不存在, id={id}");
-            return Err(CoreError::RecordNotFound(id));
-        }
-        if let Some(cid) = category_id
-            && crate::db::category_repo::get_by_id(&self.conn, cid)?.is_none()
-        {
-            log::warn!("更新记录失败: 分类不存在, category_id={cid}");
-            return Err(CoreError::CategoryNotFound(cid));
-        }
-
         let original = record_repo::get_by_id(&self.conn, id)?
             .ok_or_else(|| CoreError::RecordNotFound(id))?;
+
+        let new_category = if let Some(cid) = category_id {
+            let cat = crate::db::category_repo::get_by_id(&self.conn, cid)?
+                .ok_or(CoreError::CategoryNotFound(cid))?;
+            if cat.archived_at.is_some() {
+                log::warn!("更新记录失败: 分类已归档, category_id={cid}");
+                return Err(CoreError::InvalidInput("该分类已归档，无法记账".to_string()));
+            }
+            let new_type = record_type.unwrap_or(original.record_type);
+            if cat.category_type != new_type {
+                log::warn!(
+                    "更新记录失败: 记录类型与分类类型不匹配, record_type={new_type:?}, category_type={:?}",
+                    cat.category_type
+                );
+                return Err(CoreError::InvalidInput(
+                    "记录类型与分类类型不匹配".to_string(),
+                ));
+            }
+            Some(cat)
+        } else {
+            None
+        };
+
+        // 若分类变化，同步更新 parent_category_id
+        let parent_category_id = if category_id.is_some() {
+            new_category.map(|c| c.parent_id)
+        } else {
+            None // 不更新
+        };
 
         record_repo::update(
             &self.conn,
@@ -48,6 +66,7 @@ impl AppCoreRuntime {
             amount_cents,
             record_type,
             category_id,
+            parent_category_id,
             note.as_deref(),
         )?;
         let updated = record_repo::get_by_id(&self.conn, id)?

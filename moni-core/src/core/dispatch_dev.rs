@@ -76,11 +76,13 @@ impl AppCoreRuntime {
                         .map_err(|e| CoreError::Internal(format!("生成 Mock 数据失败: {e}")))?;
 
                 for record in &records {
+                    let cat = categories.iter().find(|c| c.id == record.category_id);
                     record_repo::insert(
                         &self.conn,
                         record.amount_cents,
                         record.record_type,
                         record.category_id,
+                        cat.and_then(|c| c.parent_id),
                         &record.note,
                         Some(record.created_at),
                     )

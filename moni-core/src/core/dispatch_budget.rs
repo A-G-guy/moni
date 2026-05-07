@@ -183,12 +183,14 @@ impl AppCoreRuntime {
             calculator::build_budget_dtos(&self.conn, &raw_budgets, &self.state.categories, year_month)?;
 
         let category_spending = calculator::compute_category_spending(&self.conn, year_month)?;
+        let parent_category_spending = calculator::compute_parent_category_spending(&self.conn, year_month)?;
 
         let effective = calculator::effective_available(
             category_id,
             &budget_dtos,
             &self.state.categories,
             &category_spending,
+            &parent_category_spending,
         );
 
         let (bottleneck, bottleneck_name) = calculator::bottleneck_budget_with_name(
@@ -196,6 +198,7 @@ impl AppCoreRuntime {
             &budget_dtos,
             &self.state.categories,
             &category_spending,
+            &parent_category_spending,
         );
 
         // 模拟加上 amount_cents 后的状态

@@ -21,6 +21,7 @@ data class CoreRecord(
     val amountCents: Long,
     val recordType: String,
     val categoryId: Long,
+    val parentCategoryId: Long? = null,
     val categoryName: String,
     val note: String,
     val createdAt: Long,

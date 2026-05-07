@@ -506,3 +506,144 @@ fn test_budget_delete_future_only_preserves_current() {
         assert!(!has_catering, "下月餐饮预算应已删除");
     });
 }
+
+// ===== 分类变更与预算交互测试 =====
+
+#[test]
+fn test_archive_category_clears_budget() {
+    let core = common::setup_core_with_presets();
+    let rt = tokio::runtime::Runtime::new().unwrap();
+
+    rt.block_on(async {
+        let snapshot = core.snapshot_json().await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
+        // 使用"医疗"分类（没有子分类）
+        let category_id = state["categories"]
+            .as_array().unwrap()
+            .iter().find(|c| c["name"] == "医疗").unwrap()["id"]
+            .as_i64().unwrap();
+
+        // 设置模板 ¥1500
+        core.dispatch(upsert_intent(Some(category_id), 150000, "this_and_future")).await.unwrap();
+
+        // 归档分类
+        core.dispatch(format!(
+            r#"{{"type":"category_archive","id":{}}}"#,
+            category_id
+        )).await.unwrap();
+
+        // 预算列表中不应有医疗预算
+        let update = core.dispatch(format!(
+            r#"{{"type":"budget_list","year_month":"{}"}}"#,
+            CURRENT_YM
+        )).await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
+        let budgets = state["budgets"].as_array().unwrap();
+        let has_medical = budgets.iter().any(|b| b["categoryId"] == category_id);
+        assert!(!has_medical, "归档后医疗预算应被清除");
+    });
+}
+
+#[test]
+fn test_record_create_on_archived_category_fails() {
+    let core = common::setup_core_with_presets();
+    let rt = tokio::runtime::Runtime::new().unwrap();
+
+    rt.block_on(async {
+        let snapshot = core.snapshot_json().await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
+        let category_id = state["categories"]
+            .as_array().unwrap()
+            .iter().find(|c| c["name"] == "餐饮").unwrap()["id"]
+            .as_i64().unwrap();
+
+        // 归档分类
+        core.dispatch(format!(
+            r#"{{"type":"category_archive","id":{}}}"#,
+            category_id
+        )).await.unwrap();
+
+        // 尝试给已归档分类记账
+        let update = core.dispatch(format!(
+            r#"{{"type":"record_create","amount_cents":10000,"record_type":"expense","category_id":{},"note":"","timestamp":null}}"#,
+            category_id
+        )).await.expect("dispatch 不应失败");
+        let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
+        assert!(!state["ui"]["errorMessage"].is_null(), "已归档分类不能记账");
+    });
+}
+
+#[test]
+fn test_record_create_type_mismatch_fails() {
+    let core = common::setup_core_with_presets();
+    let rt = tokio::runtime::Runtime::new().unwrap();
+
+    rt.block_on(async {
+        let snapshot = core.snapshot_json().await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
+        // 工资是收入分类
+        let income_id = state["categories"]
+            .as_array().unwrap()
+            .iter().find(|c| c["name"] == "工资").unwrap()["id"]
+            .as_i64().unwrap();
+
+        // 尝试用支出类型记到收入分类
+        let update = core.dispatch(format!(
+            r#"{{"type":"record_create","amount_cents":10000,"record_type":"expense","category_id":{},"note":"","timestamp":null}}"#,
+            income_id
+        )).await.expect("dispatch 不应失败");
+        let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
+        assert!(!state["ui"]["errorMessage"].is_null(), "类型不匹配应报错");
+    });
+}
+
+#[test]
+fn test_parent_category_id_preserved_after_move() {
+    let core = common::setup_core_with_presets();
+    let rt = tokio::runtime::Runtime::new().unwrap();
+
+    rt.block_on(async {
+        let snapshot = core.snapshot_json().await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
+        let categories = state["categories"].as_array().unwrap();
+
+        let catering_id = categories.iter().find(|c| c["name"] == "餐饮").unwrap()["id"].as_i64().unwrap();
+        let breakfast_id = categories.iter().find(|c| c["name"] == "早餐").unwrap()["id"].as_i64().unwrap();
+        let entertainment_id = categories.iter().find(|c| c["name"] == "娱乐").unwrap()["id"].as_i64().unwrap();
+
+        // 设置餐饮预算 ¥1000
+        core.dispatch(upsert_intent(Some(catering_id), 100000, "this_and_future")).await.unwrap();
+
+        // 用早餐分类记账 ¥300（此时早餐属于餐饮）
+        core.dispatch(format!(
+            r#"{{"type":"record_create","amount_cents":30000,"record_type":"expense","category_id":{},"note":"","timestamp":null}}"#,
+            breakfast_id
+        )).await.unwrap();
+
+        // 验证餐饮预算已用 ¥300
+        let update = core.dispatch(format!(
+            r#"{{"type":"budget_list","year_month":"{}"}}"#,
+            CURRENT_YM
+        )).await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
+        let catering_budget = state["budgets"].as_array().unwrap()
+            .iter().find(|b| b["categoryId"] == catering_id).unwrap();
+        assert_eq!(catering_budget["spentCents"], 30000);
+
+        // 将早餐从餐饮移到娱乐
+        core.dispatch(format!(
+            r#"{{"type":"category_update","id":{},"parent_id":{},"clear_parent_id":false}}"#,
+            breakfast_id, entertainment_id
+        )).await.unwrap();
+
+        // 重新查询本月预算：餐饮预算仍应按旧记录计算（¥300），不受分类移动影响
+        let update = core.dispatch(format!(
+            r#"{{"type":"budget_list","year_month":"{}"}}"#,
+            CURRENT_YM
+        )).await.unwrap();
+        let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
+        let catering_budget = state["budgets"].as_array().unwrap()
+            .iter().find(|b| b["categoryId"] == catering_id).unwrap();
+        assert_eq!(catering_budget["spentCents"], 30000, "历史支出不应因分类移动而漂移");
+    });
+}

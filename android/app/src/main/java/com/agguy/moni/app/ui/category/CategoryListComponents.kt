@@ -211,8 +211,10 @@ fun ArchiveConfirmDialog(category: CoreCategory, onConfirm: () -> Unit, onDismis
             title = { Text("确认归档") },
             text = {
                 Text(
-                    "确定要归档「${category.name}」吗？\n" +
-                        "归档后该分类将不再出现在新建记录的选择中，但历史记录依然保留。"
+                    "确定要归档「${category.name}」吗？\n\n" +
+                        "· 该分类将不再出现在新建记录的选择中\n" +
+                        "· 历史记录依然保留\n" +
+                        "· 该分类的预算设置将被清除"
                 )
             },
             confirmButton = {

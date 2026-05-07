@@ -18,6 +18,7 @@ pub struct Record {
     pub amount_cents: AmountCents,
     pub record_type: RecordType,
     pub category_id: CategoryId,
+    pub parent_category_id: Option<CategoryId>,
     pub note: String,
     pub created_at: TimestampSec,
     pub updated_at: TimestampSec,

@@ -3,7 +3,7 @@ use moni_contracts::types::CategoryId;
 
 use crate::core::error::CoreError;
 use crate::core::runtime::AppCoreRuntime;
-use crate::db::category_repo;
+use crate::db::{budget_repo, category_repo};
 use crate::dto::CategoryDto;
 use crate::models::effects::{CoreEffect, CoreUpdate};
 use crate::models::intent::CoreIntent;
@@ -191,6 +191,13 @@ impl AppCoreRuntime {
         if let Some(idx) = self.state.categories.iter().position(|c| c.id == id) {
             self.state.categories[idx].archived_at = Some(chrono::Utc::now().timestamp());
         }
+
+        // 归档时清理预算：删除模板 + 删除从当前月开始的所有快照
+        let current_year_month = chrono::Local::now().format("%Y-%m").to_string();
+        budget_repo::delete_template(&self.conn, Some(id))?;
+        budget_repo::delete_snapshots_from(&self.conn, Some(id), &current_year_month)?;
+        self.refresh_budget_states(None)?;
+
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),
             payload_json: r#"{"message":"分类已归档"}"#.to_string(),

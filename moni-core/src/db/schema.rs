@@ -2,7 +2,7 @@ use rusqlite::Connection;
 
 /// 当前数据库 schema 版本号。
 /// 每次 schema 发生非向后兼容的变更时同步递增。
-pub const CURRENT_SCHEMA_VERSION: u32 = 3;
+pub const CURRENT_SCHEMA_VERSION: u32 = 4;
 
 const SCHEMA_SQL: &str = "
 CREATE TABLE IF NOT EXISTS categories (
@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS records (
     amount_cents INTEGER NOT NULL CHECK(amount_cents > 0),
     record_type TEXT NOT NULL CHECK(record_type IN ('income', 'expense')),
     category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
+    parent_category_id INTEGER NULL REFERENCES categories(id) ON DELETE RESTRICT,
     note TEXT NOT NULL DEFAULT '',
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
     updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
@@ -95,6 +96,24 @@ pub fn init_schema(conn: &Connection) -> Result<(), rusqlite::Error> {
     if has_year_month == 0 {
         conn.execute(
             "ALTER TABLE budgets ADD COLUMN year_month TEXT NULL",
+            [],
+        )?;
+    }
+
+    // 检查并添加 parent_category_id 列（2026-05-07 迁移：固化账单父级关系）
+    let has_parent_category_id: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM pragma_table_info('records') WHERE name = 'parent_category_id'",
+        [],
+        |row| row.get(0),
+    )?;
+    if has_parent_category_id == 0 {
+        conn.execute(
+            "ALTER TABLE records ADD COLUMN parent_category_id INTEGER NULL REFERENCES categories(id) ON DELETE RESTRICT",
+            [],
+        )?;
+        // 回填历史数据：根据当前分类层级写入当时的 parent_id
+        conn.execute(
+            "UPDATE records SET parent_category_id = (SELECT parent_id FROM categories WHERE id = records.category_id) WHERE parent_category_id IS NULL",
             [],
         )?;
     }

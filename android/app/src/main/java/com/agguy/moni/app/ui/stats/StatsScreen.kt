@@ -62,6 +62,7 @@ fun StatsScreen(
     selectedYearMonth: String,
     onDispatch: (CoreIntent) -> Unit,
     onSelectYearMonth: (String) -> Unit,
+    onNavigateToBudget: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val todayYearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
@@ -119,6 +120,15 @@ fun StatsScreen(
                         onDispatch(CoreIntent.StatsCategoryBreakdown(yearMonth = yearMonth))
                         onSelectYearMonth(yearMonth)
                     }
+                )
+            }
+
+            if (appState.budgets.isNotEmpty()) {
+                StatsBudgetCard(
+                    budgets = appState.budgets,
+                    currencySymbol = appState.currencySymbol,
+                    yearMonth = selectedYearMonth,
+                    onNavigateToBudget = onNavigateToBudget
                 )
             }
 

@@ -162,7 +162,8 @@ fun MoniNavHost(
                 appState = appState,
                 selectedYearMonth = selectedYearMonth,
                 onDispatch = onDispatch,
-                onSelectYearMonth = onSelectYearMonth
+                onSelectYearMonth = onSelectYearMonth,
+                onNavigateToBudget = onNavigateToBudgetList
             )
         }
         composable<Screen.Settings> {

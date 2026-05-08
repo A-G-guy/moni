@@ -16,3 +16,16 @@ android/.gradle/
 .kotlin/
 .playwright-cli/
 .claude/
+
+# 敏感信息与个人配置
+*.env
+*.env.local
+*.pem
+*.p12
+*.jks
+credentials.*
+secrets.*
+config/*.local.*
+
+# Claude Code 项目指令（含个人偏好，不适合开源）
+CLAUDE.md

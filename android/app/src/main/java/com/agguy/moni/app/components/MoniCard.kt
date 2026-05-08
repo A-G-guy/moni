@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 
 /**
@@ -43,7 +44,7 @@ fun MoniCard(
     content: @Composable () -> Unit
 ) {
     val cardModifier = if (onClick != null) {
-        modifier.clickable(onClick = onClick)
+        modifier.clip(MaterialTheme.shapes.large).clickable(onClick = onClick)
     } else {
         modifier
     }

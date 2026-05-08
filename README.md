@@ -7,97 +7,101 @@
   <img src="https://img.shields.io/badge/License-Apache--2.0-blue.svg" alt="License" />
 </p>
 
-> **简单但不普通、精致且量身定做的记账软件。**
+<p align="center">
+  <a href="./README.zh-CN.md">简体中文</a> | English
+</p>
+
+> **A simple yet extraordinary, finely crafted bookkeeping app tailored for you.**
 >
-> Moni = Money + Mini，以最小的心智负担，获得最佳的记账体验。
+> Moni = Money + Mini. Achieve the best bookkeeping experience with the least mental burden.
 
 ---
 
-## 技术亮点
+## Tech Highlights
 
-| 特性 | 说明 |
-|------|------|
-| **Rust 重内核** | 跨平台业务逻辑与全局状态机，编译期内存安全 |
-| **Kotlin 纯 UI** | 无状态渲染层，仅负责界面与系统能力桥接 |
-| **UniFFI 绑定** | 自动生成 JNI 绑定，JSON 序列化通信 |
-| **SQLite 持久化** | 文件数据库 + 内存降级兜底 |
-| **模块化设计** | 功能可开关，边界清晰，核心数据安全优先 |
+| Feature | Description |
+|---------|-------------|
+| **Rust Core** | Cross-platform business logic and global state machine with compile-time memory safety |
+| **Pure Kotlin UI** | Stateless rendering layer, responsible only for UI and system capability bridging |
+| **UniFFI Bindings** | Auto-generated JNI bindings with JSON-serialized communication |
+| **SQLite Persistence** | File database with in-memory fallback |
+| **Modular Design** | Features are toggleable, boundaries are clear, and core data safety is prioritized |
 
-## 架构分层
+## Architecture
 
 ```
 +------------------+
-|  Kotlin UI 层    |  Compose 界面 + ViewModel（无状态）
+|   Kotlin UI      |  Compose UI + ViewModel (stateless)
 +------------------+
-         |  StateFlow / Effect 回调
+         |  StateFlow / Effect callbacks
 +------------------+
-|   JNI / Bridge   |  UniFFI + JNA 自动生成绑定
+|   JNI / Bridge   |  UniFFI + JNA auto-generated bindings
 +------------------+
-         |  JSON 字符串（Intent / State / Effects）
+         |  JSON strings (Intent / State / Effects)
 +------------------+
-|   Rust Core 层   |  状态机 + 业务逻辑 + SQLite
+|   Rust Core      |  State machine + business logic + SQLite
 +------------------+
 ```
 
-- **Kotlin UI**：接收 State 渲染界面，将用户操作封装为 Intent 下发
-- **JNI/Bridge**：UniFFI 生成 FFI 绑定，JNA 动态库加载
-- **Rust Core**：集中式状态机、Intent 分发、数据库读写、副作用生成
+- **Kotlin UI**: Receives State to render UI, encapsulates user actions as Intents and dispatches them
+- **JNI/Bridge**: UniFFI generates FFI bindings, JNA handles dynamic library loading
+- **Rust Core**: Centralized state machine, Intent dispatch, database read/write, effect generation
 
-## 快速开始
+## Quick Start
 
-### 环境要求
+### Requirements
 
-| 工具 | 版本 |
-|------|------|
+| Tool | Version |
+|------|---------|
 | JDK | 17+ |
 | Android SDK | API 36 + NDK 29.0.14206865 |
-| Rust | stable（由 `rust-toolchain.toml` 自动激活） |
+| Rust | stable (auto-activated by `rust-toolchain.toml`) |
 
 ```bash
-# 安装 Android 目标
+# Install Android targets
 rustup target add aarch64-linux-android x86_64-linux-android
 
-# 启用 git hooks
+# Enable git hooks
 git config core.hooksPath .githooks
 
-# 一键代码质量检查
+# One-shot code quality check
 ./gradlew checkAll
 
-# 运行 Rust 测试
+# Run Rust tests
 cargo test --workspace
 
-# 构建 Release APK
+# Build Release APK
 ./gradlew :app:assembleRelease
 ```
 
-## 项目结构
+## Project Structure
 
 ```
 moni/
-├── android/app/          # Kotlin Android 应用（Compose UI）
-├── moni-core/            # Rust 核心业务逻辑（状态机 + SQLite）
-├── moni-contracts/       # Rust 接口契约与 DTO
-├── docs/                 # 项目文档中心
-│   ├── long-term/        # 架构、数据模型、代码规范等核心资产
-│   └── short-term/       # 开发指南、FAQ 等沟通备忘
-├── config/               # Detekt 等工具配置
-├── scripts/              # 构建辅助脚本
-└── .githooks/            # 预提交质量门控
+├── android/app/          # Kotlin Android app (Compose UI)
+├── moni-core/            # Rust core business logic (state machine + SQLite)
+├── moni-contracts/       # Rust interface contracts and DTOs
+├── docs/                 # Project documentation hub
+│   ├── long-term/        # Architecture, data model, code style, etc.
+│   └── short-term/       # Dev guides, FAQ, quickstart, etc.
+├── config/               # Detekt and other tool configurations
+├── scripts/              # Build helper scripts
+└── .githooks/            # Pre-commit quality gates
 ```
 
-## 文档导航
+## Documentation
 
-| 文档 | 说明 |
-|------|------|
-| [开发指南](docs/short-term/development.md) | 环境准备、IDE 配置、一键体检 |
-| [代码规范](docs/long-term/code-style.md) | 拆分策略、文件行数上限、命名约定 |
-| [数据模型](docs/long-term/data-model.md) | Category / Record / RecordType 实体设计 |
-| [分类管理](docs/long-term/category-management.md) | CRUD 状态机、边界规则、颜色策略 |
-| [架构设计](docs/long-term/architecture.md) | 分层职责、数据流向、FFI 通信方式 |
-| [备份恢复](docs/long-term/backup-guide.md) | ZIP 格式、双版本管理、完整性校验 |
+| Document | Description |
+|----------|-------------|
+| [Development Guide](docs/short-term/development.md) | Environment setup, IDE configuration, one-shot health checks |
+| [Code Style](docs/long-term/code-style.md) | Split strategy, file line limits, naming conventions |
+| [Data Model](docs/long-term/data-model.md) | Category / Record / RecordType entity design |
+| [Category Management](docs/long-term/category-management.md) | CRUD state machine, boundary rules, color strategy |
+| [Architecture](docs/long-term/architecture.md) | Layer responsibilities, data flow, FFI communication |
+| [Backup & Restore](docs/long-term/backup-guide.md) | ZIP format, dual-version management, integrity checks |
 
-更多文档请访问 [docs/README.md](docs/README.md)。
+More documents are available at [docs/README.md](docs/README.md).
 
-## 开源协议
+## License
 
-本项目采用 [Apache-2.0](LICENSE) 协议开源。
+This project is open-sourced under the [Apache-2.0](LICENSE) license.

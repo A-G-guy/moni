@@ -3,6 +3,7 @@ use moni_contracts::record::RecordType;
 use moni_contracts::types::{AmountCents, BudgetId, CategoryId};
 
 use crate::core::error::CoreError;
+use crate::core::error::{MSG_BUDGET_AMOUNT_MUST_BE_POSITIVE, MSG_BUDGET_ONLY_EXPENSE};
 use crate::core::runtime::AppCoreRuntime;
 use crate::db::{budget_repo, category_repo};
 use crate::domain::budget::calculator;
@@ -53,7 +54,7 @@ impl AppCoreRuntime {
 
         if amount_cents <= 0 {
             log::warn!("设置预算失败: 金额必须大于0");
-            return Err(CoreError::InvalidInput("预算金额必须大于0".to_string()));
+            return Err(CoreError::InvalidInput(MSG_BUDGET_AMOUNT_MUST_BE_POSITIVE.to_string()));
         }
 
         // 若指定了分类，校验分类存在且为支出类型
@@ -62,7 +63,7 @@ impl AppCoreRuntime {
                 .ok_or(CoreError::CategoryNotFound(cid))?;
             if category.category_type != RecordType::Expense {
                 log::warn!("设置预算失败: 预算仅支持支出分类, id={cid}");
-                return Err(CoreError::InvalidInput("预算仅支持支出分类".to_string()));
+                return Err(CoreError::InvalidInput(MSG_BUDGET_ONLY_EXPENSE.to_string()));
             }
         }
 
@@ -105,14 +106,14 @@ impl AppCoreRuntime {
         self.state.budget_check_result = None;
         self.refresh_budget_states(Some(year_month))?;
 
-        let msg = if category_id.is_some() {
-            "分类预算已更新"
+        let message_key = if category_id.is_some() {
+            "category_budget_saved"
         } else {
-            "总预算已更新"
+            "total_budget_saved"
         };
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),
-            payload_json: format!("{{\"message\":\"{}\"}}", msg),
+            payload_json: format!("{{\"message_key\":\"{}\"}}", message_key),
         }])
     }
 
@@ -180,7 +181,7 @@ impl AppCoreRuntime {
         self.refresh_budget_states(Some(year_month))?;
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),
-            payload_json: r#"{"message":"预算已删除"}"#.to_string(),
+            payload_json: r#"{"message_key":"budget_deleted"}"#.to_string(),
         }])
     }
 
@@ -208,7 +209,7 @@ impl AppCoreRuntime {
         let category = category_repo::get_by_id(&self.conn, category_id)?
             .ok_or(CoreError::CategoryNotFound(category_id))?;
         if category.category_type != RecordType::Expense {
-            return Err(CoreError::InvalidInput("预算仅支持支出分类".to_string()));
+            return Err(CoreError::InvalidInput(MSG_BUDGET_ONLY_EXPENSE.to_string()));
         }
 
         let raw_budgets = budget_repo::list_for_month(&self.conn, year_month)?;

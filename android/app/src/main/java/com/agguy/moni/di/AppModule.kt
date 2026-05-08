@@ -17,5 +17,5 @@ object AppModule {
 
     fun provideRustCoreController(): RustCoreController = rustCoreController
 
-    fun provideCoreEffectRunner(context: Context): CoreEffectRunner = CoreEffectRunner()
+    fun provideCoreEffectRunner(context: Context): CoreEffectRunner = CoreEffectRunner(context)
 }

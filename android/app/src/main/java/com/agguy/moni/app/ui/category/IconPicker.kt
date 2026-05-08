@@ -29,7 +29,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.CategoryIcon
 import com.agguy.moni.app.theme.GroupedCategoryIcons
@@ -74,7 +76,7 @@ fun IconPicker(selectedIconName: String, onIconSelected: (String) -> Unit, modif
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            label = { Text("搜索图标") },
+            label = { Text(stringResource(R.string.category_search_icon_hint)) },
             shape = MaterialTheme.shapes.medium,
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
@@ -88,7 +90,7 @@ fun IconPicker(selectedIconName: String, onIconSelected: (String) -> Unit, modif
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "未找到匹配的图标",
+                    text = stringResource(R.string.category_no_match),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

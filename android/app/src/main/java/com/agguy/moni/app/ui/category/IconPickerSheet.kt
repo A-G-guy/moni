@@ -19,7 +19,9 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 
 /**
  * 图标选择器 BottomSheet。
@@ -53,7 +55,7 @@ fun IconPickerSheet(
         ) {
             // 标题
             Text(
-                text = "选择图标",
+                text = stringResource(R.string.category_select_icon),
                 style = MaterialTheme.typography.titleLargeEmphasized,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -75,7 +77,7 @@ fun IconPickerSheet(
                     .height(48.dp)
             ) {
                 Text(
-                    text = "确认",
+                    text = stringResource(R.string.category_confirm),
                     style = MaterialTheme.typography.titleMediumEmphasized
                 )
             }

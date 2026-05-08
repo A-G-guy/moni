@@ -39,6 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.agguy.moni.R
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.components.MonthPickerSheet
 import com.agguy.moni.app.icons.SymbolIcon
@@ -77,7 +79,7 @@ fun BudgetListScreen(
     val monthLabel = remember(selectedYearMonth) {
         val parts = selectedYearMonth.split("-")
         if (parts.size == 2) {
-            "${parts[0]}年${parts[1].toInt()}月"
+            String.format("%s-%02d", parts[0], parts[1].toInt())
         } else {
             ""
         }
@@ -103,10 +105,10 @@ fun BudgetListScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text("预算管理") },
+                title = { Text(stringResource(R.string.budget_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        SymbolIcon(name = "arrow_back", contentDescription = "返回", size = 24.dp)
+                        SymbolIcon(name = "arrow_back", contentDescription = stringResource(R.string.back), size = 24.dp)
                     }
                 },
                 actions = {
@@ -175,7 +177,7 @@ fun BudgetListScreen(
     }
 
     if (editorVisible) {
-        val categoryName = editingCategory?.name ?: "总预算"
+        val categoryName = editingCategory?.name ?: stringResource(R.string.budget_total)
         BudgetEditorSheet(
             budget = editingBudget,
             categoryId = editingCategory?.id,
@@ -206,10 +208,10 @@ fun BudgetListScreen(
         val budget = deleteConfirmBudget!!
         AlertDialog(
             onDismissRequest = { deleteConfirmBudget = null },
-            title = { Text("删除预算") },
+            title = { Text(stringResource(R.string.budget_delete_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("请选择删除范围：")
+                    Text(stringResource(R.string.budget_delete_message))
                     TextButton(
                         onClick = {
                             onDispatch(
@@ -222,7 +224,7 @@ fun BudgetListScreen(
                             deleteConfirmBudget = null
                         }
                     ) {
-                        Text("从本月起停止")
+                        Text(stringResource(R.string.budget_stop_this_month))
                     }
                     TextButton(
                         onClick = {
@@ -236,14 +238,14 @@ fun BudgetListScreen(
                             deleteConfirmBudget = null
                         }
                     ) {
-                        Text("从下月起停止")
+                        Text(stringResource(R.string.budget_stop_next_month))
                     }
                 }
             },
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { deleteConfirmBudget = null }) {
-                    Text("取消")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -277,7 +279,7 @@ private fun TotalBudgetCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "总预算",
+                    text = stringResource(R.string.budget_total),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -287,7 +289,7 @@ private fun TotalBudgetCard(
                         IconButton(onClick = onDelete) {
                             SymbolIcon(
                                 name = "delete",
-                                contentDescription = "删除总预算",
+                                contentDescription = stringResource(R.string.budget_delete_total),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 size = 24.dp
                             )
@@ -311,12 +313,12 @@ private fun TotalBudgetCard(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "已用 ¥${formatAmount(totalBudget.spentCents)}",
+                        text = stringResource(R.string.budget_spent_format, "¥${formatAmount(totalBudget.spentCents)}"),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "剩余 ¥${formatAmount(totalBudget.remainingCents)}",
+                        text = stringResource(R.string.budget_remaining_format, "¥${formatAmount(totalBudget.remainingCents)}"),
                         style = MaterialTheme.typography.bodySmall,
                         color = when (totalBudget.status) {
                             "overrun" -> MaterialTheme.colorScheme.expenseRed
@@ -327,7 +329,7 @@ private fun TotalBudgetCard(
                 }
             } else {
                 Text(
-                    text = "设置总预算，掌控全局消费",
+                    text = stringResource(R.string.budget_set_total_hint),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -378,7 +380,7 @@ private fun ParentBudgetItem(
                     if (hasChildren) {
                         SymbolIcon(
                             name = if (expanded) "expand_less" else "expand_more",
-                            contentDescription = if (expanded) "收起" else "展开",
+                            contentDescription = if (expanded) stringResource(R.string.close) else stringResource(R.string.search),
                             size = 20.dp,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -411,7 +413,7 @@ private fun ParentBudgetItem(
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                text = "已用 ¥${formatAmount(budget.spentCents)}",
+                                text = stringResource(R.string.budget_spent_format, "¥${formatAmount(budget.spentCents)}"),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -420,7 +422,7 @@ private fun ParentBudgetItem(
                         IconButton(onClick = onParentDelete) {
                             SymbolIcon(
                                 name = "delete",
-                                contentDescription = "删除预算",
+                                contentDescription = stringResource(R.string.budget_delete_total),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 size = 24.dp
                             )
@@ -428,7 +430,7 @@ private fun ParentBudgetItem(
                     }
                 } else {
                     TextButton(onClick = onParentClick) {
-                        Text("设置预算")
+                        Text(stringResource(R.string.budget_set))
                     }
                 }
             }
@@ -504,7 +506,7 @@ private fun ChildBudgetItem(
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = "已用 ¥${formatAmount(budget.spentCents)}",
+                        text = stringResource(R.string.budget_spent_format, "¥${formatAmount(budget.spentCents)}"),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -513,7 +515,7 @@ private fun ChildBudgetItem(
                 IconButton(onClick = onDelete) {
                     SymbolIcon(
                         name = "delete",
-                        contentDescription = "删除预算",
+                        contentDescription = stringResource(R.string.budget_delete_total),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         size = 24.dp
                     )
@@ -521,7 +523,7 @@ private fun ChildBudgetItem(
             }
         } else {
             TextButton(onClick = onClick) {
-                Text("设置")
+                Text(stringResource(R.string.action_set))
             }
         }
     }

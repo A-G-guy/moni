@@ -165,6 +165,6 @@ private fun formatTime(timestamp: Long): String = try {
     LocalDateTime.ofInstant(Instant.ofEpochSecond(timestamp), ZoneId.systemDefault())
         .format(DateTimeFormatter.ofPattern("HH:mm"))
 } catch (e: Exception) {
-    Log.w("Moni", "时间格式化失败: timestamp=$timestamp, ${e.message}")
+    Log.w("Moni", "Time format failed: timestamp=$timestamp, ${e.message}")
     ""
 }

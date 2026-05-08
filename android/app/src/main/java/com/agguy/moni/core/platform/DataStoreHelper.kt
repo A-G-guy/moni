@@ -47,6 +47,9 @@ object DataStoreHelper {
     private val RECORD_SHOW_FULL_CATEGORY_KEY = booleanPreferencesKey("record_show_full_category")
     private val RECORD_NOTE_PRIORITY_KEY = booleanPreferencesKey("record_note_priority")
 
+    // 语言设置键
+    private val APP_LANGUAGE_KEY = stringPreferencesKey("app_language")
+
     /**
      * 获取货币符号流。
      */
@@ -283,6 +286,27 @@ object DataStoreHelper {
 
     // endregion
 
+    // region 语言设置读写
+
+    /**
+     * 获取应用语言设置流。
+     * 返回值："system" | "zh" | "en"
+     */
+    fun languageFlow(context: Context): Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[APP_LANGUAGE_KEY] ?: "system"
+    }
+
+    /**
+     * 保存应用语言设置。
+     */
+    suspend fun saveLanguage(context: Context, code: String) {
+        context.dataStore.edit { preferences ->
+            preferences[APP_LANGUAGE_KEY] = code
+        }
+    }
+
+    // endregion
+
     /**
      * 清空所有设置数据。
      */
@@ -335,6 +359,9 @@ object DataStoreHelper {
                 ),
                 "record_note_priority" to kotlinx.serialization.json.JsonPrimitive(
                     preferences[RECORD_NOTE_PRIORITY_KEY] ?: false
+                ),
+                "app_language" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[APP_LANGUAGE_KEY] ?: "system"
                 ),
             )
         ).toString()
@@ -401,6 +428,9 @@ object DataStoreHelper {
             }
             obj["record_note_priority"]?.jsonPrimitive?.booleanOrNull?.let {
                 preferences[RECORD_NOTE_PRIORITY_KEY] = it
+            }
+            obj["app_language"]?.jsonPrimitive?.content?.let {
+                preferences[APP_LANGUAGE_KEY] = it
             }
         }
     }

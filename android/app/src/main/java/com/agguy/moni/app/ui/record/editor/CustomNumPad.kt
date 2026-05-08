@@ -24,9 +24,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.agguy.moni.R
 import com.agguy.moni.core.RecordType
 
 /**
@@ -53,9 +55,9 @@ fun CustomNumPad(
             && amountExpression.last() !in setOf('+', '-', '×', '÷', '.')
 
     val actionButtonText = when {
-        canSave -> "保存"
+        canSave -> stringResource(R.string.save)
         canCalculate -> "="
-        else -> "完成"
+        else -> stringResource(R.string.done)
     }
 
     val actionButtonEnabled = canSave || canCalculate

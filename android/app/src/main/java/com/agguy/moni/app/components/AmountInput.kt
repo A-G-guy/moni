@@ -21,8 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.core.util.formatAmount
 
 /**
@@ -82,7 +84,7 @@ fun AmountInput(
                 textValue = formatDisplay(integerPart, decimalPart, currencySymbol)
                 onValueChange(cents)
             },
-            label = { Text("金额") },
+            label = { Text(stringResource(R.string.record_amount)) },
             placeholder = { Text("${currencySymbol}0.00") },
             singleLine = true,
             shape = MaterialTheme.shapes.medium,

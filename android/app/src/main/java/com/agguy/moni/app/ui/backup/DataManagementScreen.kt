@@ -51,9 +51,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.agguy.moni.R
 import com.agguy.moni.app.components.SettingsItem
 import com.agguy.moni.app.components.SettingsToggleItem
 import com.agguy.moni.app.icons.SymbolIcon
@@ -117,11 +119,11 @@ fun DataManagementScreen(
     }
 
     val frequencyLabel = when (frequency) {
-        "every_launch" -> "每次启动"
-        "daily" -> "每天"
-        "weekly" -> "每周"
-        "monthly" -> "每月"
-        else -> "每天"
+        "every_launch" -> stringResource(R.string.data_frequency_every_launch)
+        "daily" -> stringResource(R.string.data_frequency_daily)
+        "weekly" -> stringResource(R.string.data_frequency_weekly)
+        "monthly" -> stringResource(R.string.data_frequency_monthly)
+        else -> stringResource(R.string.data_frequency_daily)
     }
 
     val exportLauncher = rememberLauncherForActivityResult(
@@ -175,7 +177,7 @@ fun DataManagementScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "数据管理",
+                        stringResource(R.string.data_export_title),
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
@@ -184,7 +186,7 @@ fun DataManagementScreen(
                     IconButton(onClick = onNavigateBack) {
                         SymbolIcon(
                             name = "arrow_back",
-                            contentDescription = "返回",
+                            contentDescription = stringResource(R.string.back),
                             size = 24.dp
                         )
                     }
@@ -209,15 +211,15 @@ fun DataManagementScreen(
             ) {
                 ActionCard(
                     iconName = "cloud_upload",
-                    title = "导出备份",
-                    subtitle = "备份到应用内或外部",
+                    title = stringResource(R.string.data_action_card_export_title),
+                    subtitle = stringResource(R.string.data_action_card_export_subtitle),
                     modifier = Modifier.weight(1f),
                     onClick = { showExportDialog = true }
                 )
                 ActionCard(
                     iconName = "cloud_download",
-                    title = "导入备份",
-                    subtitle = "从 ZIP 文件恢复",
+                    title = stringResource(R.string.data_action_card_import_title),
+                    subtitle = stringResource(R.string.data_action_card_import_subtitle),
                     modifier = Modifier.weight(1f),
                     onClick = { importLauncher.launch(arrayOf("application/zip")) }
                 )
@@ -226,8 +228,8 @@ fun DataManagementScreen(
             // 自动备份设置（直接展开）
             SettingsToggleItem(
                 iconName = "archive",
-                title = "启用自动备份",
-                subtitle = if (enabled) "已启用" else "已关闭",
+                title = stringResource(R.string.data_auto_backup_title),
+                subtitle = if (enabled) stringResource(R.string.data_auto_backup_subtitle_on) else stringResource(R.string.data_auto_backup_subtitle_off),
                 checked = enabled,
                 onCheckedChange = {
                     scope.launch { DataStoreHelper.saveAutoBackupEnabled(context, it) }
@@ -238,7 +240,7 @@ fun DataManagementScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     SettingsItem(
                         iconName = "event_repeat",
-                        title = "备份频率",
+                        title = stringResource(R.string.data_frequency_label),
                         subtitle = frequencyLabel,
                         onClick = { showFrequencyDialog = true }
                     )
@@ -255,11 +257,11 @@ fun DataManagementScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                "保留数量",
+                                stringResource(R.string.data_max_count_label),
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
-                                "${sliderValue.toInt()} 个",
+                                stringResource(R.string.data_max_count_unit, sliderValue.toInt()),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -276,7 +278,7 @@ fun DataManagementScreen(
                             steps = 26
                         )
                         Text(
-                            "超出保留数量的旧备份将自动删除",
+                            stringResource(R.string.data_max_count_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
@@ -284,8 +286,8 @@ fun DataManagementScreen(
 
                     SettingsToggleItem(
                         iconName = "folder_copy",
-                        title = "复制到外部目录",
-                        subtitle = if (copyToExternal) "已启用" else "关闭",
+                        title = stringResource(R.string.data_copy_external),
+                        subtitle = if (copyToExternal) stringResource(R.string.data_copy_external_on) else stringResource(R.string.data_copy_external_off),
                         checked = copyToExternal,
                         onCheckedChange = {
                             scope.launch {
@@ -300,15 +302,16 @@ fun DataManagementScreen(
                     AnimatedVisibility(visible = copyToExternal) {
                         SettingsItem(
                             iconName = "folder_open",
-                            title = "选择外部目录",
-                            subtitle = externalUri ?: "未选择",
+                            title = stringResource(R.string.data_select_external),
+                            subtitle = externalUri ?: stringResource(R.string.data_external_not_selected),
                             onClick = { externalDirPickerLauncher.launch(null) }
                         )
                     }
 
-                    if (lastBackupTime != null) {
+                    val lastBackup = lastBackupTime
+                    if (lastBackup != null) {
                         Text(
-                            "上次备份: $lastBackupTime",
+                            stringResource(R.string.data_last_backup, lastBackup),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
@@ -321,7 +324,7 @@ fun DataManagementScreen(
                 val running = operationState as? BackupOperationState.Running
                 Column(modifier = Modifier.padding(vertical = 4.dp)) {
                     Text(
-                        running?.stage ?: "处理中...",
+                        running?.stage ?: stringResource(R.string.data_processing),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     LinearProgressIndicator(
@@ -340,7 +343,7 @@ fun DataManagementScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    "应用内备份 (${backups.size})",
+                    stringResource(R.string.data_internal_backups, backups.size),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -352,7 +355,7 @@ fun DataManagementScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        "暂无应用内备份",
+                        stringResource(R.string.data_no_backups),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -417,9 +420,9 @@ fun DataManagementScreen(
     showRestoreConfirm?.let { file ->
         AlertDialog(
             onDismissRequest = { showRestoreConfirm = null },
-            title = { Text("确认恢复") },
+            title = { Text(stringResource(R.string.data_confirm_restore)) },
             text = {
-                Text("将从 ${file.name} 恢复数据。当前所有数据将被覆盖，此操作不可撤销。")
+                Text(stringResource(R.string.data_restore_confirm_message, file.name))
             },
             confirmButton = {
                 TextButton(
@@ -427,10 +430,10 @@ fun DataManagementScreen(
                         showRestoreConfirm = null
                         viewModel.restoreFromInternal(file, dbPath)
                     }
-                ) { Text("恢复", color = MaterialTheme.colorScheme.error) }
+                ) { Text(stringResource(R.string.action_restore), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { showRestoreConfirm = null }) { Text("取消") }
+                TextButton(onClick = { showRestoreConfirm = null }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -525,17 +528,17 @@ private fun BackupItemCard(
                     )
                 }
                 TextButton(onClick = onShare) {
-                    Text("分享", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.action_share), style = MaterialTheme.typography.labelLarge)
                 }
                 IconButton(onClick = onDelete) {
-                    SymbolIcon(name = "delete", contentDescription = "删除", size = 24.dp)
+                    SymbolIcon(name = "delete", contentDescription = stringResource(R.string.delete), size = 24.dp)
                 }
             }
             OutlinedButton(
                 onClick = onRestore,
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
             ) {
-                Text("恢复此备份")
+                Text(stringResource(R.string.action_restore_this))
             }
         }
     }
@@ -548,17 +551,17 @@ private fun FrequencyPickerDialog(
     onDismiss: () -> Unit,
 ) {
     val options = listOf(
-        "every_launch" to "每次启动",
-        "daily" to "每天",
-        "weekly" to "每周",
-        "monthly" to "每月"
+        "every_launch" to stringResource(R.string.data_frequency_every_launch),
+        "daily" to stringResource(R.string.data_frequency_daily),
+        "weekly" to stringResource(R.string.data_frequency_weekly),
+        "monthly" to stringResource(R.string.data_frequency_monthly)
     )
     var selected by remember { mutableStateOf(currentFrequency) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = MaterialTheme.shapes.extraLarge,
-        title = { Text("选择备份频率") },
+        title = { Text(stringResource(R.string.data_select_frequency_title)) },
         text = {
             Column {
                 options.forEach { (value, label) ->
@@ -583,12 +586,12 @@ private fun FrequencyPickerDialog(
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(selected) }) {
-                Text("确定")
+                Text(stringResource(R.string.confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("取消")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

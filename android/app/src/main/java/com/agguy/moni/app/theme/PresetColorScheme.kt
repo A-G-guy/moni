@@ -10,6 +10,8 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.agguy.moni.R
 import com.agguy.moni.app.theme.presets.AirySakuraColors
 import com.agguy.moni.app.theme.presets.AnimeSkyColors
 import com.agguy.moni.app.theme.presets.CrispMintColors
@@ -33,18 +35,20 @@ enum class PresetColorScheme {
     SUNSET_CORAL
 }
 
-/** 中文显示名称。 */
-val PresetColorScheme.displayName: String
-    get() = when (this) {
-        PresetColorScheme.DEFAULT -> "默认"
-        PresetColorScheme.DYNAMIC -> "动态颜色"
-        PresetColorScheme.AIRY_SAKURA -> "晴空樱粉"
-        PresetColorScheme.ANIME_SKY -> "动漫天蓝"
-        PresetColorScheme.CRISP_MINT -> "清新薄荷"
-        PresetColorScheme.NEON_LAVENDER -> "霓虹薰衣草"
-        PresetColorScheme.OATMEAL_GOLD -> "燕麦金"
-        PresetColorScheme.SUNSET_CORAL -> "落日珊瑚"
+/** 本地化显示名称。 */
+@Composable
+fun PresetColorScheme.displayName(): String = stringResource(
+    when (this) {
+        PresetColorScheme.DEFAULT -> R.string.color_scheme_default
+        PresetColorScheme.DYNAMIC -> R.string.color_scheme_dynamic
+        PresetColorScheme.AIRY_SAKURA -> R.string.color_scheme_airy_sakura
+        PresetColorScheme.ANIME_SKY -> R.string.color_scheme_anime_sky
+        PresetColorScheme.CRISP_MINT -> R.string.color_scheme_crisp_mint
+        PresetColorScheme.NEON_LAVENDER -> R.string.color_scheme_neon_lavender
+        PresetColorScheme.OATMEAL_GOLD -> R.string.color_scheme_oatmeal_gold
+        PresetColorScheme.SUNSET_CORAL -> R.string.color_scheme_sunset_coral
     }
+)
 
 /**
  * 种子色，用于 UI 色块展示。
@@ -270,7 +274,7 @@ private fun animeSkyDark(): ColorScheme = darkColorScheme(
     outlineVariant = AnimeSkyColors.outlineVariantDark,
     scrim = AnimeSkyColors.scrimDark,
     inverseSurface = AnimeSkyColors.inverseSurfaceDark,
-    inverseOnSurface = AnimeSkyColors.inverseOnSurfaceDark,
+    inverseOnSurface = AnimeSkyColors.inverseOnSurfaceLight,
     inversePrimary = AnimeSkyColors.inversePrimaryDark,
     surfaceDim = AnimeSkyColors.surfaceDimDark,
     surfaceBright = AnimeSkyColors.surfaceBrightDark,
@@ -348,7 +352,7 @@ private fun crispMintDark(): ColorScheme = darkColorScheme(
     outlineVariant = CrispMintColors.outlineVariantDark,
     scrim = CrispMintColors.scrimDark,
     inverseSurface = CrispMintColors.inverseSurfaceDark,
-    inverseOnSurface = CrispMintColors.inverseOnSurfaceDark,
+    inverseOnSurface = CrispMintColors.inverseOnSurfaceLight,
     inversePrimary = CrispMintColors.inversePrimaryDark,
     surfaceDim = CrispMintColors.surfaceDimDark,
     surfaceBright = CrispMintColors.surfaceBrightDark,
@@ -426,7 +430,7 @@ private fun neonLavenderDark(): ColorScheme = darkColorScheme(
     outlineVariant = NeonLavenderColors.outlineVariantDark,
     scrim = NeonLavenderColors.scrimDark,
     inverseSurface = NeonLavenderColors.inverseSurfaceDark,
-    inverseOnSurface = NeonLavenderColors.inverseOnSurfaceDark,
+    inverseOnSurface = NeonLavenderColors.inverseOnSurfaceLight,
     inversePrimary = NeonLavenderColors.inversePrimaryDark,
     surfaceDim = NeonLavenderColors.surfaceDimDark,
     surfaceBright = NeonLavenderColors.surfaceBrightDark,
@@ -504,7 +508,7 @@ private fun oatmealGoldDark(): ColorScheme = darkColorScheme(
     outlineVariant = OatmealGoldColors.outlineVariantDark,
     scrim = OatmealGoldColors.scrimDark,
     inverseSurface = OatmealGoldColors.inverseSurfaceDark,
-    inverseOnSurface = OatmealGoldColors.inverseOnSurfaceDark,
+    inverseOnSurface = OatmealGoldColors.inverseOnSurfaceLight,
     inversePrimary = OatmealGoldColors.inversePrimaryDark,
     surfaceDim = OatmealGoldColors.surfaceDimDark,
     surfaceBright = OatmealGoldColors.surfaceBrightDark,
@@ -582,7 +586,7 @@ private fun sunsetCoralDark(): ColorScheme = darkColorScheme(
     outlineVariant = SunsetCoralColors.outlineVariantDark,
     scrim = SunsetCoralColors.scrimDark,
     inverseSurface = SunsetCoralColors.inverseSurfaceDark,
-    inverseOnSurface = SunsetCoralColors.inverseOnSurfaceDark,
+    inverseOnSurface = SunsetCoralColors.inverseOnSurfaceLight,
     inversePrimary = SunsetCoralColors.inversePrimaryDark,
     surfaceDim = SunsetCoralColors.surfaceDimDark,
     surfaceBright = SunsetCoralColors.surfaceBrightDark,

@@ -15,7 +15,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.ui.backup.BackupOperationState
 
 /**
@@ -39,10 +41,10 @@ fun ExportDataDialog(
         title = {
             Text(
                 when {
-                    isRunning -> "正在备份"
-                    operationState is BackupOperationState.Success -> "备份成功"
-                    operationState is BackupOperationState.Error -> "备份失败"
-                    else -> "导出数据"
+                    isRunning -> stringResource(R.string.data_export_running)
+                    operationState is BackupOperationState.Success -> stringResource(R.string.data_export_success)
+                    operationState is BackupOperationState.Error -> stringResource(R.string.data_export_failed)
+                    else -> stringResource(R.string.data_export_title)
                 }
             )
         },
@@ -51,7 +53,7 @@ fun ExportDataDialog(
                 when {
                     isRunning -> {
                         Text(
-                            running?.stage ?: "处理中...",
+                            running?.stage ?: stringResource(R.string.data_processing),
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
@@ -74,7 +76,7 @@ fun ExportDataDialog(
                     }
                     else -> {
                         Text(
-                            "选择导出位置。应用内备份可在「备份管理」中查看和恢复。",
+                            stringResource(R.string.data_export_description),
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
@@ -87,19 +89,19 @@ fun ExportDataDialog(
                 isRunning -> {}
                 operationState is BackupOperationState.Success ||
                     operationState is BackupOperationState.Error -> {
-                    TextButton(onClick = onDismiss) { Text("关闭") }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }
                 }
                 else -> {
                     Column {
                         TextButton(
                             onClick = onExportToInternal,
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text("导出到应用内") }
+                        ) { Text(stringResource(R.string.data_export_internal)) }
                         Spacer(modifier = Modifier.height(4.dp))
                         TextButton(
                             onClick = onExportToSaf,
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text("导出到指定目录") }
+                        ) { Text(stringResource(R.string.data_export_external)) }
                     }
                 }
             }
@@ -107,7 +109,7 @@ fun ExportDataDialog(
         dismissButton = {
             if (!isRunning && operationState !is BackupOperationState.Success
                 && operationState !is BackupOperationState.Error) {
-                TextButton(onClick = onDismiss) { Text("取消") }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
             }
         }
     )

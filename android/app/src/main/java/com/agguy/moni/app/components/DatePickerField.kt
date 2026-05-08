@@ -18,8 +18,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.icons.SymbolIcon
 import java.time.Instant
 import java.time.LocalDate
@@ -45,14 +47,14 @@ fun DatePickerField(timestamp: Long, onTimestampChange: (Long) -> Unit, modifier
     OutlinedTextField(
         value = displayDate,
         onValueChange = { },
-        label = { Text("日期") },
+        label = { Text(stringResource(R.string.label_date)) },
         readOnly = true,
         singleLine = true,
         shape = MaterialTheme.shapes.medium,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         trailingIcon = {
             FilledTonalIconButton(onClick = { showDialog = true }) {
-                SymbolIcon(name = "event", contentDescription = "选择日期", size = 24.dp)
+                SymbolIcon(name = "event", contentDescription = stringResource(R.string.editor_select_date), size = 24.dp)
             }
         },
         modifier = modifier.fillMaxWidth()
@@ -73,12 +75,12 @@ fun DatePickerField(timestamp: Long, onTimestampChange: (Long) -> Unit, modifier
                         showDialog = false
                     }
                 ) {
-                    Text("确定")
+                    Text(stringResource(R.string.confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("取消")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         ) {
@@ -93,6 +95,6 @@ private fun formatDate(timestamp: Long): String = try {
         .toLocalDate()
         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 } catch (e: Exception) {
-    Log.w("Moni", "日期格式化失败: timestamp=$timestamp, ${e.message}")
+    Log.w("Moni", "Date format failed: timestamp=$timestamp, ${e.message}")
     LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 }

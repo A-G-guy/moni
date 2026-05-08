@@ -1,5 +1,6 @@
 use crate::core::dispatch_record::validate_category_for_record;
 use crate::core::error::CoreError;
+use crate::core::error::MSG_AMOUNT_MUST_BE_POSITIVE;
 use crate::core::runtime::AppCoreRuntime;
 use crate::db::record_repo;
 use crate::dto::RecordDto;
@@ -28,7 +29,7 @@ impl AppCoreRuntime {
             && amt <= 0
         {
             log::warn!("更新记录失败: 金额必须大于0, 收到: {amt}");
-            return Err(CoreError::InvalidInput("金额必须大于0".to_string()));
+            return Err(CoreError::InvalidInput(MSG_AMOUNT_MUST_BE_POSITIVE.to_string()));
         }
         if let Some(ref n) = note
             && n.len() > crate::shared::constants::NOTE_MAX_LEN
@@ -89,7 +90,7 @@ impl AppCoreRuntime {
 
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),
-            payload_json: "{\"message\":\"更新成功\"}".to_string(),
+            payload_json: "{\"message_key\":\"record_updated\"}".to_string(),
         }])
     }
 }

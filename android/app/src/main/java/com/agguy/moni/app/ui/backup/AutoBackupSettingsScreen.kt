@@ -38,8 +38,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.agguy.moni.R
 import com.agguy.moni.app.components.SettingsItem
 import com.agguy.moni.app.components.SettingsToggleItem
 import com.agguy.moni.app.icons.SymbolIcon
@@ -87,11 +89,11 @@ fun AutoBackupSettingsScreen(
     }
 
     val frequencyLabel = when (frequency) {
-        "every_launch" -> "每次启动"
-        "daily" -> "每天"
-        "weekly" -> "每周"
-        "monthly" -> "每月"
-        else -> "每天"
+        "every_launch" -> stringResource(R.string.auto_backup_frequency_every_launch)
+        "daily" -> stringResource(R.string.auto_backup_frequency_daily)
+        "weekly" -> stringResource(R.string.auto_backup_frequency_weekly)
+        "monthly" -> stringResource(R.string.auto_backup_frequency_monthly)
+        else -> stringResource(R.string.auto_backup_frequency_daily)
     }
 
     val externalDirPickerLauncher = rememberLauncherForActivityResult(
@@ -112,10 +114,10 @@ fun AutoBackupSettingsScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text("自动备份") },
+                title = { Text(stringResource(R.string.auto_backup_title)) },
                 navigationIcon = {
                     TextButton(onClick = onNavigateBack) {
-                        Text("完成")
+                        Text(stringResource(R.string.done))
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -131,8 +133,8 @@ fun AutoBackupSettingsScreen(
         ) {
             SettingsToggleItem(
                 iconName = "cloud",
-                title = "启用自动备份",
-                subtitle = if (enabled) "已启用" else "已关闭",
+                title = stringResource(R.string.auto_backup_enable),
+                subtitle = if (enabled) stringResource(R.string.auto_backup_subtitle_on) else stringResource(R.string.auto_backup_subtitle_off),
                 checked = enabled,
                 onCheckedChange = {
                     scope.launch { DataStoreHelper.saveAutoBackupEnabled(context, it) }
@@ -143,7 +145,7 @@ fun AutoBackupSettingsScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     SettingsItem(
                         iconName = "event",
-                        title = "备份频率",
+                        title = stringResource(R.string.auto_backup_frequency),
                         subtitle = frequencyLabel,
                         onClick = { showFrequencyDialog = true }
                     )
@@ -160,11 +162,11 @@ fun AutoBackupSettingsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                "保留数量",
+                                stringResource(R.string.auto_backup_max_count),
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
-                                "${sliderValue.toInt()} 个",
+                                stringResource(R.string.auto_backup_max_count_unit, sliderValue.toInt()),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -181,7 +183,7 @@ fun AutoBackupSettingsScreen(
                             steps = 26
                         )
                         Text(
-                            "超出保留数量的旧备份将自动删除",
+                            stringResource(R.string.auto_backup_max_count_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
@@ -189,8 +191,8 @@ fun AutoBackupSettingsScreen(
 
                     SettingsToggleItem(
                         iconName = "archive",
-                        title = "复制到外部目录",
-                        subtitle = if (copyToExternal) "已启用" else "关闭",
+                        title = stringResource(R.string.auto_backup_copy_external),
+                        subtitle = if (copyToExternal) stringResource(R.string.auto_backup_copy_external_on) else stringResource(R.string.auto_backup_copy_external_off),
                         checked = copyToExternal,
                         onCheckedChange = {
                             scope.launch {
@@ -205,15 +207,16 @@ fun AutoBackupSettingsScreen(
                     AnimatedVisibility(visible = copyToExternal) {
                         SettingsItem(
                             iconName = "archive",
-                            title = "选择外部目录",
-                            subtitle = externalUri ?: "未选择",
+                            title = stringResource(R.string.auto_backup_select_external),
+                            subtitle = externalUri ?: stringResource(R.string.auto_backup_external_not_selected),
                             onClick = { externalDirPickerLauncher.launch(null) }
                         )
                     }
 
-                    if (lastBackupTime != null) {
+                    val lastBackup = lastBackupTime
+                    if (lastBackup != null) {
                         Text(
-                            "上次备份: $lastBackupTime",
+                            stringResource(R.string.auto_backup_last, lastBackup),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
@@ -245,17 +248,17 @@ private fun FrequencyPickerDialog(
     onDismiss: () -> Unit,
 ) {
     val options = listOf(
-        "every_launch" to "每次启动",
-        "daily" to "每天",
-        "weekly" to "每周",
-        "monthly" to "每月"
+        "every_launch" to stringResource(R.string.auto_backup_frequency_every_launch),
+        "daily" to stringResource(R.string.auto_backup_frequency_daily),
+        "weekly" to stringResource(R.string.auto_backup_frequency_weekly),
+        "monthly" to stringResource(R.string.auto_backup_frequency_monthly)
     )
     var selected by remember { mutableStateOf(currentFrequency) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = MaterialTheme.shapes.extraLarge,
-        title = { Text("选择备份频率") },
+        title = { Text(stringResource(R.string.auto_backup_select_frequency)) },
         text = {
             Column {
                 options.forEach { (value, label) ->
@@ -280,12 +283,12 @@ private fun FrequencyPickerDialog(
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(selected) }) {
-                Text("确定")
+                Text(stringResource(R.string.confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("取消")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

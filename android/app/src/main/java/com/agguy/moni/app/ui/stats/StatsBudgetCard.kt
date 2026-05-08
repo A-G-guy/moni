@@ -12,8 +12,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.components.MoniCard
 import com.agguy.moni.app.components.MoniCardVariant
 import com.agguy.moni.app.theme.expenseRed
@@ -65,11 +67,11 @@ fun StatsBudgetCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "${monthLabel}预算",
+                    text = stringResource(R.string.budget_month_format, monthLabel),
                     style = MaterialTheme.typography.titleSmall
                 )
                 Text(
-                    text = "查看全部预算 →",
+                    text = stringResource(R.string.action_view_all),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -115,7 +117,7 @@ private fun TotalBudgetHeader(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text(
-            text = "剩余 $currencySymbol${formatAmount(totalBudget.remainingCents)}",
+            text = stringResource(R.string.budget_remaining_format, "$currencySymbol${formatAmount(totalBudget.remainingCents)}"),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = when (totalBudget.status) {
@@ -125,7 +127,7 @@ private fun TotalBudgetHeader(
             }
         )
         Text(
-            text = "已用 $percentageText · 预算 $currencySymbol${formatAmount(totalBudget.amountCents)}",
+            text = stringResource(R.string.budget_used_percent_format, "$percentageText") + " · " + stringResource(R.string.budget_total_format, "$currencySymbol${formatAmount(totalBudget.amountCents)}"),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -143,8 +145,8 @@ private fun CategoryBudgetHeader(
     modifier: Modifier = Modifier
 ) {
     val statusText = when {
-        riskCount > 0 -> "${riskCount} 项需要留意"
-        else -> "预算状态良好"
+        riskCount > 0 -> stringResource(R.string.status_items_attention, riskCount)
+        else -> stringResource(R.string.status_good)
     }
 
     val statusColor = when {
@@ -167,7 +169,7 @@ private fun BudgetRiskItem(
     currencySymbol: String,
     modifier: Modifier = Modifier
 ) {
-    val name = budget.categoryName ?: "未知分类"
+    val name = budget.categoryName ?: stringResource(R.string.status_unknown_category)
     val percentageText = "${(budget.percentage * 100).toInt()}%"
 
     Column(
@@ -191,8 +193,8 @@ private fun BudgetRiskItem(
             }
 
             val rightText = when (budget.status) {
-                "overrun" -> "超支 $currencySymbol${formatAmount(kotlin.math.abs(budget.remainingCents))}"
-                else -> "已用 $percentageText"
+                "overrun" -> stringResource(R.string.budget_spent_format, "$currencySymbol${formatAmount(kotlin.math.abs(budget.remainingCents))}")
+                else -> stringResource(R.string.budget_used_percent_format, percentageText)
             }
             Text(
                 text = rightText,

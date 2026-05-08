@@ -114,5 +114,7 @@ data class CoreSettings(val currencySymbol: String = "¥")
 data class CoreUiState(
     val activeTab: String = "records",
     val selectedRecordId: Long? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val errorKey: String? = null,
+    val errorArgs: List<String> = emptyList()
 )

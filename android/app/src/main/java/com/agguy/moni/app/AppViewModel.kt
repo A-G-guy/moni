@@ -4,6 +4,8 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import com.agguy.moni.app.i18n.AppLocaleManager
+import com.agguy.moni.app.i18n.ErrorMessageResolver
 import com.agguy.moni.app.navigation.Screen
 import com.agguy.moni.app.theme.PresetColorScheme
 import com.agguy.moni.app.theme.ThemeMode
@@ -48,6 +50,9 @@ class AppViewModel(
 
     private val _selectedYearMonth = MutableStateFlow("")
     val selectedYearMonth: StateFlow<String> = _selectedYearMonth.asStateFlow()
+
+    private val _language = MutableStateFlow(AppLocaleManager.AppLanguage.SYSTEM)
+    val language: StateFlow<AppLocaleManager.AppLanguage> = _language.asStateFlow()
 
     private var _navController: NavHostController? = null
     private var budgetCheckJob: kotlinx.coroutines.Job? = null
@@ -112,6 +117,7 @@ class AppViewModel(
                 syncCurrencySymbolFromDataStore()
                 syncThemeSettingsFromDataStore()
                 syncRecordItemDisplaySettingsFromDataStore()
+                syncLanguageFromDataStore()
             } catch (e: Exception) {
                 val err = "数据库初始化失败: ${e.javaClass.simpleName}: ${e.message?.take(100)}"
                 LogCollector.e("AppViewModel", err, e)
@@ -225,6 +231,11 @@ class AppViewModel(
         }
     }
 
+    private suspend fun syncLanguageFromDataStore() {
+        val code = DataStoreHelper.languageFlow(getApplication()).first()
+        _language.value = AppLocaleManager.AppLanguage.fromCode(code)
+    }
+
     fun updateThemeMode(mode: ThemeMode) {
         viewModelScope.launch {
             DataStoreHelper.saveThemeMode(getApplication(), mode)
@@ -264,6 +275,37 @@ class AppViewModel(
         viewModelScope.launch {
             DataStoreHelper.savePresetColorScheme(getApplication(), scheme)
             _themeSettings.value = _themeSettings.value.copy(presetColorScheme = scheme)
+        }
+    }
+
+    /**
+     * 切换应用语言。
+     *
+     * 保存语言设置到 DataStore，联动更新货币符号（仅当用户未手动修改过时），
+     * 然后重启应用使新语言生效。
+     */
+    fun updateLanguage(language: AppLocaleManager.AppLanguage) {
+        viewModelScope.launch {
+            val app = getApplication<Application>()
+            val currentSymbol = DataStoreHelper.currencySymbolFlow(app).first()
+
+            DataStoreHelper.saveLanguage(app, language.code)
+            _language.value = language
+
+            // 货币联动：仅当当前货币是另一语言的默认值时才自动切换
+            if (language != AppLocaleManager.AppLanguage.SYSTEM) {
+                val shouldSwitch = when {
+                    language == AppLocaleManager.AppLanguage.ENGLISH && currentSymbol == "¥" -> true
+                    language == AppLocaleManager.AppLanguage.CHINESE && currentSymbol == "$" -> true
+                    else -> false
+                }
+                if (shouldSwitch) {
+                    dispatch(CoreIntent.SettingsUpdateCurrency(symbol = language.defaultCurrency))
+                }
+            }
+
+            LogCollector.i("AppViewModel", "语言切换为 ${language.code}，即将重启应用")
+            AppRestarter.restartApp(app)
         }
     }
 
@@ -328,7 +370,12 @@ class AppViewModel(
     }
 
     private fun applyMutation(mutation: com.agguy.moni.core.CoreMutation) {
-        _uiState.value = mutation.state.toAppState()
+        val appState = mutation.state.toAppState()
+        // 如果 Rust 返回了 error_key，使用本地化错误消息
+        val localizedError = appState.errorKey?.let { key ->
+            ErrorMessageResolver.resolve(getApplication(), key, appState.errorArgs)
+        } ?: appState.errorMessage
+        _uiState.value = appState.copy(errorMessage = localizedError)
         mutation.effects.forEach { effectRunner.runEffect(it) }
     }
 }

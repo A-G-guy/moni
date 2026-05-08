@@ -23,8 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.app.theme.incomeGreen
@@ -62,7 +64,7 @@ fun ParentCategoryPickerSheet(
                 .padding(bottom = 24.dp)
         ) {
             Text(
-                text = "选择父分类",
+                text = stringResource(R.string.category_select_parent),
                 style = MaterialTheme.typography.titleLargeEmphasized,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
@@ -87,7 +89,7 @@ fun ParentCategoryPickerSheet(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "作为一级分类（不使用父分类）",
+                        text = stringResource(R.string.category_no_parent),
                         style = MaterialTheme.typography.bodyLarge,
                         color = if (selectedParentId == null)
                             MaterialTheme.colorScheme.onSecondaryContainer
@@ -160,7 +162,7 @@ fun ParentCategoryPickerSheet(
                             if (isSelected) {
                                 SymbolIcon(
                                     name = "check",
-                                    contentDescription = "已选中",
+                                    contentDescription = stringResource(R.string.category_selected),
                                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
                                     size = 20.dp
                                 )

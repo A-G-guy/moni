@@ -29,8 +29,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.components.MoniCard
 import com.agguy.moni.app.components.MoniCardVariant
 import com.agguy.moni.app.theme.expenseRed
@@ -73,14 +75,14 @@ fun RecordOverviewCard(
                 verticalAlignment = Alignment.Top
             ) {
                 OverviewStatItem(
-                    label = "今日支出",
+                    label = stringResource(R.string.overview_today_expense),
                     amountCents = metrics.todayExpense,
                     currencySymbol = currencySymbol,
                     color = MaterialTheme.colorScheme.expenseRed,
                     isLarge = true
                 )
                 OverviewStatItem(
-                    label = "日均剩余",
+                    label = stringResource(R.string.overview_daily_remaining),
                     amountCents = metrics.dailyRemaining,
                     currencySymbol = currencySymbol,
                     color = MaterialTheme.colorScheme.incomeGreen,
@@ -108,14 +110,14 @@ fun RecordOverviewCard(
                 verticalAlignment = Alignment.Top
             ) {
                 OverviewStatItem(
-                    label = "本月总支出",
+                    label = stringResource(R.string.overview_month_total),
                     amountCents = metrics.monthExpense,
                     currencySymbol = currencySymbol,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
                 OverviewStatItem(
-                    label = "日均支出",
+                    label = stringResource(R.string.overview_daily_avg),
                     amountCents = metrics.dailyAvg,
                     currencySymbol = currencySymbol,
                     color = MaterialTheme.colorScheme.primary,
@@ -123,7 +125,7 @@ fun RecordOverviewCard(
                     alignCenter = true
                 )
                 OverviewStatItem(
-                    label = "月结余",
+                    label = stringResource(R.string.overview_month_balance),
                     amountCents = metrics.monthBalance,
                     currencySymbol = currencySymbol,
                     color = MaterialTheme.colorScheme.primary,
@@ -225,9 +227,9 @@ private fun BudgetProgressSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             val remainingText = if (budget.remainingCents < 0) {
-                "超支 $currencySymbol${formatAmount(kotlin.math.abs(budget.remainingCents))}"
+                stringResource(R.string.budget_spent_format, "$currencySymbol${formatAmount(kotlin.math.abs(budget.remainingCents))}")
             } else {
-                "剩余 $currencySymbol${formatAmount(budget.remainingCents)}"
+                stringResource(R.string.budget_remaining_format, "$currencySymbol${formatAmount(budget.remainingCents)}")
             }
             val remainingColor = when (budget.status) {
                 "overrun" -> MaterialTheme.colorScheme.expenseRed
@@ -241,7 +243,7 @@ private fun BudgetProgressSection(
                 fontWeight = FontWeight.Medium
             )
             Text(
-                text = "共 $currencySymbol${formatAmount(budget.amountCents)}",
+                text = stringResource(R.string.budget_total_format, "$currencySymbol${formatAmount(budget.amountCents)}"),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

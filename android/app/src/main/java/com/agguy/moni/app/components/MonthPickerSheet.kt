@@ -26,7 +26,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import java.time.LocalDate
 
 /**
@@ -79,7 +81,7 @@ fun MonthPickerSheet(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "跳转到月份",
+                text = stringResource(R.string.month_picker_jump_title),
                 style = MaterialTheme.typography.titleLargeEmphasized,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -92,7 +94,7 @@ fun MonthPickerSheet(
                     FilterChip(
                         selected = year == selectedYear,
                         onClick = { selectedYear = year },
-                        label = { Text("$year 年") }
+                        label = { Text(stringResource(R.string.month_picker_year_format, year)) }
                     )
                 }
             }
@@ -133,7 +135,7 @@ private fun MonthGrid(
                     val isFocus = yearMonth == currentYearMonth
                     val isToday = yearMonth == todayYearMonth
                     MonthCell(
-                        label = "${month}月",
+                        label = stringResource(R.string.date_month_only, month),
                         available = available,
                         isFocus = isFocus,
                         isToday = isToday,

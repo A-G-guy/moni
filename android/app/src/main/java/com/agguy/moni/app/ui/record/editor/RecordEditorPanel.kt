@@ -48,6 +48,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.agguy.moni.R
 import com.agguy.moni.app.components.AutoResizeText
 import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
@@ -202,9 +204,9 @@ private fun InfoRow(
     val today = LocalDate.now()
 
     val dateText = when {
-        localDate == today -> "今天"
-        localDate == today.minusDays(1) -> "昨天"
-        else -> localDate.format(DateTimeFormatter.ofPattern("MM月dd日"))
+        localDate == today -> stringResource(R.string.date_today)
+        localDate == today.minusDays(1) -> stringResource(R.string.date_yesterday)
+        else -> localDate.format(DateTimeFormatter.ofPattern(stringResource(R.string.date_month_day_format)))
     }
 
     val timeText = dateTime.format(DateTimeFormatter.ofPattern("HH:mm"))
@@ -310,7 +312,7 @@ private fun InfoRow(
                             ) {
                                 SymbolIcon(
                                     name = "check",
-                                    contentDescription = "完成",
+                                    contentDescription = stringResource(R.string.action_done),
                                     size = 18.dp
                                 )
                             }
@@ -329,7 +331,7 @@ private fun InfoRow(
                     size = 16.dp
                 )
                 Text(
-                    text = state.note.ifEmpty { "备注" },
+                    text = state.note.ifEmpty { stringResource(R.string.label_note) },
                     style = MaterialTheme.typography.bodySmall,
                     color = if (state.note.isEmpty()) {
                         MaterialTheme.colorScheme.onSurfaceVariant

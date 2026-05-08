@@ -8,6 +8,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.agguy.moni.R
 import com.agguy.moni.app.theme.expenseRed
 
 /**
@@ -18,24 +20,21 @@ fun DevClearDataDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = MaterialTheme.shapes.extraLarge,
-        title = { Text("危险操作确认") },
+        title = { Text(stringResource(R.string.dev_clear_title)) },
         text = {
-            Text(
-                "此操作将清空所有记账数据和应用设置，不可恢复。\n\n" +
-                    "应用将自动重启并回到初始状态。"
-            )
+            Text(stringResource(R.string.dev_clear_message))
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
                 Text(
-                    "确认清空",
+                    stringResource(R.string.action_confirm_clear),
                     color = MaterialTheme.colorScheme.expenseRed
                 )
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("取消")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

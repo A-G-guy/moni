@@ -34,8 +34,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.BuildConfig
+import com.agguy.moni.R
 import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.core.platform.LogCollector
@@ -66,7 +68,7 @@ fun DevLogScreen(onNavigateBack: () -> Unit, modifier: Modifier = Modifier) {
             TopAppBar(
                 title = {
                     Text(
-                        "日志",
+                        stringResource(R.string.dev_log_title),
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
@@ -75,7 +77,7 @@ fun DevLogScreen(onNavigateBack: () -> Unit, modifier: Modifier = Modifier) {
                     IconButton(onClick = onNavigateBack) {
                         SymbolIcon(
                             name = "arrow_back",
-                            contentDescription = "返回",
+                            contentDescription = stringResource(R.string.back),
                             size = 24.dp
                         )
                     }
@@ -92,21 +94,21 @@ fun DevLogScreen(onNavigateBack: () -> Unit, modifier: Modifier = Modifier) {
             ) {
                 TextButton(
                     onClick = {
-                        val content = buildExportContent(snapshot)
+                        val content = buildExportContent(snapshot, context)
                         copyToClipboard(context, content)
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("复制")
+                    Text(stringResource(R.string.dev_log_copy))
                 }
                 TextButton(
                     onClick = {
-                        val content = buildExportContent(snapshot)
+                        val content = buildExportContent(snapshot, context)
                         shareAsText(context, content)
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("分享")
+                    Text(stringResource(R.string.dev_log_share))
                 }
             }
         }
@@ -135,7 +137,7 @@ fun DevLogScreen(onNavigateBack: () -> Unit, modifier: Modifier = Modifier) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "暂无日志",
+                            text = stringResource(R.string.dev_log_empty),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -161,41 +163,41 @@ fun DevLogScreen(onNavigateBack: () -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
-private fun buildExportContent(snapshot: String): String {
+private fun buildExportContent(snapshot: String, context: Context): String {
     val kotlinLogs = LogCollector.formatLogs()
     val systemLogs = LogCollector.collectProcessLogcat()
     return buildString {
         appendLine(snapshot)
         appendLine()
-        appendLine("===== Kotlin 层日志 =====")
+        appendLine(context.getString(R.string.dev_log_kotlin))
         appendLine(kotlinLogs)
         appendLine()
-        appendLine("===== 系统日志（含 Rust 层） =====")
+        appendLine(context.getString(R.string.dev_log_system))
         appendLine(systemLogs)
     }
 }
 
 private fun buildSnapshot(context: Context): String {
     val sb = StringBuilder()
-    sb.appendLine("===== App Snapshot =====")
-    sb.appendLine("Version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
-    sb.appendLine("Device: ${Build.MODEL}")
-    sb.appendLine("Android: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
-    sb.appendLine("Package: ${context.packageName}")
-    sb.appendLine("========================")
+    sb.appendLine(context.getString(R.string.dev_log_snapshot_title))
+    sb.appendLine(context.getString(R.string.dev_log_version, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE))
+    sb.appendLine(context.getString(R.string.dev_log_device, Build.MODEL))
+    sb.appendLine(context.getString(R.string.dev_log_android, Build.VERSION.RELEASE, Build.VERSION.SDK_INT))
+    sb.appendLine(context.getString(R.string.dev_log_package, context.packageName))
+    sb.appendLine(context.getString(R.string.dev_log_snapshot_end))
     return sb.toString()
 }
 
 private fun copyToClipboard(context: Context, content: String) {
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    clipboard.setPrimaryClip(ClipData.newPlainText("Moni Logs", content))
+    clipboard.setPrimaryClip(ClipData.newPlainText(context.getString(R.string.dev_log_clipboard_label), content))
 }
 
 private fun shareAsText(context: Context, content: String) {
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
         putExtra(Intent.EXTRA_TEXT, content)
-        putExtra(Intent.EXTRA_SUBJECT, "Moni 日志")
+        putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.dev_share_logs_subject))
     }
-    context.startActivity(Intent.createChooser(intent, "分享日志"))
+    context.startActivity(Intent.createChooser(intent, context.getString(R.string.dev_share_logs_title)))
 }

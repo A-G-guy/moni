@@ -1,10 +1,14 @@
 package com.agguy.moni.core
 
+import android.content.Context
+import com.agguy.moni.app.i18n.MessageResolver
 import com.agguy.moni.core.platform.LogCollector
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-class CoreEffectRunner {
+class CoreEffectRunner(context: Context) {
+    private val appContext = context.applicationContext
+
     var onShowSnackbar: ((String) -> Unit)? = null
     var onNavigate: ((String) -> Unit)? = null
     var onPersistSetting: ((String, String) -> Unit)? = null
@@ -32,12 +36,21 @@ class CoreEffectRunner {
             }
 
             "show_snackbar" -> {
-                val message = try {
+                val payload = try {
                     kotlinx.serialization.json.Json.parseToJsonElement(effect.payloadJson)
-                        .jsonObject["message"]?.jsonPrimitive?.content ?: effect.payloadJson
+                        .jsonObject
                 } catch (e: Exception) {
                     LogCollector.w("Moni", "Effect 消息解析失败，使用原始 payload: ${e.message}")
-                    effect.payloadJson
+                    null
+                }
+
+                val messageKey = payload?.get("message_key")?.jsonPrimitive?.content
+                val message = if (messageKey != null) {
+                    val args = mutableMapOf<String, String>()
+                    payload["count"]?.jsonPrimitive?.content?.let { args["count"] = it }
+                    MessageResolver.resolve(appContext, messageKey, args)
+                } else {
+                    payload?.get("message")?.jsonPrimitive?.content ?: effect.payloadJson
                 }
                 LogCollector.i("CoreEffectRunner", "显示 Snackbar: $message")
                 onShowSnackbar?.invoke(message)

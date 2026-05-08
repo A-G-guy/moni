@@ -71,6 +71,8 @@ pub struct UiState {
     pub active_tab: String,
     pub selected_record_id: Option<i64>,
     pub error_message: Option<String>,
+    pub error_key: Option<String>,
+    pub error_args: Vec<String>,
 }
 
 impl Default for UiState {
@@ -79,6 +81,8 @@ impl Default for UiState {
             active_tab: "records".to_string(),
             selected_record_id: None,
             error_message: None,
+            error_key: None,
+            error_args: Vec::new(),
         }
     }
 }

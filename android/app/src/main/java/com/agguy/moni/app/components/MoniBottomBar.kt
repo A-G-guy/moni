@@ -12,7 +12,9 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
+import com.agguy.moni.R
 import com.agguy.moni.app.icons.SymbolIcon
 
 /**
@@ -40,10 +42,10 @@ fun MoniBottomBar(
                     SymbolIcon(
                         name = "receipt",
                         filled = activeTab == "records",
-                        contentDescription = "账单"
+                        contentDescription = stringResource(R.string.nav_records)
                     )
                 },
-                label = { Text("账单") },
+                label = { Text(stringResource(R.string.nav_records)) },
                 selected = activeTab == "records",
                 onClick = { onTabSelected("records") }
             )
@@ -52,10 +54,10 @@ fun MoniBottomBar(
                     SymbolIcon(
                         name = "bar_chart",
                         filled = activeTab == "stats",
-                        contentDescription = "统计"
+                        contentDescription = stringResource(R.string.nav_stats)
                     )
                 },
-                label = { Text("统计") },
+                label = { Text(stringResource(R.string.nav_stats)) },
                 selected = activeTab == "stats",
                 onClick = { onTabSelected("stats") }
             )
@@ -64,10 +66,10 @@ fun MoniBottomBar(
                     SymbolIcon(
                         name = "settings",
                         filled = activeTab == "settings",
-                        contentDescription = "设置"
+                        contentDescription = stringResource(R.string.nav_settings)
                     )
                 },
-                label = { Text("设置") },
+                label = { Text(stringResource(R.string.nav_settings)) },
                 selected = activeTab == "settings",
                 onClick = { onTabSelected("settings") }
             )

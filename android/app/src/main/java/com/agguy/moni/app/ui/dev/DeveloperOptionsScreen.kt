@@ -23,7 +23,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.components.SettingsItem
 import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.core.CoreIntent
@@ -51,7 +53,7 @@ fun DeveloperOptionsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "开发者选项",
+                        stringResource(R.string.dev_title),
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
@@ -60,7 +62,7 @@ fun DeveloperOptionsScreen(
                     IconButton(onClick = onNavigateBack) {
                         SymbolIcon(
                             name = "arrow_back",
-                            contentDescription = "返回",
+                            contentDescription = stringResource(R.string.back),
                             size = 24.dp
                         )
                     }
@@ -78,29 +80,29 @@ fun DeveloperOptionsScreen(
         ) {
             SettingsItem(
                 iconName = "info",
-                title = "复制日志",
-                subtitle = "查看并导出最近日志",
+                title = stringResource(R.string.dev_copy_logs),
+                subtitle = stringResource(R.string.dev_logs_subtitle),
                 onClick = onNavigateToDevLog
             )
 
             SettingsItem(
                 iconName = "add",
-                title = "生成测试数据",
-                subtitle = "注入 Mock 数据用于测试",
+                title = stringResource(R.string.dev_generate_mock),
+                subtitle = stringResource(R.string.dev_mock_subtitle),
                 onClick = { showMockDataDialog = true }
             )
 
             SettingsItem(
                 iconName = "delete",
-                title = "清空所有数据",
-                subtitle = "删除所有数据并重启（危险）",
+                title = stringResource(R.string.dev_clear_all),
+                subtitle = stringResource(R.string.dev_clear_subtitle),
                 onClick = { showClearDataDialog = true }
             )
 
             SettingsItem(
                 iconName = "category",
-                title = "重置预设分类",
-                subtitle = "插入默认的分类模板",
+                title = stringResource(R.string.dev_reset_presets),
+                subtitle = stringResource(R.string.dev_reset_presets_subtitle),
                 onClick = { onDispatch(CoreIntent.DevSeedPresets) }
             )
         }

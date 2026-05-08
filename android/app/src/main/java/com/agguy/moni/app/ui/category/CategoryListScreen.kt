@@ -28,7 +28,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.core.CoreCategory
@@ -73,24 +75,24 @@ fun CategoryListScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "分类管理",
+                        text = stringResource(R.string.category_list_title),
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        SymbolIcon(name = "arrow_back", contentDescription = "返回", size = 24.dp)
+                        SymbolIcon(name = "arrow_back", contentDescription = stringResource(R.string.back), size = 24.dp)
                     }
                 },
                 actions = {
                     if (!isReorderMode) {
                         IconButton(onClick = onNavigateToArchivedCategories) {
-                            SymbolIcon(name = "archive", contentDescription = "已归档分类", size = 24.dp)
+                            SymbolIcon(name = "archive", contentDescription = stringResource(R.string.archived_title), size = 24.dp)
                         }
                     }
                     TextButton(onClick = { isReorderMode = !isReorderMode }) {
-                        Text(if (isReorderMode) "完成" else "排序")
+                        Text(if (isReorderMode) stringResource(R.string.done) else stringResource(R.string.add))
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -102,7 +104,7 @@ fun CategoryListScreen(
                     onClick = { showAddSheet = true },
                     shape = MaterialTheme.shapes.large
                 ) {
-                    SymbolIcon(name = "add", filled = true, contentDescription = "添加分类", size = 24.dp)
+                    SymbolIcon(name = "add", filled = true, contentDescription = stringResource(R.string.category_new), size = 24.dp)
                 }
             }
         }
@@ -116,12 +118,12 @@ fun CategoryListScreen(
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text("支出") }
+                    text = { Text(stringResource(R.string.category_expense)) }
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("收入") }
+                    text = { Text(stringResource(R.string.category_income)) }
                 )
             }
 

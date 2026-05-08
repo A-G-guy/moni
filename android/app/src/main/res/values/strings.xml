@@ -1,3 +1,468 @@
 <resources>
     <string name="app_name">Moni</string>
+
+    <!-- 通用 -->
+    <string name="confirm">确定</string>
+    <string name="cancel">取消</string>
+    <string name="close">关闭</string>
+    <string name="save">保存</string>
+    <string name="delete">删除</string>
+    <string name="back">返回</string>
+    <string name="search">搜索</string>
+    <string name="copy">复制</string>
+    <string name="share">分享</string>
+    <string name="edit">编辑</string>
+    <string name="add">添加</string>
+    <string name="done">完成</string>
+    <string name="enabled">已启用</string>
+    <string name="disabled">已关闭</string>
+    <string name="on">开启</string>
+    <string name="off">关闭</string>
+    <string name="not_selected">未选择</string>
+
+    <!-- 底部导航 -->
+    <string name="nav_records">账单</string>
+    <string name="nav_stats">统计</string>
+    <string name="nav_settings">设置</string>
+
+    <!-- 设置页 -->
+    <string name="settings_title">设置</string>
+    <string name="settings_appearance">外观</string>
+    <string name="settings_language">语言</string>
+    <string name="settings_currency">货币符号</string>
+    <string name="settings_currency_current">当前: %1$s</string>
+    <string name="settings_data_management">数据管理</string>
+    <string name="settings_data_management_subtitle">备份导出、导入恢复、管理应用内备份</string>
+    <string name="settings_developer">开发者选项</string>
+    <string name="settings_developer_subtitle">日志、Mock 数据、清空数据</string>
+    <string name="settings_about">关于</string>
+    <string name="settings_about_version">Moni v%1$s</string>
+    <string name="settings_language_system">跟随系统</string>
+    <string name="settings_language_chinese">中文</string>
+    <string name="settings_language_english">English</string>
+
+    <!-- 主题设置 -->
+    <string name="theme_settings_title">外观</string>
+    <string name="theme_color_scheme">配色方案</string>
+    <string name="theme_mode">主题模式</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_dark">深色</string>
+    <string name="theme_system">跟随系统</string>
+    <string name="theme_record_item_content">账单条目内容</string>
+    <string name="theme_show_icon">显示图标</string>
+    <string name="theme_show_icon_subtitle">在账单条目中显示分类图标</string>
+    <string name="theme_show_full_category">显示完整分类</string>
+    <string name="theme_show_full_category_subtitle">同时显示一级和二级分类名称</string>
+    <string name="theme_note_priority">备注优先</string>
+    <string name="theme_note_priority_subtitle">备注和分类名称的显示位置互换</string>
+
+    <!-- 配色方案 -->
+    <string name="color_scheme_default">默认</string>
+    <string name="color_scheme_dynamic">动态颜色</string>
+    <string name="color_scheme_airy_sakura">晴空樱粉</string>
+    <string name="color_scheme_anime_sky">动漫天蓝</string>
+    <string name="color_scheme_crisp_mint">清新薄荷</string>
+    <string name="color_scheme_neon_lavender">霓虹薰衣草</string>
+    <string name="color_scheme_oatmeal_gold">燕麦金</string>
+    <string name="color_scheme_sunset_coral">落日珊瑚</string>
+
+    <!-- 货币选择器 -->
+    <string name="currency_picker_title">选择货币符号</string>
+    <string name="currency_cny">人民币</string>
+    <string name="currency_usd">美元</string>
+    <string name="currency_eur">欧元</string>
+    <string name="currency_gbp">英镑</string>
+    <string name="currency_format">%1$s (%2$s)</string>
+
+    <!-- 记录（账单）页 -->
+    <string name="record_list_title">账单</string>
+    <string name="record_detail_title">账单详情</string>
+    <string name="record_today">今天</string>
+    <string name="record_this_month">本月</string>
+    <string name="record_expense">支出</string>
+    <string name="record_income">收入</string>
+    <string name="record_balance">结余</string>
+    <string name="record_amount">金额</string>
+    <string name="record_note">备注</string>
+    <string name="record_category">分类</string>
+    <string name="record_date">日期</string>
+    <string name="record_time">时间</string>
+    <string name="record_no_note">无备注</string>
+    <string name="record_delete_confirm">确认删除此记录？</string>
+
+    <!-- 记录编辑器 -->
+    <string name="editor_title_new">记一笔</string>
+    <string name="editor_title_edit">编辑记录</string>
+    <string name="editor_calculator">计算器</string>
+    <string name="editor_select_date">选择日期</string>
+    <string name="editor_select_time">选择时间</string>
+    <string name="editor_budget_warning">预算预警</string>
+    <string name="editor_budget_overrun">已超支</string>
+
+    <!-- 分类页 -->
+    <string name="category_list_title">分类管理</string>
+    <string name="category_expense">支出</string>
+    <string name="category_income">收入</string>
+    <string name="category_name">分类名称</string>
+    <string name="category_description">描述</string>
+    <string name="category_description_hint">可选，最多 %1$d 字</string>
+    <string name="category_icon">图标</string>
+    <string name="category_search_icon">搜索图标</string>
+    <string name="category_parent">父分类</string>
+    <string name="category_archived">已归档分类</string>
+    <string name="category_archive_confirm">确认归档</string>
+    <string name="category_archive_confirm_message">归档后该分类将不再显示在记账页面，是否继续？</string>
+    <string name="category_unarchive_confirm">确认恢复</string>
+    <string name="category_unarchive_confirm_message">恢复后该分类将重新显示在记账页面，是否继续？</string>
+    <string name="category_archive">归档</string>
+    <string name="category_unarchive">恢复</string>
+    <string name="category_delete">删除</string>
+    <string name="category_new">新建分类</string>
+    <string name="category_edit">编辑分类</string>
+
+    <!-- 预算页 -->
+    <string name="budget_list_title">预算管理</string>
+    <string name="budget_amount">预算金额</string>
+    <string name="budget_set">设置预算</string>
+    <string name="budget_delete_title">删除预算</string>
+    <string name="budget_delete_message">请选择删除范围：</string>
+    <string name="budget_stop_this_month">从本月起停止</string>
+    <string name="budget_stop_next_month">从下月起停止</string>
+    <string name="budget_total">总预算</string>
+    <string name="budget_remaining">剩余</string>
+    <string name="budget_spent">已用</string>
+    <string name="budget_used_format">已用 %1$s%%</string>
+
+    <!-- 统计页 -->
+    <string name="stats_title">统计</string>
+    <string name="stats_overview">概览</string>
+    <string name="stats_trend">趋势</string>
+    <string name="stats_category_breakdown">分类占比</string>
+    <string name="stats_secondary_category">二级分类</string>
+    <string name="stats_primary_category">一级分类</string>
+    <string name="stats_income_label">收入</string>
+    <string name="stats_expense_label">支出</string>
+    <string name="stats_balance_label">结余</string>
+    <string name="stats_daily_avg">日均</string>
+    <string name="stats_daily_remaining">日均剩余</string>
+    <string name="stats_elapsed_days">已过 %1$d 天</string>
+
+    <!-- 数据管理/备份 -->
+    <string name="backup_title">数据管理</string>
+    <string name="backup_export">导出备份</string>
+    <string name="backup_import">导入恢复</string>
+    <string name="backup_auto">自动备份</string>
+    <string name="backup_auto_title">自动备份</string>
+    <string name="backup_auto_enable">启用自动备份</string>
+    <string name="backup_frequency">备份频率</string>
+    <string name="backup_frequency_daily">每天</string>
+    <string name="backup_frequency_weekly">每周</string>
+    <string name="backup_frequency_monthly">每月</string>
+    <string name="backup_frequency_every_launch">每次启动</string>
+    <string name="backup_max_count">保留数量</string>
+    <string name="backup_max_count_subtitle">超出保留数量的旧备份将自动删除</string>
+    <string name="backup_copy_external">复制到外部目录</string>
+    <string name="backup_select_external">选择外部目录</string>
+    <string name="backup_restore_confirm">确认恢复</string>
+    <string name="backup_restore_confirm_message">将从 %1$s 恢复数据。当前所有数据将被覆盖，此操作不可撤销。</string>
+    <string name="backup_restore">恢复此备份</string>
+    <string name="backup_export_internal">导出到应用内</string>
+    <string name="backup_export_external">导出到指定目录</string>
+    <string name="backup_export_success">导出成功</string>
+    <string name="backup_import_success">导入成功</string>
+
+    <!-- 开发者选项 -->
+    <string name="dev_title">开发者选项</string>
+    <string name="dev_logs">日志</string>
+    <string name="dev_mock_data">生成测试数据</string>
+    <string name="dev_mock_data_title">生成测试数据</string>
+    <string name="dev_mock_data_count">记录数量</string>
+    <string name="dev_clear_data">清空所有数据</string>
+    <string name="dev_clear_data_title">危险操作确认</string>
+    <string name="dev_clear_data_message">此操作将删除所有数据且不可恢复，是否继续？</string>
+    <string name="dev_log_title">日志</string>
+    <string name="dev_log_copy">复制</string>
+    <string name="dev_log_share">分享</string>
+    <string name="dev_log_clipboard_label">Moni Logs</string>
+
+    <!-- 月份选择器 -->
+    <string name="month_picker_title">选择月份</string>
+
+    <!-- Snackbar / 成功消息 -->
+    <string name="message_category_created">分类添加成功</string>
+    <string name="message_category_updated">分类更新成功</string>
+    <string name="message_category_archived">分类已归档</string>
+    <string name="message_category_unarchived">分类已恢复</string>
+    <string name="message_category_deleted">分类已删除</string>
+    <string name="message_sort_saved">排序已保存</string>
+    <string name="message_record_saved">保存成功</string>
+    <string name="message_record_updated">更新成功</string>
+    <string name="message_record_deleted">删除成功</string>
+    <string name="message_budget_saved">预算已更新</string>
+    <string name="message_category_budget_saved">分类预算已更新</string>
+    <string name="message_total_budget_saved">总预算已更新</string>
+    <string name="message_budget_deleted">预算已删除</string>
+    <string name="message_presets_reset">预设分类已重置</string>
+    <string name="message_mock_data_generated">已生成 %1$d 条测试数据</string>
+    <string name="message_data_cleared">数据已清空</string>
+
+    <!-- 错误消息 -->
+    <string name="error_internal">内部错误</string>
+    <string name="error_database">数据库错误</string>
+    <string name="error_invalid_input">输入参数错误</string>
+    <string name="error_category_name_empty">分类名称不能为空</string>
+    <string name="error_icon_name_empty">图标名称不能为空</string>
+    <string name="error_amount_must_be_positive">金额必须大于0</string>
+    <string name="error_budget_amount_must_be_positive">预算金额必须大于0</string>
+    <string name="error_budget_only_expense">预算仅支持支出分类</string>
+    <string name="error_category_archived_for_record">该分类已归档，无法记账</string>
+    <string name="error_record_type_mismatch">记录类型与分类类型不匹配</string>
+    <string name="error_cannot_set_self_as_parent">不能将分类设为自己的父分类</string>
+    <string name="error_has_children_cannot_be_sub">该分类已有子分类，不能设为二级分类</string>
+    <string name="error_reorder_list_empty">排序列表不能为空</string>
+    <string name="error_archived_cannot_sort">已归档分类不能参与排序</string>
+    <string name="error_different_level_cannot_sort">只能对同一层级的分类进行排序</string>
+    <string name="error_parent_category_archived">父分类已归档</string>
+    <string name="error_parent_child_type_mismatch">父分类与子分类类型不一致</string>
+    <string name="error_only_single_level">仅支持单一层级，不能将二级分类设为父分类</string>
+    <string name="error_category_in_use">分类已被使用，无法删除</string>
+    <string name="error_data_already_exists">数据已存在</string>
+    <string name="error_database_busy">数据库正忙，请稍后重试</string>
+    <string name="error_database_locked">数据库被锁定，请稍后重试</string>
+    <string name="error_record_not_found">记录不存在</string>
+    <string name="error_category_not_found">分类不存在</string>
+    <string name="error_category_already_archived">分类已被归档</string>
+    <string name="error_category_not_archived">分类未归档</string>
+    <string name="error_backup_zip">备份 ZIP 错误</string>
+    <string name="error_backup_manifest_invalid">备份清单无效</string>
+    <string name="error_backup_corrupted">备份文件损坏</string>
+    <string name="error_backup_too_new">备份版本过新（要求 %1$d，当前支持 %2$d）</string>
+    <string name="error_backup_restore_failed">备份恢复失败（阶段：%1$s，原因：%2$s）</string>
+    <string name="error_backup_io">备份 IO 错误</string>
+    <string name="error_note_too_long">备注长度不能超过 %1$s 字符</string>
+    <string name="error_operation_failed">操作失败</string>
+
+    <!-- UI 通用标签 -->
+    <string name="label_date">日期</string>
+    <string name="label_note">备注</string>
+    <string name="label_type">类型</string>
+    <string name="label_icon">图标</string>
+    <string name="label_parent_category">父分类</string>
+    <string name="label_amount">金额</string>
+    <string name="label_scope">生效范围</string>
+    <string name="label_frequency">备份频率</string>
+    <string name="label_max_count">保留数量</string>
+
+    <!-- 动作按钮 -->
+    <string name="action_done">完成</string>
+    <string name="action_select">选择</string>
+    <string name="action_set">设置</string>
+    <string name="action_generate">生成</string>
+    <string name="action_clear">清空</string>
+    <string name="action_confirm_clear">确认清空</string>
+    <string name="action_view_all">查看全部预算 →</string>
+    <string name="action_restore">恢复</string>
+    <string name="action_restore_this">恢复此备份</string>
+    <string name="action_share">分享</string>
+
+    <!-- 状态与提示 -->
+    <string name="status_enabled">已启用</string>
+    <string name="status_disabled">关闭</string>
+    <string name="status_not_selected">未选择</string>
+    <string name="status_good">预算状态良好</string>
+    <string name="status_items_attention">%1$d 项需要留意</string>
+    <string name="status_unknown_category">未知分类</string>
+
+    <!-- 预算状态 -->
+    <string name="budget_status_overrun">超支</string>
+    <string name="budget_status_critical">接近上限</string>
+    <string name="budget_status_safe">安全</string>
+    <string name="budget_remaining_format">剩余 %1$s</string>
+    <string name="budget_total_format">共 %1$s</string>
+    <string name="budget_spent_format">已用 %1$s</string>
+    <string name="budget_used_percent_format">已用 %1$s</string>
+    <string name="budget_set_total_hint">设置总预算，掌控全局消费</string>
+    <string name="budget_soft_conflict_warning">子分类预算已超过父级预算，实际消费时会受父级限制</string>
+    <string name="budget_scope_this_month">仅本月</string>
+    <string name="budget_scope_this_and_future">本月及以后</string>
+    <string name="budget_scope_future_only">仅以后</string>
+
+    <!-- 日期格式化 -->
+    <string name="date_today">今天</string>
+    <string name="date_yesterday">昨天</string>
+    <string name="date_month_day_format">M月d日 EEEE</string>
+    <string name="date_year_month_format">yyyy年M月</string>
+    <string name="date_year_month_short">%1$s年%2$d月</string>
+    <string name="date_month_only">%1$d月</string>
+    <string name="date_year_month_full">%1$s 年 %2$s 月</string>
+
+    <!-- 月份选择器 -->
+    <string name="month_picker_jump_title">跳转到月份</string>
+    <string name="month_picker_year_format">%1$d 年</string>
+    <string name="month_picker_today">今</string>
+
+    <!-- 统计页 -->
+    <string name="stats_monthly_trend">月度趋势</string>
+    <string name="stats_expense_breakdown">支出构成</string>
+    <string name="stats_this_month_expense">本月支出</string>
+    <string name="stats_no_data">暂无支出数据</string>
+    <string name="stats_no_monthly_data">暂无月度数据</string>
+
+    <!-- 概览卡片 -->
+    <string name="overview_today_expense">今日支出</string>
+    <string name="overview_daily_remaining">日均剩余</string>
+    <string name="overview_month_total">本月总支出</string>
+    <string name="overview_daily_avg">日均支出</string>
+    <string name="overview_month_balance">月结余</string>
+
+    <!-- 记录列表 -->
+    <string name="record_list_empty_month">该月暂无记账记录</string>
+    <string name="record_list_empty_global">暂无记账记录</string>
+    <string name="record_list_empty_hint">点击右下角按钮记一笔</string>
+    <string name="record_list_month_label">月份: %1$s</string>
+    <string name="record_income_abbr">收 %1$s%2$s</string>
+    <string name="record_expense_abbr">支 %1$s%2$s</string>
+
+    <!-- 分类 -->
+    <string name="category_empty">暂无分类</string>
+    <string name="category_empty_hint">点击右下角添加</string>
+    <string name="category_no_match">未找到匹配的图标</string>
+    <string name="category_select_icon">选择图标</string>
+    <string name="category_confirm">确认</string>
+    <string name="category_search_icon_hint">搜索图标</string>
+    <string name="category_no_categories_hint">暂无分类，请先添加分类</string>
+    <string name="category_select_parent">选择父分类</string>
+    <string name="category_no_parent">作为一级分类（不使用父分类）</string>
+    <string name="category_no_parent_alt">作为一级分类（不选父分类）</string>
+    <string name="category_selected">已选中</string>
+    <string name="category_clear">清除</string>
+    <string name="category_description_placeholder">可选，最多 %1$d 字</string>
+
+    <!-- 归档 -->
+    <string name="archive_title">确认归档</string>
+    <string name="archive_message">确定要归档「%1$s」吗？\n\n· 该分类将不再出现在新建记录的选择中\n· 历史记录依然保留\n· 该分类的预算设置将被清除</string>
+    <string name="archive_confirm">归档</string>
+    <string name="unarchive_title">确认恢复</string>
+    <string name="unarchive_message">确定要恢复「%1$s」吗？\n恢复后该分类将重新出现在新建记录的选择中。</string>
+    <string name="unarchive_confirm">恢复</string>
+    <string name="archived_empty">暂无已归档分类</string>
+    <string name="archived_title">已归档分类</string>
+
+    <!-- 预算页 -->
+    <string name="budget_title">预算管理</string>
+    <string name="budget_month_format">%1$s预算</string>
+    <string name="budget_delete_total">删除总预算</string>
+    <string name="budget_set_budget">设置预算</string>
+    <string name="budget_remaining_label">剩余</string>
+    <string name="budget_used_label">已用</string>
+
+    <!-- 编辑器 -->
+    <string name="editor_type_expense">支出</string>
+    <string name="editor_type_income">收入</string>
+    <string name="editor_title_add">添加分类</string>
+    <string name="editor_title_edit_category">编辑分类</string>
+
+    <!-- 数据管理 -->
+    <string name="data_export_title">导出数据</string>
+    <string name="data_export_description">选择导出位置。应用内备份可在「备份管理」中查看和恢复。</string>
+    <string name="data_export_internal">导出到应用内</string>
+    <string name="data_export_external">导出到指定目录</string>
+    <string name="data_export_running">正在备份</string>
+    <string name="data_export_success">备份成功</string>
+    <string name="data_export_failed">备份失败</string>
+    <string name="data_import_title">确认导入</string>
+    <string name="data_import_running">正在恢复</string>
+    <string name="data_import_success">恢复成功</string>
+    <string name="data_import_failed">恢复失败</string>
+    <string name="data_import_success_message">%1$s\n\n应用即将重启以完成恢复。</string>
+    <string name="data_import_reading">正在读取备份信息…</string>
+    <string name="data_backup_info">备份信息：\n• 版本：%1$s\n• 创建时间：%2$s\n• 记录：%3$d 条\n• 分类：%4$d 个\n• 设置：%5$d 项\n\n警告：导入将覆盖所有现有数据，此操作不可撤销。</string>
+    <string name="data_processing">处理中…</string>
+    <string name="data_confirm_restore">确认恢复</string>
+    <string name="data_restore_confirm_message">将从 %1$s 恢复数据。当前所有数据将被覆盖，此操作不可撤销。</string>
+    <string name="data_internal_backups">应用内备份 (%1$d)</string>
+    <string name="data_no_backups">暂无应用内备份</string>
+    <string name="data_action_card_export_title">导出备份</string>
+    <string name="data_action_card_export_subtitle">备份到应用内或外部</string>
+    <string name="data_action_card_import_title">导入备份</string>
+    <string name="data_action_card_import_subtitle">从 ZIP 文件恢复</string>
+    <string name="data_auto_backup_title">启用自动备份</string>
+    <string name="data_auto_backup_subtitle_on">已启用</string>
+    <string name="data_auto_backup_subtitle_off">已关闭</string>
+    <string name="data_frequency_label">备份频率</string>
+    <string name="data_max_count_label">保留数量</string>
+    <string name="data_max_count_unit">%1$d 个</string>
+    <string name="data_max_count_hint">超出保留数量的旧备份将自动删除</string>
+    <string name="data_copy_external">复制到外部目录</string>
+    <string name="data_copy_external_on">已启用</string>
+    <string name="data_copy_external_off">关闭</string>
+    <string name="data_select_external">选择外部目录</string>
+    <string name="data_external_not_selected">未选择</string>
+    <string name="data_last_backup">上次备份: %1$s</string>
+    <string name="data_select_frequency_title">选择备份频率</string>
+    <string name="data_frequency_every_launch">每次启动</string>
+    <string name="data_frequency_daily">每天</string>
+    <string name="data_frequency_weekly">每周</string>
+    <string name="data_frequency_monthly">每月</string>
+
+    <!-- 开发者选项 -->
+    <string name="dev_copy_logs">复制日志</string>
+    <string name="dev_logs_subtitle">查看并导出最近日志</string>
+    <string name="dev_generate_mock">生成测试数据</string>
+    <string name="dev_mock_subtitle">注入 Mock 数据用于测试</string>
+    <string name="dev_clear_all">清空所有数据</string>
+    <string name="dev_clear_subtitle">删除所有数据并重启（危险）</string>
+    <string name="dev_reset_presets">重置预设分类</string>
+    <string name="dev_reset_presets_subtitle">插入默认的分类模板</string>
+    <string name="dev_mock_data_amount">数据量</string>
+    <string name="dev_mock_data_count_10">10 条</string>
+    <string name="dev_mock_data_count_100">100 条</string>
+    <string name="dev_mock_data_count_500">500 条</string>
+    <string name="dev_mock_preset">场景预设</string>
+    <string name="dev_mock_preset_normal">正常数据</string>
+    <string name="dev_mock_preset_stress">极限溢出（超长文本、超大金额等）</string>
+    <string name="dev_clear_title">危险操作确认</string>
+    <string name="dev_clear_message">此操作将清空所有记账数据和应用设置，不可恢复。\n\n应用将自动重启并回到初始状态。</string>
+    <string name="dev_log_empty">暂无日志</string>
+    <string name="dev_log_snapshot_title">===== App Snapshot =====</string>
+    <string name="dev_log_version">Version: %1$s (%2$d)</string>
+    <string name="dev_log_device">Device: %1$s</string>
+    <string name="dev_log_android">Android: %1$s (API %2$d)</string>
+    <string name="dev_log_package">Package: %1$s</string>
+    <string name="dev_log_snapshot_end">========================</string>
+    <string name="dev_log_kotlin">===== Kotlin 层日志 =====</string>
+    <string name="dev_log_system">===== 系统日志（含 Rust 层） =====</string>
+    <string name="dev_share_logs_title">分享日志</string>
+    <string name="dev_share_logs_subject">Moni 日志</string>
+
+    <!-- 预算预警 -->
+    <string name="budget_warning_overrun">受%1$s限制，本月已超支 %2$s%3$s</string>
+    <string name="budget_warning_critical">受%1$s限制，本月建议最多再花 %2$s%3$s</string>
+    <string name="budget_warning_safe">本月建议最多再花 %1$s%2$s</string>
+    <string name="budget_bottleneck_total">总预算</string>
+    <string name="budget_bottleneck_parent">父级预算</string>
+    <string name="budget_bottleneck_self">该分类预算</string>
+    <string name="budget_bottleneck_generic_with_name">%1$s预算</string>
+    <string name="budget_bottleneck_generic">预算</string>
+
+    <!-- 自动备份设置页 -->
+    <string name="auto_backup_title">自动备份</string>
+    <string name="auto_backup_enable">启用自动备份</string>
+    <string name="auto_backup_subtitle_on">已启用</string>
+    <string name="auto_backup_subtitle_off">已关闭</string>
+    <string name="auto_backup_frequency">备份频率</string>
+    <string name="auto_backup_max_count">保留数量</string>
+    <string name="auto_backup_max_count_unit">%1$d 个</string>
+    <string name="auto_backup_max_count_hint">超出保留数量的旧备份将自动删除</string>
+    <string name="auto_backup_copy_external">复制到外部目录</string>
+    <string name="auto_backup_copy_external_on">已启用</string>
+    <string name="auto_backup_copy_external_off">关闭</string>
+    <string name="auto_backup_select_external">选择外部目录</string>
+    <string name="auto_backup_external_not_selected">未选择</string>
+    <string name="auto_backup_last">上次备份: %1$s</string>
+    <string name="auto_backup_select_frequency">选择备份频率</string>
+    <string name="auto_backup_frequency_every_launch">每次启动</string>
+    <string name="auto_backup_frequency_daily">每天</string>
+    <string name="auto_backup_frequency_weekly">每周</string>
+    <string name="auto_backup_frequency_monthly">每月</string>
 </resources>

@@ -21,6 +21,7 @@ import androidx.navigation.toRoute
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.RecordItemDisplaySettings
 import com.agguy.moni.app.ThemeSettings
+import com.agguy.moni.app.i18n.AppLocaleManager
 import com.agguy.moni.app.theme.PresetColorScheme
 import com.agguy.moni.app.theme.ThemeMode
 import com.agguy.moni.app.ui.backup.BackupViewModel
@@ -78,6 +79,7 @@ fun MoniNavHost(
     themeSettings: ThemeSettings,
     recordItemDisplaySettings: RecordItemDisplaySettings,
     selectedYearMonth: String,
+    language: AppLocaleManager.AppLanguage = AppLocaleManager.AppLanguage.SYSTEM,
     onDispatch: (CoreIntent) -> Unit,
     onSelectYearMonth: (String) -> Unit,
     onNavigateToRecordDetail: (Long?) -> Unit,
@@ -91,6 +93,7 @@ fun MoniNavHost(
     onUpdateRecordShowIcon: (Boolean) -> Unit = {},
     onUpdateRecordShowFullCategory: (Boolean) -> Unit = {},
     onUpdateRecordNotePriority: (Boolean) -> Unit = {},
+    onUpdateLanguage: (AppLocaleManager.AppLanguage) -> Unit = {},
     onNavigateToDeveloperOptions: () -> Unit = {},
     onNavigateToDevLog: () -> Unit = {},
     onClearAllData: () -> Unit = {},
@@ -180,10 +183,12 @@ fun MoniNavHost(
             SettingsScreen(
                 appState = appState,
                 themeSettings = themeSettings,
+                language = language,
                 onDispatch = onDispatch,
                 onNavigateToThemeSettings = onNavigateToThemeSettings,
                 onNavigateToDeveloperOptions = onNavigateToDeveloperOptions,
                 onNavigateToDataManagement = onNavigateToDataManagement,
+                onUpdateLanguage = onUpdateLanguage,
             )
         }
         composable<Screen.DataManagement> {

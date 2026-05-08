@@ -25,11 +25,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.BuildConfig
+import com.agguy.moni.R
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.ThemeSettings
 import com.agguy.moni.app.components.SettingsItem
+import com.agguy.moni.app.i18n.AppLocaleManager
 import com.agguy.moni.app.theme.ThemeMode
 import com.agguy.moni.app.theme.displayName
 import com.agguy.moni.core.CoreIntent
@@ -42,24 +45,28 @@ import com.agguy.moni.core.CoreIntent
 fun SettingsScreen(
     appState: AppState,
     themeSettings: ThemeSettings,
+    language: AppLocaleManager.AppLanguage,
     onDispatch: (CoreIntent) -> Unit,
     onNavigateToThemeSettings: () -> Unit = {},
     onNavigateToDeveloperOptions: () -> Unit = {},
     onNavigateToDataManagement: () -> Unit = {},
+    onUpdateLanguage: (AppLocaleManager.AppLanguage) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showCurrencyDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
 
     val dialogSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
+    val context = androidx.compose.ui.platform.LocalContext.current
     val themeModeLabel = when (themeSettings.themeMode) {
-        ThemeMode.LIGHT -> "浅色"
-        ThemeMode.DARK -> "深色"
-        ThemeMode.SYSTEM -> "跟随系统"
+        ThemeMode.LIGHT -> stringResource(R.string.theme_light)
+        ThemeMode.DARK -> stringResource(R.string.theme_dark)
+        ThemeMode.SYSTEM -> stringResource(R.string.theme_system)
     }
 
-    val appearanceSubtitle = "$themeModeLabel · ${themeSettings.presetColorScheme.displayName}"
+    val appearanceSubtitle = "$themeModeLabel · ${themeSettings.presetColorScheme.displayName()}"
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -68,7 +75,7 @@ fun SettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "设置",
+                        stringResource(R.string.settings_title),
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
@@ -86,36 +93,47 @@ fun SettingsScreen(
         ) {
             SettingsItem(
                 iconName = "palette",
-                title = "外观",
+                title = stringResource(R.string.settings_appearance),
                 subtitle = appearanceSubtitle,
                 onClick = onNavigateToThemeSettings
             )
 
             SettingsItem(
+                iconName = "translate",
+                title = stringResource(R.string.settings_language),
+                subtitle = when (language) {
+                    AppLocaleManager.AppLanguage.SYSTEM -> stringResource(R.string.settings_language_system)
+                    AppLocaleManager.AppLanguage.CHINESE -> stringResource(R.string.settings_language_chinese)
+                    AppLocaleManager.AppLanguage.ENGLISH -> stringResource(R.string.settings_language_english)
+                },
+                onClick = { showLanguageDialog = true }
+            )
+
+            SettingsItem(
                 iconName = "attach_money",
-                title = "货币符号",
-                subtitle = "当前: ${appState.currencySymbol}",
+                title = stringResource(R.string.settings_currency),
+                subtitle = stringResource(R.string.settings_currency_current, appState.currencySymbol),
                 onClick = { showCurrencyDialog = true }
             )
 
             SettingsItem(
                 iconName = "cloud",
-                title = "数据管理",
-                subtitle = "备份导出、导入恢复、管理应用内备份",
+                title = stringResource(R.string.settings_data_management),
+                subtitle = stringResource(R.string.settings_data_management_subtitle),
                 onClick = onNavigateToDataManagement
             )
 
             SettingsItem(
                 iconName = "tune",
-                title = "开发者选项",
-                subtitle = "日志、Mock 数据、清空数据",
+                title = stringResource(R.string.settings_developer),
+                subtitle = stringResource(R.string.settings_developer_subtitle),
                 onClick = onNavigateToDeveloperOptions
             )
 
             SettingsItem(
                 iconName = "help",
-                title = "关于",
-                subtitle = "Moni v${BuildConfig.VERSION_NAME}",
+                title = stringResource(R.string.settings_about),
+                subtitle = stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME),
                 onClick = { }
             )
         }
@@ -134,6 +152,25 @@ fun SettingsScreen(
                     showCurrencyDialog = false
                 },
                 onDismiss = { showCurrencyDialog = false }
+            )
+        }
+    }
+
+    AnimatedVisibility(
+        visible = showLanguageDialog,
+        enter = scaleIn(animationSpec = dialogSpec),
+        exit = scaleOut(animationSpec = dialogSpec)
+    ) {
+        if (showLanguageDialog) {
+            LanguagePickerDialog(
+                currentLanguage = language,
+                onConfirm = { selected ->
+                    if (selected != language) {
+                        onUpdateLanguage(selected)
+                    }
+                    showLanguageDialog = false
+                },
+                onDismiss = { showLanguageDialog = false }
             )
         }
     }

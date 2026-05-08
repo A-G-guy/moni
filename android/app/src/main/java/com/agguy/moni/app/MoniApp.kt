@@ -42,6 +42,7 @@ fun MoniApp() {
     val themeSettings by viewModel.themeSettings.collectAsState()
     val recordItemDisplaySettings by viewModel.recordItemDisplaySettings.collectAsState()
     val selectedYearMonth by viewModel.selectedYearMonth.collectAsState()
+    val language by viewModel.language.collectAsState()
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackbarScope = rememberCoroutineScope()
@@ -119,6 +120,7 @@ fun MoniApp() {
                 themeSettings = themeSettings,
                 recordItemDisplaySettings = recordItemDisplaySettings,
                 selectedYearMonth = selectedYearMonth,
+                language = language,
                 onDispatch = viewModel::dispatch,
                 onSelectYearMonth = viewModel::selectYearMonth,
                 onNavigateToRecordDetail = viewModel::navigateToRecordDetail,
@@ -132,6 +134,7 @@ fun MoniApp() {
                 onUpdateRecordShowIcon = viewModel::updateRecordShowIcon,
                 onUpdateRecordShowFullCategory = viewModel::updateRecordShowFullCategory,
                 onUpdateRecordNotePriority = viewModel::updateRecordNotePriority,
+                onUpdateLanguage = viewModel::updateLanguage,
                 onNavigateToDeveloperOptions = viewModel::navigateToDeveloperOptions,
                 onNavigateToDevLog = viewModel::navigateToDevLog,
                 onClearAllData = viewModel::clearAllData,

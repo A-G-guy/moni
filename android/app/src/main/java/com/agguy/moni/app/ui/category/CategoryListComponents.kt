@@ -29,8 +29,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.components.MoniCard
 import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
@@ -222,7 +224,7 @@ fun CategoryListItem(
                     ) {
                         SymbolIcon(
                             name = "expand_less",
-                            contentDescription = "上移",
+                            contentDescription = stringResource(R.string.search),
                             size = 20.dp,
                             tint = if (canMoveUp) MaterialTheme.colorScheme.primary
                             else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
@@ -235,7 +237,7 @@ fun CategoryListItem(
                     ) {
                         SymbolIcon(
                             name = "expand_more",
-                            contentDescription = "下移",
+                            contentDescription = stringResource(R.string.search),
                             size = 20.dp,
                             tint = if (canMoveDown) MaterialTheme.colorScheme.primary
                             else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
@@ -247,7 +249,7 @@ fun CategoryListItem(
                 IconButton(onClick = onEditClick) {
                     SymbolIcon(
                         name = "edit",
-                        contentDescription = "编辑",
+                        contentDescription = stringResource(R.string.edit),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         size = 24.dp
                     )
@@ -256,7 +258,7 @@ fun CategoryListItem(
                 IconButton(onClick = onArchiveClick) {
                     SymbolIcon(
                         name = "archive",
-                        contentDescription = "归档",
+                        contentDescription = stringResource(R.string.category_archive),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         size = 24.dp
                     )
@@ -274,13 +276,13 @@ fun EmptyCategoryList(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "暂无分类",
+            text = stringResource(R.string.category_empty),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "点击右下角添加",
+            text = stringResource(R.string.category_empty_hint),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -302,23 +304,20 @@ fun ArchiveConfirmDialog(category: CoreCategory, onConfirm: () -> Unit, onDismis
         AlertDialog(
             onDismissRequest = onDismiss,
             shape = MaterialTheme.shapes.extraLarge,
-            title = { Text("确认归档") },
+            title = { Text(stringResource(R.string.archive_title)) },
             text = {
                 Text(
-                    "确定要归档「${category.name}」吗？\n\n" +
-                        "· 该分类将不再出现在新建记录的选择中\n" +
-                        "· 历史记录依然保留\n" +
-                        "· 该分类的预算设置将被清除"
+                    stringResource(R.string.archive_message, category.name)
                 )
             },
             confirmButton = {
                 TextButton(onClick = onConfirm) {
-                    Text("归档")
+                    Text(stringResource(R.string.archive_confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = onDismiss) {
-                    Text("取消")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -340,21 +339,20 @@ fun UnarchiveConfirmDialog(category: CoreCategory, onConfirm: () -> Unit, onDism
         AlertDialog(
             onDismissRequest = onDismiss,
             shape = MaterialTheme.shapes.extraLarge,
-            title = { Text("确认恢复") },
+            title = { Text(stringResource(R.string.unarchive_title)) },
             text = {
                 Text(
-                    "确定要恢复「${category.name}」吗？\n" +
-                        "恢复后该分类将重新出现在新建记录的选择中。"
+                    stringResource(R.string.unarchive_message, category.name)
                 )
             },
             confirmButton = {
                 TextButton(onClick = onConfirm) {
-                    Text("恢复")
+                    Text(stringResource(R.string.unarchive_confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = onDismiss) {
-                    Text("取消")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

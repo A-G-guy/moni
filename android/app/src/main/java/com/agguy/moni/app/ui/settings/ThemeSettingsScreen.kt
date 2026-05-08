@@ -31,12 +31,14 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import com.agguy.moni.R
 import com.agguy.moni.app.RecordItemDisplaySettings
 import com.agguy.moni.app.ThemeSettings
 import com.agguy.moni.app.components.SettingsToggleItem
@@ -74,7 +76,7 @@ fun ThemeSettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "外观",
+                        stringResource(R.string.theme_settings_title),
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
@@ -83,7 +85,7 @@ fun ThemeSettingsScreen(
                     IconButton(onClick = onNavigateBack) {
                         SymbolIcon(
                             name = "arrow_back",
-                            contentDescription = "返回",
+                            contentDescription = stringResource(R.string.back),
                             size = 24.dp
                         )
                     }
@@ -103,7 +105,7 @@ fun ThemeSettingsScreen(
             Spacer(modifier = Modifier.height(4.dp))
 
             // === 配色方案 ===
-            SectionTitle("配色方案")
+            SectionTitle(stringResource(R.string.theme_color_scheme))
             ColorSchemeSelector(
                 currentScheme = themeSettings.presetColorScheme,
                 onSchemeSelected = onUpdatePresetColorScheme
@@ -112,7 +114,7 @@ fun ThemeSettingsScreen(
             HorizontalDivider()
 
             // === 主题模式 ===
-            SectionTitle("主题模式")
+            SectionTitle(stringResource(R.string.theme_mode))
             ThemeModeSelector(
                 currentMode = themeSettings.themeMode,
                 onModeSelected = onUpdateThemeMode
@@ -121,25 +123,25 @@ fun ThemeSettingsScreen(
             HorizontalDivider()
 
             // === 账单条目内容 ===
-            SectionTitle("账单条目内容")
+            SectionTitle(stringResource(R.string.theme_record_item_content))
             SettingsToggleItem(
                 iconName = "category",
-                title = "显示图标",
-                subtitle = "在账单条目中显示分类图标",
+                title = stringResource(R.string.theme_show_icon),
+                subtitle = stringResource(R.string.theme_show_icon_subtitle),
                 checked = recordItemDisplaySettings.showIcon,
                 onCheckedChange = onUpdateRecordShowIcon
             )
             SettingsToggleItem(
                 iconName = "filter_list",
-                title = "显示完整分类",
-                subtitle = "同时显示一级和二级分类名称",
+                title = stringResource(R.string.theme_show_full_category),
+                subtitle = stringResource(R.string.theme_show_full_category_subtitle),
                 checked = recordItemDisplaySettings.showFullCategory,
                 onCheckedChange = onUpdateRecordShowFullCategory
             )
             SettingsToggleItem(
                 iconName = "edit",
-                title = "备注优先",
-                subtitle = "备注和分类名称的显示位置互换",
+                title = stringResource(R.string.theme_note_priority),
+                subtitle = stringResource(R.string.theme_note_priority_subtitle),
                 checked = recordItemDisplaySettings.notePriority,
                 onCheckedChange = onUpdateRecordNotePriority
             )
@@ -198,7 +200,7 @@ private fun ColorSchemeSelector(
                 ) {}
 
                 Text(
-                    text = scheme.displayName,
+                    text = scheme.displayName(),
                     style = MaterialTheme.typography.labelSmall,
                     color = if (selected) {
                         MaterialTheme.colorScheme.primary
@@ -218,9 +220,9 @@ private fun ThemeModeSelector(
     modifier: Modifier = Modifier
 ) {
     val options = listOf(
-        ThemeMode.LIGHT to "浅色",
-        ThemeMode.DARK to "深色",
-        ThemeMode.SYSTEM to "跟随系统"
+        ThemeMode.LIGHT to stringResource(R.string.theme_light),
+        ThemeMode.DARK to stringResource(R.string.theme_dark),
+        ThemeMode.SYSTEM to stringResource(R.string.theme_system)
     )
 
     Row(

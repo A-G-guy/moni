@@ -22,18 +22,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.theme.ThemeMode
 
 @Composable
 fun CurrencyPickerDialog(currentSymbol: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
-    val options = listOf("¥" to "人民币", "$" to "美元", "€" to "欧元", "£" to "英镑")
+    val options = listOf(
+        "¥" to stringResource(R.string.currency_cny),
+        "$" to stringResource(R.string.currency_usd),
+        "€" to stringResource(R.string.currency_eur),
+        "£" to stringResource(R.string.currency_gbp)
+    )
     var selected by remember { mutableStateOf(currentSymbol) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = MaterialTheme.shapes.extraLarge,
-        title = { Text("选择货币符号") },
+        title = { Text(stringResource(R.string.currency_picker_title)) },
         text = {
             Column {
                 options.forEach { (symbol, name) ->
@@ -49,19 +56,19 @@ fun CurrencyPickerDialog(currentSymbol: String, onConfirm: (String) -> Unit, onD
                             onClick = { selected = symbol }
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("$symbol ($name)")
+                        Text(stringResource(R.string.currency_format, symbol, name))
                     }
                 }
             }
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(selected) }) {
-                Text("确定")
+                Text(stringResource(R.string.confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("取消")
+                Text(stringResource(R.string.cancel))
             }
         }
     )
@@ -70,16 +77,16 @@ fun CurrencyPickerDialog(currentSymbol: String, onConfirm: (String) -> Unit, onD
 @Composable
 fun ThemeModePickerDialog(currentMode: ThemeMode, onConfirm: (ThemeMode) -> Unit, onDismiss: () -> Unit) {
     val options = listOf(
-        ThemeMode.LIGHT to "浅色",
-        ThemeMode.DARK to "深色",
-        ThemeMode.SYSTEM to "跟随系统"
+        ThemeMode.LIGHT to stringResource(R.string.theme_light),
+        ThemeMode.DARK to stringResource(R.string.theme_dark),
+        ThemeMode.SYSTEM to stringResource(R.string.theme_system)
     )
     var selected by remember { mutableStateOf(currentMode) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = MaterialTheme.shapes.extraLarge,
-        title = { Text("选择主题模式") },
+        title = { Text(stringResource(R.string.theme_mode)) },
         text = {
             Column {
                 options.forEach { (mode, label) ->
@@ -102,12 +109,12 @@ fun ThemeModePickerDialog(currentMode: ThemeMode, onConfirm: (ThemeMode) -> Unit
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(selected) }) {
-                Text("确定")
+                Text(stringResource(R.string.confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("取消")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

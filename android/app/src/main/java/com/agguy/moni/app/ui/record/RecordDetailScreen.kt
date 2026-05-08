@@ -31,7 +31,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
@@ -135,11 +137,11 @@ fun RecordDetailScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text(if (isEditMode) "编辑记录" else "记一笔") },
+                title = { Text(if (isEditMode) stringResource(R.string.editor_title_edit) else stringResource(R.string.editor_title_new)) },
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        SymbolIcon(name = "arrow_back", contentDescription = "返回", size = 24.dp)
+                        SymbolIcon(name = "arrow_back", contentDescription = stringResource(R.string.back), size = 24.dp)
                     }
                 },
                 actions = {
@@ -155,7 +157,7 @@ fun RecordDetailScreen(
                         ) {
                             SymbolIcon(
                                 name = "delete",
-                                contentDescription = "删除",
+                                contentDescription = stringResource(R.string.delete),
                                 tint = MaterialTheme.colorScheme.expenseRed,
                                 size = 24.dp
                             )
@@ -274,6 +276,8 @@ private fun RecordTypeToggle(
     onTypeSelected: (RecordType) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val typeExpense = stringResource(R.string.editor_type_expense)
+    val typeIncome = stringResource(R.string.editor_type_income)
     ButtonGroup(
         modifier = modifier.padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -281,7 +285,7 @@ private fun RecordTypeToggle(
     ) {
         toggleableItem(
             checked = selectedType == RecordType.EXPENSE,
-            label = "支出",
+            label = typeExpense,
             onCheckedChange = { if (it) onTypeSelected(RecordType.EXPENSE) },
             icon = {
                 if (selectedType == RecordType.EXPENSE) {
@@ -292,7 +296,7 @@ private fun RecordTypeToggle(
         )
         toggleableItem(
             checked = selectedType == RecordType.INCOME,
-            label = "收入",
+            label = typeIncome,
             onCheckedChange = { if (it) onTypeSelected(RecordType.INCOME) },
             icon = {
                 if (selectedType == RecordType.INCOME) {

@@ -16,7 +16,9 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -66,7 +68,7 @@ fun DatePickerBottomSheet(
                         }
                     }
                 ) {
-                    Text("取消")
+                    Text(stringResource(R.string.cancel))
                 }
                 TextButton(
                     onClick = {
@@ -86,7 +88,7 @@ fun DatePickerBottomSheet(
                         }
                     }
                 ) {
-                    Text("确定")
+                    Text(stringResource(R.string.confirm))
                 }
             }
         }

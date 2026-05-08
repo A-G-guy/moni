@@ -37,6 +37,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.agguy.moni.R
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.RecordItemDisplaySettings
 import com.agguy.moni.app.components.MonthPickerSheet
@@ -82,7 +84,7 @@ fun RecordListScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "账单",
+                        stringResource(R.string.record_list_title),
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
@@ -97,14 +99,14 @@ fun RecordListScreen(
                     IconButton(onClick = onNavigateToBudgetList) {
                         SymbolIcon(
                             name = "savings",
-                            contentDescription = "预算管理",
+                            contentDescription = stringResource(R.string.budget_list_title),
                             size = 24.dp
                         )
                     }
                     IconButton(onClick = onNavigateToCategoryList) {
                         SymbolIcon(
                             name = "category",
-                            contentDescription = "分类管理",
+                            contentDescription = stringResource(R.string.category_list_title),
                             size = 24.dp
                         )
                     }
@@ -121,7 +123,7 @@ fun RecordListScreen(
                 SymbolIcon(
                     name = "add",
                     filled = true,
-                    contentDescription = "记一笔",
+                    contentDescription = stringResource(R.string.editor_title_new),
                     size = 24.dp
                 )
             }
@@ -236,14 +238,14 @@ private fun DayHeader(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (incomeCents > 0) {
                     Text(
-                        text = "收 ${currencySymbol}${formatAmount(incomeCents)}",
+                        text = stringResource(R.string.record_income_abbr, "", "${currencySymbol}${formatAmount(incomeCents)}"),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.incomeGreen
                     )
                 }
                 if (expenseCents > 0) {
                     Text(
-                        text = "支 ${currencySymbol}${formatAmount(expenseCents)}",
+                        text = stringResource(R.string.record_expense_abbr, "", "${currencySymbol}${formatAmount(expenseCents)}"),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.expenseRed
                     )
@@ -269,19 +271,19 @@ private fun EmptyRecordList(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = if (isMonthEmpty) "该月暂无记账记录" else "暂无记账记录",
+                text = if (isMonthEmpty) stringResource(R.string.record_list_empty_month) else stringResource(R.string.record_list_empty_global),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "点击右下角按钮记一笔",
+                text = stringResource(R.string.record_list_empty_hint),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "月份: $yearMonth",
+                text = stringResource(R.string.record_list_month_label, yearMonth),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
             )
@@ -301,9 +303,9 @@ private fun formatDisplayDate(dateStr: String): String = try {
     val date = LocalDate.parse(dateStr)
     val today = LocalDate.now()
     when (date) {
-        today -> "今天"
-        today.minusDays(1) -> "昨天"
-        else -> date.format(DateTimeFormatter.ofPattern("M月d日 EEEE"))
+        today -> "Today"
+        today.minusDays(1) -> "Yesterday"
+        else -> date.format(DateTimeFormatter.ofPattern("MMM d, EEEE"))
     }
 } catch (_: Exception) {
     dateStr
@@ -312,7 +314,7 @@ private fun formatDisplayDate(dateStr: String): String = try {
 private fun formatYearMonthShort(yearMonth: String): String = try {
     val parts = yearMonth.split('-')
     if (parts.size == 2) {
-        "${parts[0]}年${parts[1].toInt()}月"
+        String.format("%s-%02d", parts[0], parts[1].toInt())
     } else {
         yearMonth
     }

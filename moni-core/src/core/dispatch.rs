@@ -10,6 +10,8 @@ impl AppCoreRuntime {
             Ok(update) => update,
             Err(err) => {
                 log::error!("意图处理失败: {err}");
+                self.state.ui.error_key = Some(err.error_key().to_string());
+                self.state.ui.error_args = err.error_args();
                 self.state.ui.error_message = Some(err.to_string());
                 self.finish(Vec::new()).unwrap_or_else(|e| {
                     log::error!("错误状态序列化失败: {e}");

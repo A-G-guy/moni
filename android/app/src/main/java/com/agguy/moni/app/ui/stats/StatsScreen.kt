@@ -34,7 +34,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.components.MoniCard
 import com.agguy.moni.core.CoreIntent
@@ -91,7 +93,7 @@ fun StatsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "统计",
+                        stringResource(R.string.stats_title),
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
@@ -157,14 +159,14 @@ fun StatsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "支出构成",
+                            text = stringResource(R.string.stats_expense_breakdown),
                             style = MaterialTheme.typography.titleSmall
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             FilterChip(
                                 selected = !aggregateByParent,
                                 onClick = { aggregateByParent = false },
-                                label = { Text("二级分类") },
+                                label = { Text(stringResource(R.string.stats_secondary_category)) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                     selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -173,7 +175,7 @@ fun StatsScreen(
                             FilterChip(
                                 selected = aggregateByParent,
                                 onClick = { aggregateByParent = true },
-                                label = { Text("一级分类") },
+                                label = { Text(stringResource(R.string.stats_primary_category)) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                     selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer

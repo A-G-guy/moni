@@ -25,8 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.core.CoreBudgetCheckResult
 import com.agguy.moni.core.CoreCategory
@@ -83,7 +85,7 @@ fun CategoryGridPager(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "暂无分类，请先添加分类",
+                text = stringResource(R.string.category_no_categories_hint),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

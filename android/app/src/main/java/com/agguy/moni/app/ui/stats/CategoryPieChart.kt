@@ -30,10 +30,12 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.agguy.moni.R
 import com.agguy.moni.app.components.AutoResizeText
 import com.agguy.moni.core.CoreCategoryBreakdown
 import com.agguy.moni.core.util.formatAmount
@@ -50,7 +52,7 @@ import com.agguy.moni.core.util.formatAmount
 @Composable
 fun CategoryPieChart(breakdowns: List<CoreCategoryBreakdown>, currencySymbol: String, modifier: Modifier = Modifier) {
     if (breakdowns.isEmpty()) {
-        EmptyChartPlaceholder("暂无支出数据")
+        EmptyChartPlaceholder(stringResource(R.string.stats_no_data))
         return
     }
 
@@ -59,7 +61,7 @@ fun CategoryPieChart(breakdowns: List<CoreCategoryBreakdown>, currencySymbol: St
 
     Column(modifier = modifier) {
         Text(
-            text = "支出构成",
+            text = stringResource(R.string.stats_expense_breakdown),
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -88,7 +90,7 @@ fun CategoryPieChart(breakdowns: List<CoreCategoryBreakdown>, currencySymbol: St
                         overflow = TextOverflow.Visible
                     )
                     Text(
-                        text = "本月支出",
+                        text = stringResource(R.string.stats_this_month_expense),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

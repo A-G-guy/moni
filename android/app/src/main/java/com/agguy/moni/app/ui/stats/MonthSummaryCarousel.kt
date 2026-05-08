@@ -36,8 +36,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.components.MoniCard
 import com.agguy.moni.app.components.MoniCardVariant
 import com.agguy.moni.app.components.MonthPickerSheet
@@ -211,7 +213,7 @@ internal fun MonthSummaryCarousel(
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer
             ) {
                 Text(
-                    text = "今",
+                    text = stringResource(R.string.month_picker_today),
                     style = MaterialTheme.typography.titleMediumEmphasized
                 )
             }
@@ -274,7 +276,7 @@ private fun HeroSummaryCard(
 
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    text = "结余",
+                    text = stringResource(R.string.stats_balance_label),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -294,14 +296,14 @@ private fun HeroSummaryCard(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 AmountStat(
-                    label = "收入",
+                    label = stringResource(R.string.stats_income_label),
                     amountCents = summary.incomeCents,
                     currencySymbol = currencySymbol,
                     color = MaterialTheme.colorScheme.incomeGreen,
                     modifier = Modifier.weight(1f)
                 )
                 AmountStat(
-                    label = "支出",
+                    label = stringResource(R.string.stats_expense_label),
                     amountCents = summary.expenseCents,
                     currencySymbol = currencySymbol,
                     color = MaterialTheme.colorScheme.expenseRed,
@@ -387,20 +389,18 @@ private fun AmountStat(
 }
 
 private fun formatYearMonth(yearMonth: String): String {
-    // yearMonth 形如 "2026-05" → "2026 年 5 月"
     val parts = yearMonth.split('-')
     return if (parts.size == 2) {
-        "${parts[0]} 年 ${parts[1].toIntOrNull() ?: parts[1]} 月"
+        String.format("%s-%s", parts[0], parts[1])
     } else {
         yearMonth
     }
 }
 
 fun formatMonthOnly(yearMonth: String): String {
-    // yearMonth 形如 "2026-05" → "5月"，去掉年份让 56dp 侧卡能塞下
     val parts = yearMonth.split('-')
     return if (parts.size == 2) {
-        "${parts[1].toIntOrNull() ?: parts[1]}月"
+        String.format("%s/%s", parts[0].takeLast(2), parts[1])
     } else {
         yearMonth
     }

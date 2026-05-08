@@ -66,7 +66,7 @@ class BackupViewModel(
      */
     fun exportToInternal() {
         viewModelScope.launch {
-            _operationState.value = BackupOperationState.Running("准备中...", 0)
+            _operationState.value = BackupOperationState.Running("Preparing...", 0)
             try {
                 val outFile = BackupHelper.generateBackupFile(getApplication<Application>())
                 val settingsJson = DataStoreHelper.snapshotJson(getApplication<Application>())
@@ -86,10 +86,10 @@ class BackupViewModel(
                 )
                 refreshBackupList()
                 _operationState.value = BackupOperationState.Success(
-                    "备份完成：${report.recordCount} 条记录，${report.categoryCount} 个分类"
+                    "Backup complete: ${report.recordCount} records, ${report.categoryCount} categories"
                 )
             } catch (e: Exception) {
-                _operationState.value = BackupOperationState.Error("备份失败：${e.message}")
+                _operationState.value = BackupOperationState.Error("Backup failed: ${e.message}")
             }
         }
     }
@@ -99,7 +99,7 @@ class BackupViewModel(
      */
     fun exportToSaf(uri: Uri) {
         viewModelScope.launch {
-            _operationState.value = BackupOperationState.Running("准备中...", 0)
+            _operationState.value = BackupOperationState.Running("Preparing...", 0)
             val cacheFile = File(getApplication<Application>().cacheDir, "moni_export_${UUID.randomUUID()}.zip")
             try {
                 val settingsJson = DataStoreHelper.snapshotJson(getApplication<Application>())
@@ -123,9 +123,9 @@ class BackupViewModel(
                         inp.copyTo(out)
                     }
                 }
-                _operationState.value = BackupOperationState.Success("已导出到指定位置")
+                _operationState.value = BackupOperationState.Success("Exported to selected location")
             } catch (e: Exception) {
-                _operationState.value = BackupOperationState.Error("导出失败：${e.message}")
+                _operationState.value = BackupOperationState.Error("Export failed: ${e.message}")
             } finally {
                 if (cacheFile.exists()) cacheFile.delete()
             }
@@ -137,7 +137,7 @@ class BackupViewModel(
      */
     fun importFromSaf(uri: Uri, dbPath: String) {
         viewModelScope.launch {
-            _operationState.value = BackupOperationState.Running("准备中...", 0)
+            _operationState.value = BackupOperationState.Running("Preparing...", 0)
             val cacheFile = File(getApplication<Application>().cacheDir, "moni_import_${UUID.randomUUID()}.zip")
             try {
                 getApplication<Application>().contentResolver.openInputStream(uri)?.use { inp ->
@@ -157,13 +157,13 @@ class BackupViewModel(
                 // 恢复 DataStore 设置
                 DataStoreHelper.restoreFromJson(getApplication<Application>(), report.settingsJson)
                 _operationState.value = BackupOperationState.Success(
-                    "恢复完成：${report.restoredRecordCount} 条记录，${report.restoredCategoryCount} 个分类"
+                    "Restore complete: ${report.restoredRecordCount} records, ${report.restoredCategoryCount} categories"
                 )
                 // 延迟重启，让 Snackbar 有机会显示
                 kotlinx.coroutines.delay(800)
                 AppRestarter.restartApp(getApplication<Application>())
             } catch (e: Exception) {
-                _operationState.value = BackupOperationState.Error("恢复失败：${e.message}")
+                _operationState.value = BackupOperationState.Error("Restore failed: ${e.message}")
             } finally {
                 if (cacheFile.exists()) cacheFile.delete()
             }
@@ -175,7 +175,7 @@ class BackupViewModel(
      */
     fun restoreFromInternal(file: File, dbPath: String) {
         viewModelScope.launch {
-            _operationState.value = BackupOperationState.Running("准备中...", 0)
+            _operationState.value = BackupOperationState.Running("Preparing...", 0)
             try {
                 val report = rustCore.backupRestore(
                     inZipPath = file.absolutePath,
@@ -188,12 +188,12 @@ class BackupViewModel(
                 )
                 DataStoreHelper.restoreFromJson(getApplication<Application>(), report.settingsJson)
                 _operationState.value = BackupOperationState.Success(
-                    "恢复完成：${report.restoredRecordCount} 条记录，${report.restoredCategoryCount} 个分类"
+                    "Restore complete: ${report.restoredRecordCount} records, ${report.restoredCategoryCount} categories"
                 )
                 kotlinx.coroutines.delay(800)
                 AppRestarter.restartApp(getApplication<Application>())
             } catch (e: Exception) {
-                _operationState.value = BackupOperationState.Error("恢复失败：${e.message}")
+                _operationState.value = BackupOperationState.Error("Restore failed: ${e.message}")
             }
         }
     }
@@ -223,7 +223,7 @@ class BackupViewModel(
                 _inspectResult.value = rustCore.backupInspect(cacheFile.absolutePath)
             } catch (e: Exception) {
                 _inspectResult.value = null
-                _operationState.value = BackupOperationState.Error("无法读取备份文件：${e.message}")
+                _operationState.value = BackupOperationState.Error("Cannot read backup file: ${e.message}")
             } finally {
                 cacheFile.delete()
             }

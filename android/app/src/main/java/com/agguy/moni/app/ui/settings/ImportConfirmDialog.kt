@@ -13,7 +13,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.ui.backup.BackupOperationState
 
 /**
@@ -37,10 +39,10 @@ fun ImportConfirmDialog(
         title = {
             Text(
                 when {
-                    isRunning -> "正在恢复"
-                    operationState is BackupOperationState.Success -> "恢复成功"
-                    operationState is BackupOperationState.Error -> "恢复失败"
-                    else -> "确认导入"
+                    isRunning -> stringResource(R.string.data_import_running)
+                    operationState is BackupOperationState.Success -> stringResource(R.string.data_import_success)
+                    operationState is BackupOperationState.Error -> stringResource(R.string.data_import_failed)
+                    else -> stringResource(R.string.data_import_title)
                 }
             )
         },
@@ -49,7 +51,7 @@ fun ImportConfirmDialog(
                 when {
                     isRunning -> {
                         Text(
-                            running?.stage ?: "处理中...",
+                            running?.stage ?: stringResource(R.string.data_processing),
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
@@ -59,7 +61,7 @@ fun ImportConfirmDialog(
                     }
                     operationState is BackupOperationState.Success -> {
                         Text(
-                            "${operationState.message}\n\n应用即将重启以完成恢复。",
+                            stringResource(R.string.data_import_success_message, operationState.message),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -72,19 +74,20 @@ fun ImportConfirmDialog(
                     }
                     inspectResult != null -> {
                         Text(
-                            "备份信息：\n" +
-                                "• 版本：${inspectResult.appVersionName}\n" +
-                                "• 创建时间：${inspectResult.createdAt}\n" +
-                                "• 记录：${inspectResult.recordCount} 条\n" +
-                                "• 分类：${inspectResult.categoryCount} 个\n" +
-                                "• 设置：${inspectResult.settingsCount} 项\n\n" +
-                                "警告：导入将覆盖所有现有数据，此操作不可撤销。",
+                            stringResource(
+                                R.string.data_backup_info,
+                                inspectResult.appVersionName,
+                                inspectResult.createdAt,
+                                inspectResult.recordCount,
+                                inspectResult.categoryCount,
+                                inspectResult.settingsCount
+                            ),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
                     else -> {
                         Text(
-                            "正在读取备份信息...",
+                            stringResource(R.string.data_import_reading),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -95,22 +98,22 @@ fun ImportConfirmDialog(
             when {
                 isRunning -> {}
                 operationState is BackupOperationState.Success -> {
-                    TextButton(onClick = onDismiss) { Text("关闭") }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }
                 }
                 operationState is BackupOperationState.Error -> {
-                    TextButton(onClick = onDismiss) { Text("关闭") }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }
                 }
                 else -> {
                     TextButton(
                         onClick = onConfirm,
                         enabled = inspectResult != null
-                    ) { Text("确认导入", color = MaterialTheme.colorScheme.error) }
+                    ) { Text(stringResource(R.string.confirm), color = MaterialTheme.colorScheme.error) }
                 }
             }
         },
         dismissButton = {
             if (!isRunning && operationState !is BackupOperationState.Success) {
-                TextButton(onClick = onDismiss) { Text("取消") }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
             }
         }
     )

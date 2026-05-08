@@ -28,7 +28,7 @@ impl AppCoreRuntime {
 
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),
-            payload_json: "{\"message\":\"删除成功\"}".to_string(),
+            payload_json: "{\"message_key\":\"record_deleted\"}".to_string(),
         }])
     }
 }

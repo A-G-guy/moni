@@ -1,0 +1,468 @@
+<resources>
+    <string name="app_name">Moni</string>
+
+    <!-- Common -->
+    <string name="confirm">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="close">Close</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="back">Back</string>
+    <string name="search">Search</string>
+    <string name="copy">Copy</string>
+    <string name="share">Share</string>
+    <string name="edit">Edit</string>
+    <string name="add">Add</string>
+    <string name="done">Done</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="not_selected">Not selected</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_records">Records</string>
+    <string name="nav_stats">Stats</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_currency">Currency</string>
+    <string name="settings_currency_current">Current: %1$s</string>
+    <string name="settings_data_management">Data Management</string>
+    <string name="settings_data_management_subtitle">Backup export, import restore, manage in-app backups</string>
+    <string name="settings_developer">Developer Options</string>
+    <string name="settings_developer_subtitle">Logs, mock data, clear data</string>
+    <string name="settings_about">About</string>
+    <string name="settings_about_version">Moni v%1$s</string>
+    <string name="settings_language_system">Follow System</string>
+    <string name="settings_language_chinese">中文</string>
+    <string name="settings_language_english">English</string>
+
+    <!-- Theme Settings -->
+    <string name="theme_settings_title">Appearance</string>
+    <string name="theme_color_scheme">Color Scheme</string>
+    <string name="theme_mode">Theme Mode</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">Follow System</string>
+    <string name="theme_record_item_content">Record Item Content</string>
+    <string name="theme_show_icon">Show Icon</string>
+    <string name="theme_show_icon_subtitle">Display category icon in record items</string>
+    <string name="theme_show_full_category">Show Full Category</string>
+    <string name="theme_show_full_category_subtitle">Show both primary and secondary category names</string>
+    <string name="theme_note_priority">Note Priority</string>
+    <string name="theme_note_priority_subtitle">Swap the display position of note and category name</string>
+
+    <!-- Color Schemes -->
+    <string name="color_scheme_default">Default</string>
+    <string name="color_scheme_dynamic">Dynamic Color</string>
+    <string name="color_scheme_airy_sakura">Airy Sakura</string>
+    <string name="color_scheme_anime_sky">Anime Sky</string>
+    <string name="color_scheme_crisp_mint">Crisp Mint</string>
+    <string name="color_scheme_neon_lavender">Neon Lavender</string>
+    <string name="color_scheme_oatmeal_gold">Oatmeal Gold</string>
+    <string name="color_scheme_sunset_coral">Sunset Coral</string>
+
+    <!-- Currency Picker -->
+    <string name="currency_picker_title">Select Currency</string>
+    <string name="currency_cny">Chinese Yuan</string>
+    <string name="currency_usd">US Dollar</string>
+    <string name="currency_eur">Euro</string>
+    <string name="currency_gbp">British Pound</string>
+    <string name="currency_format">%1$s (%2$s)</string>
+
+    <!-- Records -->
+    <string name="record_list_title">Records</string>
+    <string name="record_detail_title">Record Detail</string>
+    <string name="record_today">Today</string>
+    <string name="record_this_month">This Month</string>
+    <string name="record_expense">Expense</string>
+    <string name="record_income">Income</string>
+    <string name="record_balance">Balance</string>
+    <string name="record_amount">Amount</string>
+    <string name="record_note">Note</string>
+    <string name="record_category">Category</string>
+    <string name="record_date">Date</string>
+    <string name="record_time">Time</string>
+    <string name="record_no_note">No note</string>
+    <string name="record_delete_confirm">Delete this record?</string>
+
+    <!-- Record Editor -->
+    <string name="editor_title_new">New Record</string>
+    <string name="editor_title_edit">Edit Record</string>
+    <string name="editor_calculator">Calculator</string>
+    <string name="editor_select_date">Select Date</string>
+    <string name="editor_select_time">Select Time</string>
+    <string name="editor_budget_warning">Budget Warning</string>
+    <string name="editor_budget_overrun">Overrun</string>
+
+    <!-- Categories -->
+    <string name="category_list_title">Categories</string>
+    <string name="category_expense">Expense</string>
+    <string name="category_income">Income</string>
+    <string name="category_name">Category Name</string>
+    <string name="category_description">Description</string>
+    <string name="category_description_hint">Optional, max %1$d chars</string>
+    <string name="category_icon">Icon</string>
+    <string name="category_search_icon">Search icons</string>
+    <string name="category_parent">Parent Category</string>
+    <string name="category_archived">Archived Categories</string>
+    <string name="category_archive_confirm">Confirm Archive</string>
+    <string name="category_archive_confirm_message">This category will be hidden from the record page after archiving. Continue?</string>
+    <string name="category_unarchive_confirm">Confirm Restore</string>
+    <string name="category_unarchive_confirm_message">This category will reappear on the record page after restoring. Continue?</string>
+    <string name="category_archive">Archive</string>
+    <string name="category_unarchive">Restore</string>
+    <string name="category_delete">Delete</string>
+    <string name="category_new">New Category</string>
+    <string name="category_edit">Edit Category</string>
+
+    <!-- Budget -->
+    <string name="budget_list_title">Budgets</string>
+    <string name="budget_amount">Budget Amount</string>
+    <string name="budget_set">Set Budget</string>
+    <string name="budget_delete_title">Delete Budget</string>
+    <string name="budget_delete_message">Select deletion scope:</string>
+    <string name="budget_stop_this_month">Stop from this month</string>
+    <string name="budget_stop_next_month">Stop from next month</string>
+    <string name="budget_total">Total Budget</string>
+    <string name="budget_remaining">Remaining</string>
+    <string name="budget_spent">Spent</string>
+    <string name="budget_used_format">%1$s%% used</string>
+
+    <!-- Stats -->
+    <string name="stats_title">Statistics</string>
+    <string name="stats_overview">Overview</string>
+    <string name="stats_trend">Trend</string>
+    <string name="stats_category_breakdown">Breakdown</string>
+    <string name="stats_secondary_category">Secondary</string>
+    <string name="stats_primary_category">Primary</string>
+    <string name="stats_income_label">Income</string>
+    <string name="stats_expense_label">Expense</string>
+    <string name="stats_balance_label">Balance</string>
+    <string name="stats_daily_avg">Daily Avg</string>
+    <string name="stats_daily_remaining">Daily Remaining</string>
+    <string name="stats_elapsed_days">%1$d days elapsed</string>
+
+    <!-- Backup / Data Management -->
+    <string name="backup_title">Data Management</string>
+    <string name="backup_export">Export Backup</string>
+    <string name="backup_import">Import Restore</string>
+    <string name="backup_auto">Auto Backup</string>
+    <string name="backup_auto_title">Auto Backup</string>
+    <string name="backup_auto_enable">Enable Auto Backup</string>
+    <string name="backup_frequency">Backup Frequency</string>
+    <string name="backup_frequency_daily">Daily</string>
+    <string name="backup_frequency_weekly">Weekly</string>
+    <string name="backup_frequency_monthly">Monthly</string>
+    <string name="backup_frequency_every_launch">Every Launch</string>
+    <string name="backup_max_count">Max Retained</string>
+    <string name="backup_max_count_subtitle">Old backups exceeding the limit will be auto-deleted</string>
+    <string name="backup_copy_external">Copy to External Directory</string>
+    <string name="backup_select_external">Select External Directory</string>
+    <string name="backup_restore_confirm">Confirm Restore</string>
+    <string name="backup_restore_confirm_message">Will restore data from %1$s. All current data will be overwritten and this action cannot be undone.</string>
+    <string name="backup_restore">Restore This Backup</string>
+    <string name="backup_export_internal">Export to App Internal</string>
+    <string name="backup_export_external">Export to Selected Directory</string>
+    <string name="backup_export_success">Export Successful</string>
+    <string name="backup_import_success">Import Successful</string>
+
+    <!-- Developer -->
+    <string name="dev_title">Developer Options</string>
+    <string name="dev_logs">Logs</string>
+    <string name="dev_mock_data">Generate Test Data</string>
+    <string name="dev_mock_data_title">Generate Test Data</string>
+    <string name="dev_mock_data_count">Record Count</string>
+    <string name="dev_clear_data">Clear All Data</string>
+    <string name="dev_clear_data_title">Dangerous Operation</string>
+    <string name="dev_clear_data_message">This will delete all data and cannot be undone. Continue?</string>
+    <string name="dev_log_title">Logs</string>
+    <string name="dev_log_copy">Copy</string>
+    <string name="dev_log_share">Share</string>
+    <string name="dev_log_clipboard_label">Moni Logs</string>
+
+    <!-- Month Picker -->
+    <string name="month_picker_title">Select Month</string>
+
+    <!-- Snackbar / Success Messages -->
+    <string name="message_category_created">Category added</string>
+    <string name="message_category_updated">Category updated</string>
+    <string name="message_category_archived">Category archived</string>
+    <string name="message_category_unarchived">Category restored</string>
+    <string name="message_category_deleted">Category deleted</string>
+    <string name="message_sort_saved">Sort saved</string>
+    <string name="message_record_saved">Record saved</string>
+    <string name="message_record_updated">Record updated</string>
+    <string name="message_record_deleted">Record deleted</string>
+    <string name="message_budget_saved">Budget updated</string>
+    <string name="message_category_budget_saved">Category budget updated</string>
+    <string name="message_total_budget_saved">Total budget updated</string>
+    <string name="message_budget_deleted">Budget deleted</string>
+    <string name="message_presets_reset">Preset categories reset</string>
+    <string name="message_mock_data_generated">Generated %1$d test records</string>
+    <string name="message_data_cleared">Data cleared</string>
+
+    <!-- Error Messages -->
+    <string name="error_internal">Internal error</string>
+    <string name="error_database">Database error</string>
+    <string name="error_invalid_input">Invalid input</string>
+    <string name="error_category_name_empty">Category name cannot be empty</string>
+    <string name="error_icon_name_empty">Icon name cannot be empty</string>
+    <string name="error_amount_must_be_positive">Amount must be greater than 0</string>
+    <string name="error_budget_amount_must_be_positive">Budget amount must be greater than 0</string>
+    <string name="error_budget_only_expense">Budget only supports expense categories</string>
+    <string name="error_category_archived_for_record">This category is archived and cannot be used</string>
+    <string name="error_record_type_mismatch">Record type does not match category type</string>
+    <string name="error_cannot_set_self_as_parent">Cannot set a category as its own parent</string>
+    <string name="error_has_children_cannot_be_sub">This category has sub-categories and cannot be set as secondary</string>
+    <string name="error_reorder_list_empty">Sort list cannot be empty</string>
+    <string name="error_archived_cannot_sort">Archived categories cannot participate in sorting</string>
+    <string name="error_different_level_cannot_sort">Can only sort categories at the same level</string>
+    <string name="error_parent_category_archived">Parent category is archived</string>
+    <string name="error_parent_child_type_mismatch">Parent and child category types do not match</string>
+    <string name="error_only_single_level">Only single level supported, cannot set secondary as parent</string>
+    <string name="error_category_in_use">Category is in use and cannot be deleted</string>
+    <string name="error_data_already_exists">Data already exists</string>
+    <string name="error_database_busy">Database is busy, please try again later</string>
+    <string name="error_database_locked">Database is locked, please try again later</string>
+    <string name="error_record_not_found">Record not found</string>
+    <string name="error_category_not_found">Category not found</string>
+    <string name="error_category_already_archived">Category already archived</string>
+    <string name="error_category_not_archived">Category not archived</string>
+    <string name="error_backup_zip">Backup ZIP error</string>
+    <string name="error_backup_manifest_invalid">Backup manifest invalid</string>
+    <string name="error_backup_corrupted">Backup file corrupted</string>
+    <string name="error_backup_too_new">Backup version too new (required %1$d, supported %2$d)</string>
+    <string name="error_backup_restore_failed">Backup restore failed (stage: %1$s, reason: %2$s)</string>
+    <string name="error_backup_io">Backup I/O error</string>
+    <string name="error_note_too_long">Note length cannot exceed %1$s characters</string>
+    <string name="error_operation_failed">Operation failed</string>
+
+    <!-- UI Common Labels -->
+    <string name="label_date">Date</string>
+    <string name="label_note">Note</string>
+    <string name="label_type">Type</string>
+    <string name="label_icon">Icon</string>
+    <string name="label_parent_category">Parent Category</string>
+    <string name="label_amount">Amount</string>
+    <string name="label_scope">Scope</string>
+    <string name="label_frequency">Frequency</string>
+    <string name="label_max_count">Max Retained</string>
+
+    <!-- Action Buttons -->
+    <string name="action_done">Done</string>
+    <string name="action_select">Select</string>
+    <string name="action_set">Set</string>
+    <string name="action_generate">Generate</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_confirm_clear">Confirm Clear</string>
+    <string name="action_view_all">View All Budgets →</string>
+    <string name="action_restore">Restore</string>
+    <string name="action_restore_this">Restore This Backup</string>
+    <string name="action_share">Share</string>
+
+    <!-- Status & Hints -->
+    <string name="status_enabled">Enabled</string>
+    <string name="status_disabled">Disabled</string>
+    <string name="status_not_selected">Not selected</string>
+    <string name="status_good">Budget status good</string>
+    <string name="status_items_attention">%1$d items need attention</string>
+    <string name="status_unknown_category">Unknown</string>
+
+    <!-- Budget Status -->
+    <string name="budget_status_overrun">Overrun</string>
+    <string name="budget_status_critical">Near Limit</string>
+    <string name="budget_status_safe">Safe</string>
+    <string name="budget_remaining_format">Remaining %1$s</string>
+    <string name="budget_total_format">Total %1$s</string>
+    <string name="budget_spent_format">Spent %1$s</string>
+    <string name="budget_used_percent_format">Used %1$s</string>
+    <string name="budget_set_total_hint">Set a total budget to control spending</string>
+    <string name="budget_soft_conflict_warning">Sub-category budget exceeds parent limit; spending will be capped by parent</string>
+    <string name="budget_scope_this_month">This Month Only</string>
+    <string name="budget_scope_this_and_future">This Month &amp; Future</string>
+    <string name="budget_scope_future_only">Future Only</string>
+
+    <!-- Date Formatting -->
+    <string name="date_today">Today</string>
+    <string name="date_yesterday">Yesterday</string>
+    <string name="date_month_day_format">MMM d, EEEE</string>
+    <string name="date_year_month_format">MMM yyyy</string>
+    <string name="date_year_month_short">%1$s-%2$02d</string>
+    <string name="date_month_only">%1$d月</string>
+    <string name="date_year_month_full">%1$s %2$s</string>
+
+    <!-- Month Picker -->
+    <string name="month_picker_jump_title">Jump to Month</string>
+    <string name="month_picker_year_format">%1$d</string>
+    <string name="month_picker_today">Now</string>
+
+    <!-- Stats Page -->
+    <string name="stats_monthly_trend">Monthly Trend</string>
+    <string name="stats_expense_breakdown">Expense Breakdown</string>
+    <string name="stats_this_month_expense">This Month</string>
+    <string name="stats_no_data">No expense data</string>
+    <string name="stats_no_monthly_data">No monthly data</string>
+
+    <!-- Overview Card -->
+    <string name="overview_today_expense">Today</string>
+    <string name="overview_daily_remaining">Daily Remaining</string>
+    <string name="overview_month_total">Month Total</string>
+    <string name="overview_daily_avg">Daily Avg</string>
+    <string name="overview_month_balance">Balance</string>
+
+    <!-- Record List -->
+    <string name="record_list_empty_month">No records this month</string>
+    <string name="record_list_empty_global">No records yet</string>
+    <string name="record_list_empty_hint">Tap the button below to add</string>
+    <string name="record_list_month_label">Month: %1$s</string>
+    <string name="record_income_abbr">+ %1$s%2$s</string>
+    <string name="record_expense_abbr">- %1$s%2$s</string>
+
+    <!-- Categories -->
+    <string name="category_empty">No categories</string>
+    <string name="category_empty_hint">Tap the button below to add</string>
+    <string name="category_no_match">No matching icons</string>
+    <string name="category_select_icon">Select Icon</string>
+    <string name="category_confirm">Confirm</string>
+    <string name="category_search_icon_hint">Search icons</string>
+    <string name="category_no_categories_hint">No categories yet, please add one first</string>
+    <string name="category_select_parent">Select Parent Category</string>
+    <string name="category_no_parent">As top-level category</string>
+    <string name="category_no_parent_alt">As top-level category (no parent)</string>
+    <string name="category_selected">Selected</string>
+    <string name="category_clear">Clear</string>
+    <string name="category_description_placeholder">Optional, max %1$d chars</string>
+
+    <!-- Archive -->
+    <string name="archive_title">Confirm Archive</string>
+    <string name="archive_message">Archive "%1$s"?\n\n· It will be hidden from new records\n· Historical records are kept\n· Budget settings will be cleared</string>
+    <string name="archive_confirm">Archive</string>
+    <string name="unarchive_title">Confirm Restore</string>
+    <string name="unarchive_message">Restore "%1$s"?\nIt will reappear in new record selection.</string>
+    <string name="unarchive_confirm">Restore</string>
+    <string name="archived_empty">No archived categories</string>
+    <string name="archived_title">Archived Categories</string>
+
+    <!-- Budget Page -->
+    <string name="budget_title">Budgets</string>
+    <string name="budget_month_format">%1$s Budget</string>
+    <string name="budget_delete_total">Delete Total Budget</string>
+    <string name="budget_set_budget">Set Budget</string>
+    <string name="budget_remaining_label">Remaining</string>
+    <string name="budget_used_label">Used</string>
+
+    <!-- Editor -->
+    <string name="editor_type_expense">Expense</string>
+    <string name="editor_type_income">Income</string>
+    <string name="editor_title_add">New Category</string>
+    <string name="editor_title_edit_category">Edit Category</string>
+
+    <!-- Data Management -->
+    <string name="data_export_title">Export Data</string>
+    <string name="data_export_description">Choose export location. In-app backups can be viewed and restored in Backup Management.</string>
+    <string name="data_export_internal">Export to App</string>
+    <string name="data_export_external">Export to Directory</string>
+    <string name="data_export_running">Exporting</string>
+    <string name="data_export_success">Export Successful</string>
+    <string name="data_export_failed">Export Failed</string>
+    <string name="data_import_title">Confirm Import</string>
+    <string name="data_import_running">Restoring</string>
+    <string name="data_import_success">Restore Successful</string>
+    <string name="data_import_failed">Restore Failed</string>
+    <string name="data_import_success_message">%1$s\n\nApp will restart to complete restore.</string>
+    <string name="data_import_reading">Reading backup info…</string>
+    <string name="data_backup_info">Backup Info:\n• Version: %1$s\n• Created: %2$s\n• Records: %3$d\n• Categories: %4$d\n• Settings: %5$d\n\nWarning: Import will overwrite all data. This cannot be undone.</string>
+    <string name="data_processing">Processing…</string>
+    <string name="data_confirm_restore">Confirm Restore</string>
+    <string name="data_restore_confirm_message">Will restore from %1$s. All current data will be overwritten. This cannot be undone.</string>
+    <string name="data_internal_backups">In-app Backups (%1$d)</string>
+    <string name="data_no_backups">No in-app backups</string>
+    <string name="data_action_card_export_title">Export Backup</string>
+    <string name="data_action_card_export_subtitle">To app or external directory</string>
+    <string name="data_action_card_import_title">Import Backup</string>
+    <string name="data_action_card_import_subtitle">Restore from ZIP file</string>
+    <string name="data_auto_backup_title">Enable Auto Backup</string>
+    <string name="data_auto_backup_subtitle_on">Enabled</string>
+    <string name="data_auto_backup_subtitle_off">Disabled</string>
+    <string name="data_frequency_label">Backup Frequency</string>
+    <string name="data_max_count_label">Max Retained</string>
+    <string name="data_max_count_unit">%1$d</string>
+    <string name="data_max_count_hint">Old backups exceeding the limit will be auto-deleted</string>
+    <string name="data_copy_external">Copy to External Directory</string>
+    <string name="data_copy_external_on">Enabled</string>
+    <string name="data_copy_external_off">Off</string>
+    <string name="data_select_external">Select External Directory</string>
+    <string name="data_external_not_selected">Not selected</string>
+    <string name="data_last_backup">Last backup: %1$s</string>
+    <string name="data_select_frequency_title">Select Backup Frequency</string>
+    <string name="data_frequency_every_launch">Every Launch</string>
+    <string name="data_frequency_daily">Daily</string>
+    <string name="data_frequency_weekly">Weekly</string>
+    <string name="data_frequency_monthly">Monthly</string>
+
+    <!-- Developer Options -->
+    <string name="dev_copy_logs">Copy Logs</string>
+    <string name="dev_logs_subtitle">View and export recent logs</string>
+    <string name="dev_generate_mock">Generate Test Data</string>
+    <string name="dev_mock_subtitle">Inject mock data for testing</string>
+    <string name="dev_clear_all">Clear All Data</string>
+    <string name="dev_clear_subtitle">Delete all data and restart (dangerous)</string>
+    <string name="dev_reset_presets">Reset Preset Categories</string>
+    <string name="dev_reset_presets_subtitle">Insert default category templates</string>
+    <string name="dev_mock_data_amount">Record Count</string>
+    <string name="dev_mock_data_count_10">10</string>
+    <string name="dev_mock_data_count_100">100</string>
+    <string name="dev_mock_data_count_500">500</string>
+    <string name="dev_mock_preset">Preset</string>
+    <string name="dev_mock_preset_normal">Normal</string>
+    <string name="dev_mock_preset_stress">Stress (long text, large amounts)</string>
+    <string name="dev_clear_title">Dangerous Operation</string>
+    <string name="dev_clear_message">This will delete all data and cannot be undone.\n\nThe app will restart and return to initial state.</string>
+    <string name="dev_log_empty">No logs</string>
+    <string name="dev_log_snapshot_title">===== App Snapshot =====</string>
+    <string name="dev_log_version">Version: %1$s (%2$d)</string>
+    <string name="dev_log_device">Device: %1$s</string>
+    <string name="dev_log_android">Android: %1$s (API %2$d)</string>
+    <string name="dev_log_package">Package: %1$s</string>
+    <string name="dev_log_snapshot_end">========================</string>
+    <string name="dev_log_kotlin">===== Kotlin Logs =====</string>
+    <string name="dev_log_system">===== System Logs (incl. Rust) =====</string>
+    <string name="dev_share_logs_title">Share Logs</string>
+    <string name="dev_share_logs_subject">Moni Logs</string>
+
+    <!-- Budget Warning -->
+    <string name="budget_warning_overrun">Limited by %1$s, already overrun %2$s%3$s</string>
+    <string name="budget_warning_critical">Limited by %1$s, recommended max spend %2$s%3$s</string>
+    <string name="budget_warning_safe">Recommended max spend %1$s%2$s</string>
+    <string name="budget_bottleneck_total">Total Budget</string>
+    <string name="budget_bottleneck_parent">Parent Budget</string>
+    <string name="budget_bottleneck_self">Category Budget</string>
+    <string name="budget_bottleneck_generic_with_name">%1$s Budget</string>
+    <string name="budget_bottleneck_generic">Budget</string>
+
+    <!-- Auto Backup Settings -->
+    <string name="auto_backup_title">Auto Backup</string>
+    <string name="auto_backup_enable">Enable Auto Backup</string>
+    <string name="auto_backup_subtitle_on">Enabled</string>
+    <string name="auto_backup_subtitle_off">Disabled</string>
+    <string name="auto_backup_frequency">Backup Frequency</string>
+    <string name="auto_backup_max_count">Max Retained</string>
+    <string name="auto_backup_max_count_unit">%1$d</string>
+    <string name="auto_backup_max_count_hint">Old backups exceeding the limit will be auto-deleted</string>
+    <string name="auto_backup_copy_external">Copy to External Directory</string>
+    <string name="auto_backup_copy_external_on">Enabled</string>
+    <string name="auto_backup_copy_external_off">Off</string>
+    <string name="auto_backup_select_external">Select External Directory</string>
+    <string name="auto_backup_external_not_selected">Not selected</string>
+    <string name="auto_backup_last">Last backup: %1$s</string>
+    <string name="auto_backup_select_frequency">Select Backup Frequency</string>
+    <string name="auto_backup_frequency_every_launch">Every Launch</string>
+    <string name="auto_backup_frequency_daily">Daily</string>
+    <string name="auto_backup_frequency_weekly">Weekly</string>
+    <string name="auto_backup_frequency_monthly">Monthly</string>
+</resources>

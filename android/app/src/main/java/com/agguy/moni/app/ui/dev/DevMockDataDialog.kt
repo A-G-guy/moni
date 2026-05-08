@@ -23,7 +23,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.core.MockPreset
 
 /**
@@ -37,43 +39,43 @@ fun DevMockDataDialog(onConfirm: (count: Int, preset: MockPreset) -> Unit, onDis
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = MaterialTheme.shapes.extraLarge,
-        title = { Text("生成测试数据") },
+        title = { Text(stringResource(R.string.dev_mock_data_title)) },
         text = {
             Column {
                 Text(
-                    "数据量",
+                    stringResource(R.string.dev_mock_data_amount),
                     style = MaterialTheme.typography.titleSmall
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 CountOption(
-                    label = "10 条",
+                    label = stringResource(R.string.dev_mock_data_count_10),
                     selected = selectedCount == 10,
                     onClick = { selectedCount = 10 }
                 )
                 CountOption(
-                    label = "100 条",
+                    label = stringResource(R.string.dev_mock_data_count_100),
                     selected = selectedCount == 100,
                     onClick = { selectedCount = 100 }
                 )
                 CountOption(
-                    label = "500 条",
+                    label = stringResource(R.string.dev_mock_data_count_500),
                     selected = selectedCount == 500,
                     onClick = { selectedCount = 500 }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    "场景预设",
+                    stringResource(R.string.dev_mock_preset),
                     style = MaterialTheme.typography.titleSmall
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 PresetOption(
-                    label = "正常数据",
+                    label = stringResource(R.string.dev_mock_preset_normal),
                     selected = selectedPreset == MockPreset.NORMAL,
                     onClick = { selectedPreset = MockPreset.NORMAL }
                 )
                 PresetOption(
-                    label = "极限溢出（超长文本、超大金额等）",
+                    label = stringResource(R.string.dev_mock_preset_stress),
                     selected = selectedPreset == MockPreset.STRESS,
                     onClick = { selectedPreset = MockPreset.STRESS }
                 )
@@ -83,12 +85,12 @@ fun DevMockDataDialog(onConfirm: (count: Int, preset: MockPreset) -> Unit, onDis
             TextButton(
                 onClick = { onConfirm(selectedCount, selectedPreset) }
             ) {
-                Text("生成")
+                Text(stringResource(R.string.action_generate))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("取消")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

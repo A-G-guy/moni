@@ -22,11 +22,13 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.agguy.moni.R
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreMonthlySummary
@@ -43,7 +45,7 @@ import com.agguy.moni.core.CoreMonthlySummary
 @Composable
 fun MonthlyBarChart(summaries: List<CoreMonthlySummary>, currencySymbol: String, modifier: Modifier = Modifier) {
     if (summaries.isEmpty()) {
-        EmptyChartPlaceholder("暂无月度数据")
+        EmptyChartPlaceholder(stringResource(R.string.stats_no_monthly_data))
         return
     }
 
@@ -79,7 +81,7 @@ fun MonthlyBarChart(summaries: List<CoreMonthlySummary>, currencySymbol: String,
 
     Column(modifier = modifier) {
         Text(
-            text = "月度趋势",
+            text = stringResource(R.string.stats_monthly_trend),
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -180,8 +182,9 @@ fun MonthlyBarChart(summaries: List<CoreMonthlySummary>, currencySymbol: String,
                     drawPath(path = expensePath, color = expenseColor)
                 }
 
-                // 月份标签
-                val monthLabel = summary.yearMonth.substring(5) + "月"
+                // 月份标签 (Canvas drawText 中无法调用 stringResource，使用数字格式)
+                val monthNum = summary.yearMonth.substring(5)
+                val monthLabel = "${monthNum.toIntOrNull() ?: monthNum}"
                 val labelResult = textMeasurer.measure(monthLabel, labelStyle)
                 drawText(
                     textMeasurer = textMeasurer,
@@ -235,10 +238,12 @@ fun MonthlyBarChart(summaries: List<CoreMonthlySummary>, currencySymbol: String,
             )
         }
 
+        val incomeLabel = stringResource(R.string.stats_income_label)
+        val expenseLabel = stringResource(R.string.stats_expense_label)
         ChartLegend(
             items = listOf(
-                LegendItem("收入", incomeColor),
-                LegendItem("支出", expenseColor)
+                LegendItem(incomeLabel, incomeColor),
+                LegendItem(expenseLabel, expenseColor)
             )
         )
     }

@@ -20,6 +20,8 @@ data class AppState(
     val budgetCheckResult: CoreBudgetCheckResult? = null,
     val overviewMetrics: CoreOverviewMetrics? = null,
     val errorMessage: String? = null,
+    val errorKey: String? = null,
+    val errorArgs: List<String> = emptyList(),
     val currencySymbol: String = "¥"
 )
 
@@ -33,5 +35,7 @@ fun CoreAppState.toAppState(): AppState = AppState(
     budgetCheckResult = budgetCheckResult,
     overviewMetrics = overviewMetrics,
     errorMessage = ui.errorMessage,
+    errorKey = ui.errorKey,
+    errorArgs = ui.errorArgs,
     currencySymbol = settings.currencySymbol
 )

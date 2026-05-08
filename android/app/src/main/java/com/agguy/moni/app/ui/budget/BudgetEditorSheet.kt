@@ -34,6 +34,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.agguy.moni.R
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.core.CoreBudget
 import com.agguy.moni.core.CoreIntent
@@ -108,7 +110,7 @@ fun BudgetEditorSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = if (budget == null) "设置预算" else "编辑预算",
+                text = if (budget == null) stringResource(R.string.budget_set) else stringResource(R.string.editor_title_edit),
                 style = MaterialTheme.typography.titleLarge
             )
 
@@ -133,7 +135,7 @@ fun BudgetEditorSheet(
                         amountText = trimmed
                     }
                 },
-                label = { Text("预算金额") },
+                label = { Text(stringResource(R.string.budget_amount)) },
                 prefix = { Text("¥") },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Decimal,
@@ -147,10 +149,13 @@ fun BudgetEditorSheet(
 
             // 预算范围选择
             Text(
-                text = "生效范围",
+                text = stringResource(R.string.label_scope),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            val scopeThisMonth = stringResource(R.string.budget_scope_this_month)
+            val scopeThisAndFuture = stringResource(R.string.budget_scope_this_and_future)
+            val scopeFutureOnly = stringResource(R.string.budget_scope_future_only)
             ButtonGroup(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -158,19 +163,19 @@ fun BudgetEditorSheet(
             ) {
                 toggleableItem(
                     checked = selectedScope == BudgetScope.THIS_MONTH,
-                    label = "仅本月",
+                    label = scopeThisMonth,
                     onCheckedChange = { if (it) selectedScope = BudgetScope.THIS_MONTH },
                     weight = 1f
                 )
                 toggleableItem(
                     checked = selectedScope == BudgetScope.THIS_AND_FUTURE,
-                    label = "本月及以后",
+                    label = scopeThisAndFuture,
                     onCheckedChange = { if (it) selectedScope = BudgetScope.THIS_AND_FUTURE },
                     weight = 1f
                 )
                 toggleableItem(
                     checked = selectedScope == BudgetScope.FUTURE_ONLY,
-                    label = "仅以后",
+                    label = scopeFutureOnly,
                     onCheckedChange = { if (it) selectedScope = BudgetScope.FUTURE_ONLY },
                     weight = 1f
                 )
@@ -196,7 +201,7 @@ fun BudgetEditorSheet(
                         onClick = { deleteConfirmVisible = true },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("删除", color = MaterialTheme.colorScheme.expenseRed)
+                        Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.expenseRed)
                     }
                 }
 
@@ -220,7 +225,7 @@ fun BudgetEditorSheet(
                     enabled = isValid,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("保存")
+                    Text(stringResource(R.string.save))
                 }
             }
 
@@ -232,10 +237,10 @@ fun BudgetEditorSheet(
     if (deleteConfirmVisible && budget != null) {
         AlertDialog(
             onDismissRequest = { deleteConfirmVisible = false },
-            title = { Text("删除预算") },
+            title = { Text(stringResource(R.string.budget_delete_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("请选择删除范围：")
+                    Text(stringResource(R.string.budget_delete_message))
                     TextButton(
                         onClick = {
                             onDispatch(
@@ -249,7 +254,7 @@ fun BudgetEditorSheet(
                             onDismiss()
                         }
                     ) {
-                        Text("从本月起停止")
+                        Text(stringResource(R.string.budget_stop_this_month))
                     }
                     TextButton(
                         onClick = {
@@ -264,14 +269,14 @@ fun BudgetEditorSheet(
                             onDismiss()
                         }
                     ) {
-                        Text("从下月起停止")
+                        Text(stringResource(R.string.budget_stop_next_month))
                     }
                 }
             },
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { deleteConfirmVisible = false }) {
-                    Text("取消")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

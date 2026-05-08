@@ -34,7 +34,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.icons.SymbolGroups
 import com.agguy.moni.app.icons.SymbolIcon
 import androidx.compose.foundation.layout.Box
@@ -130,7 +132,7 @@ fun CategoryEditorSheet(
         ) {
             // 标题
             Text(
-                text = if (isEditMode) "编辑分类" else "添加分类",
+                text = if (isEditMode) stringResource(R.string.editor_title_edit_category) else stringResource(R.string.editor_title_add),
                 style = MaterialTheme.typography.titleLargeEmphasized,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -146,7 +148,7 @@ fun CategoryEditorSheet(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("分类名称") },
+                label = { Text(stringResource(R.string.category_name)) },
                 singleLine = true,
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.fillMaxWidth(),
@@ -162,8 +164,8 @@ fun CategoryEditorSheet(
                 onValueChange = {
                     if (it.length <= DESCRIPTION_MAX_LENGTH) description = it
                 },
-                label = { Text("描述") },
-                placeholder = { Text("可选，最多 $DESCRIPTION_MAX_LENGTH 字") },
+                label = { Text(stringResource(R.string.category_description)) },
+                placeholder = { Text(stringResource(R.string.category_description_placeholder, DESCRIPTION_MAX_LENGTH)) },
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -240,7 +242,7 @@ fun CategoryEditorSheet(
                 )
             ) {
                 Text(
-                    text = "保存",
+                    text = stringResource(R.string.save),
                     style = MaterialTheme.typography.titleMediumEmphasized
                 )
             }
@@ -281,18 +283,20 @@ private fun CategoryTypeSelector(
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            text = "类型",
+            text = stringResource(R.string.label_type),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
+        val typeExpense = stringResource(R.string.editor_type_expense)
+        val typeIncome = stringResource(R.string.editor_type_income)
         ButtonGroup(
             overflowIndicator = { /* 仅 2 个固定项，永不溢出 */ },
             modifier = Modifier.fillMaxWidth()
         ) {
             toggleableItem(
                 checked = selectedType == RecordType.EXPENSE,
-                label = "支出",
+                label = typeExpense,
                 onCheckedChange = { if (it) onTypeSelected(RecordType.EXPENSE) },
                 icon = {
                     if (selectedType == RecordType.EXPENSE) {
@@ -307,7 +311,7 @@ private fun CategoryTypeSelector(
             )
             toggleableItem(
                 checked = selectedType == RecordType.INCOME,
-                label = "收入",
+                label = typeIncome,
                 onCheckedChange = { if (it) onTypeSelected(RecordType.INCOME) },
                 icon = {
                     if (selectedType == RecordType.INCOME) {
@@ -340,7 +344,7 @@ private fun IconSelectorRow(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = "图标",
+            text = stringResource(R.string.label_icon),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -374,7 +378,7 @@ private fun IconSelectorRow(
 
                 SymbolIcon(
                     name = "expand_more",
-                    contentDescription = "选择图标",
+                    contentDescription = stringResource(R.string.category_select_icon),
                     size = 24.dp,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -400,7 +404,7 @@ private fun ParentCategorySelectorRow(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = "父分类",
+            text = stringResource(R.string.label_parent_category),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -441,14 +445,14 @@ private fun ParentCategorySelectorRow(
                     // 清除按钮
                     TextButton(onClick = onClear) {
                         Text(
-                            text = "清除",
+                            text = stringResource(R.string.category_clear),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 } else {
                     Text(
-                        text = "作为一级分类（不选父分类）",
+                        text = stringResource(R.string.category_no_parent_alt),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f)
@@ -457,7 +461,7 @@ private fun ParentCategorySelectorRow(
 
                 SymbolIcon(
                     name = "expand_more",
-                    contentDescription = "选择父分类",
+                    contentDescription = stringResource(R.string.category_select_parent),
                     size = 24.dp,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )

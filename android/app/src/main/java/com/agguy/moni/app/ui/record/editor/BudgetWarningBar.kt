@@ -13,8 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.core.CoreBudgetCheckResult
 import com.agguy.moni.core.util.formatAmount
 
@@ -50,29 +52,29 @@ fun BudgetWarningBar(
     val message = when {
         isOverrun -> {
             val overrunAmount = formatAmount(-effective)
-            val bottleneck = checkResult.bottleneckCategoryName?.let { "${it}预算" }
+            val bottleneck = checkResult.bottleneckCategoryName?.let { stringResource(R.string.budget_bottleneck_generic_with_name, it) }
                 ?: when (checkResult.bottleneckBudget) {
-                    "total" -> "总预算"
-                    "parent" -> "父级预算"
-                    "self" -> "该分类预算"
-                    else -> "预算"
+                    "total" -> stringResource(R.string.budget_bottleneck_total)
+                    "parent" -> stringResource(R.string.budget_bottleneck_parent)
+                    "self" -> stringResource(R.string.budget_bottleneck_self)
+                    else -> stringResource(R.string.budget_bottleneck_generic)
                 }
-            "受${bottleneck}限制，本月已超支 ¥$overrunAmount"
+            stringResource(R.string.budget_warning_overrun, bottleneck, currencySymbol, overrunAmount)
         }
         isCritical -> {
             val remaining = formatAmount(effective)
-            val bottleneck = checkResult.bottleneckCategoryName?.let { "${it}预算" }
+            val bottleneck = checkResult.bottleneckCategoryName?.let { stringResource(R.string.budget_bottleneck_generic_with_name, it) }
                 ?: when (checkResult.bottleneckBudget) {
-                    "total" -> "总预算"
-                    "parent" -> "父级预算"
-                    "self" -> "该分类预算"
-                    else -> "预算"
+                    "total" -> stringResource(R.string.budget_bottleneck_total)
+                    "parent" -> stringResource(R.string.budget_bottleneck_parent)
+                    "self" -> stringResource(R.string.budget_bottleneck_self)
+                    else -> stringResource(R.string.budget_bottleneck_generic)
                 }
-            "受${bottleneck}限制，本月建议最多再花 ¥$remaining"
+            stringResource(R.string.budget_warning_critical, bottleneck, currencySymbol, remaining)
         }
         else -> {
             val remaining = formatAmount(effective)
-            "本月建议最多再花 ¥$remaining"
+            stringResource(R.string.budget_warning_safe, currencySymbol, remaining)
         }
     }
 

@@ -38,8 +38,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.components.MoniCard
 import com.agguy.moni.app.icons.SymbolIcon
@@ -79,14 +81,14 @@ fun ArchivedCategoriesScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "已归档分类",
+                        text = stringResource(R.string.archived_title),
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        SymbolIcon(name = "arrow_back", contentDescription = "返回", size = 24.dp)
+                        SymbolIcon(name = "arrow_back", contentDescription = stringResource(R.string.back), size = 24.dp)
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -102,12 +104,12 @@ fun ArchivedCategoriesScreen(
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text("支出") }
+                    text = { Text(stringResource(R.string.category_expense)) }
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("收入") }
+                    text = { Text(stringResource(R.string.category_income)) }
                 )
             }
 
@@ -226,7 +228,7 @@ private fun ArchivedCategoryItem(
             IconButton(onClick = onUnarchiveClick) {
                 SymbolIcon(
                     name = "unarchive",
-                    contentDescription = "恢复",
+                    contentDescription = stringResource(R.string.unarchive_confirm),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     size = 24.dp
                 )
@@ -243,7 +245,7 @@ private fun EmptyArchivedCategoriesList(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "暂无已归档分类",
+            text = stringResource(R.string.archived_empty),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

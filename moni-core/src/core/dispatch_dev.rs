@@ -57,7 +57,7 @@ impl AppCoreRuntime {
                 log::info!("预设分类已重置");
                 self.finish(vec![crate::models::effects::CoreEffect {
                     kind: "show_snackbar".to_string(),
-                    payload_json: r#"{"message":"预设分类已重置"}"#.to_string(),
+                    payload_json: r#"{"message_key":"presets_reset"}"#.to_string(),
                 }])
             }
             CoreIntent::DevGenerateMockData { count, preset } => {
@@ -105,7 +105,7 @@ impl AppCoreRuntime {
                 log::info!("Mock 数据生成完成: {} 条", records.len());
                 self.finish(vec![crate::models::effects::CoreEffect {
                     kind: "show_snackbar".to_string(),
-                    payload_json: format!(r#"{{"message":"已生成 {} 条测试数据"}}"#, records.len()),
+                    payload_json: format!(r#"{{"message_key":"mock_data_generated","count":{}}}"#, records.len()),
                 }])
             }
             _ => {

@@ -2,6 +2,13 @@ use moni_contracts::record::RecordType;
 use moni_contracts::types::CategoryId;
 
 use crate::core::error::CoreError;
+use crate::core::error::{
+    MSG_ARCHIVED_CANNOT_SORT, MSG_CANNOT_SET_SELF_AS_PARENT,
+    MSG_CATEGORY_ARCHIVED_FOR_RECORD, MSG_CATEGORY_NAME_EMPTY, MSG_DIFFERENT_LEVEL_CANNOT_SORT,
+    MSG_HAS_CHILDREN_CANNOT_BE_SUB, MSG_ICON_NAME_EMPTY, MSG_ONLY_SINGLE_LEVEL,
+    MSG_PARENT_CATEGORY_ARCHIVED, MSG_PARENT_CHILD_TYPE_MISMATCH, MSG_REORDER_LIST_EMPTY,
+    MSG_RECORD_TYPE_MISMATCH,
+};
 use crate::core::runtime::AppCoreRuntime;
 use crate::db::{budget_repo, category_repo};
 use crate::dto::CategoryDto;
@@ -64,11 +71,11 @@ impl AppCoreRuntime {
         let trimmed_name = name.trim();
         if trimmed_name.is_empty() {
             log::warn!("创建分类失败: 名称为空");
-            return Err(CoreError::InvalidInput("分类名称不能为空".to_string()));
+            return Err(CoreError::InvalidInput(MSG_CATEGORY_NAME_EMPTY.to_string()));
         }
         if icon_name.trim().is_empty() {
             log::warn!("创建分类失败: 图标名称为空");
-            return Err(CoreError::InvalidInput("图标名称不能为空".to_string()));
+            return Err(CoreError::InvalidInput(MSG_ICON_NAME_EMPTY.to_string()));
         }
         validate_description_len(description)?;
 
@@ -94,7 +101,7 @@ impl AppCoreRuntime {
             .sort_by(|a, b| a.sort_order.cmp(&b.sort_order));
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),
-            payload_json: r#"{"message":"分类添加成功"}"#.to_string(),
+            payload_json: r#"{"message_key":"category_created"}"#.to_string(),
         }])
     }
 
@@ -113,14 +120,14 @@ impl AppCoreRuntime {
             && n.trim().is_empty()
         {
             log::warn!("更新分类失败: 名称为空, id={id}");
-            return Err(CoreError::InvalidInput("分类名称不能为空".to_string()));
+            return Err(CoreError::InvalidInput(MSG_CATEGORY_NAME_EMPTY.to_string()));
         }
         validate_description_len(description)?;
         if let Some(icon) = icon_name
             && icon.trim().is_empty()
         {
             log::warn!("更新分类失败: 图标名称为空, id={id}");
-            return Err(CoreError::InvalidInput("图标名称不能为空".to_string()));
+            return Err(CoreError::InvalidInput(MSG_ICON_NAME_EMPTY.to_string()));
         }
 
         // 解析 parent_id 的最终意图
@@ -136,7 +143,9 @@ impl AppCoreRuntime {
         if let Some(Some(pid)) = parent_id_opt {
             if pid == id {
                 log::warn!("更新分类失败: 不能将分类设为自己的父分类, id={id}");
-                return Err(CoreError::InvalidInput("不能将分类设为自己的父分类".to_string()));
+                return Err(CoreError::InvalidInput(
+                    MSG_CANNOT_SET_SELF_AS_PARENT.to_string(),
+                ));
             }
             validate_parent_id(&self.conn, pid, category.category_type, Some(id))?;
         }
@@ -146,7 +155,7 @@ impl AppCoreRuntime {
             if category_repo::has_children(&self.conn, id)? {
                 log::warn!("更新分类失败: 该分类已有子分类，不能设为二级分类, id={id}");
                 return Err(CoreError::InvalidInput(
-                    "该分类已有子分类，不能设为二级分类".to_string(),
+                    MSG_HAS_CHILDREN_CANNOT_BE_SUB.to_string(),
                 ));
             }
         }
@@ -171,7 +180,7 @@ impl AppCoreRuntime {
         }
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),
-            payload_json: r#"{"message":"分类更新成功"}"#.to_string(),
+            payload_json: r#"{"message_key":"category_updated"}"#.to_string(),
         }])
     }
 
@@ -205,7 +214,7 @@ impl AppCoreRuntime {
 
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),
-            payload_json: r#"{"message":"分类已归档"}"#.to_string(),
+            payload_json: r#"{"message_key":"category_archived"}"#.to_string(),
         }])
     }
 
@@ -222,7 +231,7 @@ impl AppCoreRuntime {
         }
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),
-            payload_json: r#"{"message":"分类已恢复"}"#.to_string(),
+            payload_json: r#"{"message_key":"category_unarchived"}"#.to_string(),
         }])
     }
 
@@ -238,7 +247,7 @@ impl AppCoreRuntime {
     ) -> Result<CoreUpdate, CoreError> {
         if ordered_ids.is_empty() {
             log::warn!("分类排序失败: ordered_ids 为空");
-            return Err(CoreError::InvalidInput("排序列表不能为空".to_string()));
+            return Err(CoreError::InvalidInput(MSG_REORDER_LIST_EMPTY.to_string()));
         }
 
         // 查找第一个分类确定层级
@@ -260,7 +269,7 @@ impl AppCoreRuntime {
             if category.archived_at.is_some() {
                 log::warn!("分类排序失败: 分类已归档, id={id}");
                 return Err(CoreError::InvalidInput(
-                    "已归档分类不能参与排序".to_string(),
+                    MSG_ARCHIVED_CANNOT_SORT.to_string(),
                 ));
             }
 
@@ -271,7 +280,7 @@ impl AppCoreRuntime {
                     expected_parent_id
                 );
                 return Err(CoreError::InvalidInput(
-                    "只能对同一层级的分类进行排序".to_string(),
+                    MSG_DIFFERENT_LEVEL_CANNOT_SORT.to_string(),
                 ));
             }
         }
@@ -284,7 +293,7 @@ impl AppCoreRuntime {
 
         self.finish(vec![CoreEffect {
             kind: "show_snackbar".to_string(),
-            payload_json: r#"{"message":"排序已保存"}"#.to_string(),
+            payload_json: r#"{"message_key":"sort_saved"}"#.to_string(),
         }])
     }
 }
@@ -312,7 +321,9 @@ fn validate_parent_id(
 ) -> Result<(), CoreError> {
     if Some(parent_id) == child_id {
         log::warn!("父分类校验失败: 不能将分类设为自己的父分类");
-        return Err(CoreError::InvalidInput("不能将分类设为自己的父分类".to_string()));
+        return Err(CoreError::InvalidInput(
+            MSG_CANNOT_SET_SELF_AS_PARENT.to_string(),
+        ));
     }
 
     let parent = category_repo::get_by_id(conn, parent_id)?
@@ -323,18 +334,45 @@ fn validate_parent_id(
 
     if parent.archived_at.is_some() {
         log::warn!("父分类校验失败: 父分类已归档, id={parent_id}");
-        return Err(CoreError::InvalidInput("父分类已归档".to_string()));
+        return Err(CoreError::InvalidInput(
+            MSG_PARENT_CATEGORY_ARCHIVED.to_string(),
+        ));
     }
 
     if parent.category_type != child_type {
         log::warn!("父分类校验失败: 类型不一致, parent={:?}, child={:?}", parent.category_type, child_type);
-        return Err(CoreError::InvalidInput("父分类与子分类类型不一致".to_string()));
+        return Err(CoreError::InvalidInput(
+            MSG_PARENT_CHILD_TYPE_MISMATCH.to_string(),
+        ));
     }
 
     if parent.parent_id.is_some() {
         log::warn!("父分类校验失败: 仅支持单一层级, parent_id={parent_id}");
-        return Err(CoreError::InvalidInput("仅支持单一层级，不能将二级分类设为父分类".to_string()));
+        return Err(CoreError::InvalidInput(
+            MSG_ONLY_SINGLE_LEVEL.to_string(),
+        ));
     }
 
     Ok(())
+}
+
+/// 校验分类是否可用于记账：存在、未归档、类型匹配。
+pub fn validate_category_for_record(
+    conn: &rusqlite::Connection,
+    category_id: i64,
+    record_type: RecordType,
+) -> Result<moni_contracts::category::Category, CoreError> {
+    let category = category_repo::get_by_id(conn, category_id)?
+        .ok_or(CoreError::CategoryNotFound(category_id))?;
+    if category.archived_at.is_some() {
+        return Err(CoreError::InvalidInput(
+            MSG_CATEGORY_ARCHIVED_FOR_RECORD.to_string(),
+        ));
+    }
+    if category.category_type != record_type {
+        return Err(CoreError::InvalidInput(
+            MSG_RECORD_TYPE_MISMATCH.to_string(),
+        ));
+    }
+    Ok(category)
 }

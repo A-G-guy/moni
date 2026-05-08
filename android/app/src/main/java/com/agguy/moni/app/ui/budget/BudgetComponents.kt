@@ -24,7 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.R
 import com.agguy.moni.app.theme.expenseRed
 
 /**
@@ -96,9 +98,9 @@ fun BudgetStatusLabel(
     modifier: Modifier = Modifier
 ) {
     val (label, color) = when (status) {
-        "overrun" -> "超支" to MaterialTheme.colorScheme.expenseRed
-        "critical" -> "接近上限" to Color(0xFFFFA726)
-        else -> "安全" to MaterialTheme.colorScheme.primary
+        "overrun" -> stringResource(R.string.budget_status_overrun) to MaterialTheme.colorScheme.expenseRed
+        "critical" -> stringResource(R.string.budget_status_critical) to Color(0xFFFFA726)
+        else -> stringResource(R.string.budget_status_safe) to MaterialTheme.colorScheme.primary
     }
 
     Text(
@@ -120,7 +122,7 @@ fun BudgetSoftConflictWarning(
 ) {
     if (childAmount > parentAmount) {
         Text(
-            text = "子分类预算已超过父级预算，实际消费时会受父级限制",
+            text = stringResource(R.string.budget_soft_conflict_warning),
             style = MaterialTheme.typography.labelSmall,
             color = Color(0xFFFFA726),
             modifier = modifier.padding(top = 4.dp)

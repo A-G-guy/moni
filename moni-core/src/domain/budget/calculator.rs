@@ -6,6 +6,7 @@ use moni_contracts::types::{AmountCents, CategoryId};
 use rusqlite::Connection;
 
 use crate::dto::{BudgetDto, CategoryDto};
+use crate::shared::date_utils;
 
 /// 计算指定月份所有分类的支出金额（仅 expense，按 category_id 分组）。
 /// 返回 HashMap<category_id, spent_cents>。
@@ -316,21 +317,17 @@ fn compute_budget_progress_status(
     year_month: &str,
     today: &str,
 ) -> Option<String> {
-    let (sel_year, sel_month) = parse_year_month_for_budget(year_month)?;
-    let total_days = days_in_month_for_budget(sel_year, sel_month);
+    let (sel_year, sel_month) = date_utils::parse_year_month(year_month)?;
+    let total_days = date_utils::days_in_month(sel_year, sel_month);
 
     let today_date = chrono::NaiveDate::parse_from_str(today, "%Y-%m-%d").ok()?;
     let today_year = today_date.year();
     let today_month = today_date.month();
     let today_day = today_date.day();
 
-    let elapsed_days = if sel_year == today_year && sel_month == today_month {
-        today_day.max(1) as i32
-    } else if sel_year < today_year || (sel_year == today_year && sel_month < today_month) {
-        total_days as i32
-    } else {
-        0
-    };
+    let (elapsed_days, _) = date_utils::calculate_day_counts(
+        sel_year, sel_month, today_year, today_month, today_day, total_days,
+    );
 
     #[allow(clippy::cast_precision_loss)]
     let actual_percentage = if amount_cents > 0 {
@@ -352,32 +349,4 @@ fn compute_budget_progress_status(
     } else {
         "normal".to_string()
     })
-}
-
-fn parse_year_month_for_budget(year_month_str: &str) -> Option<(i32, u32)> {
-    let parts: Vec<&str> = year_month_str.split('-').collect();
-    if parts.len() != 2 {
-        return None;
-    }
-    let year = parts[0].parse::<i32>().ok()?;
-    let month = parts[1].parse::<u32>().ok()?;
-    if !(1..=12).contains(&month) {
-        return None;
-    }
-    Some((year, month))
-}
-
-fn days_in_month_for_budget(year: i32, month: u32) -> u32 {
-    match month {
-        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-        4 | 6 | 9 | 11 => 30,
-        2 => {
-            if (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0) {
-                29
-            } else {
-                28
-            }
-        }
-        _ => 30,
-    }
 }

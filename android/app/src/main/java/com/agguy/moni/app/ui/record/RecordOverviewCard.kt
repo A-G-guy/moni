@@ -272,7 +272,7 @@ private fun IdealProgressBar(
     progressStatus: String?,
     modifier: Modifier = Modifier
 ) {
-    // 进度条显示剩余比例：未花时满，花得越多越少
+    // 进度条显示剩余预算比例：未花时满，花得越多越少
     val clampedActual = (1.0 - actualPercentage).coerceIn(0.0, 1.0).toFloat()
     val clampedIdeal = idealPercentage.coerceIn(0.0, 1.0).toFloat()
 

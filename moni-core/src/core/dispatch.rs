@@ -69,30 +69,36 @@ impl AppCoreRuntime {
         &mut self,
         year_month: String,
     ) -> Result<CoreUpdate, CoreError> {
-        // 依次执行各子操作，任一失败不影响其他
-        if let Err(e) = self.dispatch_record(CoreIntent::RecordListByMonth {
+        let mut all_effects = Vec::new();
+
+        // 依次执行各子操作，任一失败不影响其他，收集所有 effects
+        match self.dispatch_record(CoreIntent::RecordListByMonth {
             year_month: year_month.clone(),
         }) {
-            log::warn!("RefreshMonthData 中 RecordListByMonth 失败: {e}");
+            Ok(update) => all_effects.extend(update.effects),
+            Err(e) => log::warn!("RefreshMonthData 中 RecordListByMonth 失败: {e}"),
         }
-        if let Err(e) = self.dispatch_stats(CoreIntent::StatsCategoryBreakdown {
+        match self.dispatch_stats(CoreIntent::StatsCategoryBreakdown {
             year_month: year_month.clone(),
             aggregate_by_parent: false,
         }) {
-            log::warn!("RefreshMonthData 中 StatsCategoryBreakdown 失败: {e}");
+            Ok(update) => all_effects.extend(update.effects),
+            Err(e) => log::warn!("RefreshMonthData 中 StatsCategoryBreakdown 失败: {e}"),
         }
-        if let Err(e) = self.dispatch_budget(CoreIntent::BudgetList {
+        match self.dispatch_budget(CoreIntent::BudgetList {
             year_month: Some(year_month.clone()),
         }) {
-            log::warn!("RefreshMonthData 中 BudgetList 失败: {e}");
+            Ok(update) => all_effects.extend(update.effects),
+            Err(e) => log::warn!("RefreshMonthData 中 BudgetList 失败: {e}"),
         }
         let today = chrono::Local::now().format("%Y-%m-%d").to_string();
-        if let Err(e) = self.dispatch_stats(CoreIntent::StatsOverviewMetrics {
+        match self.dispatch_stats(CoreIntent::StatsOverviewMetrics {
             year_month: year_month.clone(),
             today,
         }) {
-            log::warn!("RefreshMonthData 中 StatsOverviewMetrics 失败: {e}");
+            Ok(update) => all_effects.extend(update.effects),
+            Err(e) => log::warn!("RefreshMonthData 中 StatsOverviewMetrics 失败: {e}"),
         }
-        self.finish(Vec::new())
+        self.finish(all_effects)
     }
 }

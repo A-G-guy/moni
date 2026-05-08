@@ -101,7 +101,7 @@ fun RecordDetailScreen(
     }
 
     // 金额变化时触发预算检查（去抖动逻辑在 ViewModel 中处理）
-    SideEffect {
+    DisposableEffect(state.selectedCategoryId, state.recordType, onCheckBudget) {
         state.onAmountChanged = { amountCents ->
             if (state.recordType == RecordType.EXPENSE &&
                 state.selectedCategoryId != -1L &&
@@ -109,6 +109,9 @@ fun RecordDetailScreen(
             ) {
                 onCheckBudget(state.selectedCategoryId, amountCents)
             }
+        }
+        onDispose {
+            state.onAmountChanged = null
         }
     }
 

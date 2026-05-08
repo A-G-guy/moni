@@ -1,4 +1,5 @@
 use crate::dto::{BudgetDto, RecordDayGroup};
+use crate::shared::date_utils;
 use crate::shared::types::AmountCents;
 use moni_contracts::stats::{CategoryBreakdown, MonthlySummary};
 
@@ -14,12 +15,12 @@ pub fn calculate_overview_metrics(
 ) -> crate::models::state::OverviewMetrics {
     use chrono::{Datelike, NaiveDate};
 
-    let (sel_year, sel_month) = match parse_year_month(selected_year_month) {
+    let (sel_year, sel_month) = match date_utils::parse_year_month(selected_year_month) {
         Some(v) => v,
         None => return crate::models::state::OverviewMetrics::default(),
     };
 
-    let total_days = days_in_month(sel_year, sel_month);
+    let total_days = date_utils::days_in_month(sel_year, sel_month);
 
     let today_date = match NaiveDate::parse_from_str(today, "%Y-%m-%d").ok() {
         Some(d) => d,
@@ -30,7 +31,7 @@ pub fn calculate_overview_metrics(
     let today_day = today_date.day();
 
     let (elapsed_days, remaining_days) =
-        calculate_day_counts(sel_year, sel_month, today_year, today_month, today_day, total_days);
+        date_utils::calculate_day_counts(sel_year, sel_month, today_year, today_month, today_day, total_days);
 
     // 月度汇总
     let summary = monthly_summaries
@@ -83,57 +84,6 @@ pub fn calculate_overview_metrics(
         elapsed_days,
         total_days: total_days as i32,
         remaining_days,
-    }
-}
-
-fn parse_year_month(year_month_str: &str) -> Option<(i32, u32)> {
-    let parts: Vec<&str> = year_month_str.split('-').collect();
-    if parts.len() != 2 {
-        return None;
-    }
-    let year = parts[0].parse::<i32>().ok()?;
-    let month = parts[1].parse::<u32>().ok()?;
-    if !(1..=12).contains(&month) {
-        return None;
-    }
-    Some((year, month))
-}
-
-fn days_in_month(year: i32, month: u32) -> u32 {
-    match month {
-        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-        4 | 6 | 9 | 11 => 30,
-        2 => {
-            if is_leap_year(year) {
-                29
-            } else {
-                28
-            }
-        }
-        _ => 30,
-    }
-}
-
-fn is_leap_year(year: i32) -> bool {
-    (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)
-}
-
-fn calculate_day_counts(
-    sel_year: i32,
-    sel_month: u32,
-    today_year: i32,
-    today_month: u32,
-    today_day: u32,
-    total_days: u32,
-) -> (i32, i32) {
-    if sel_year == today_year && sel_month == today_month {
-        let elapsed = today_day.max(1) as i32;
-        let remaining = (total_days - today_day).max(0) as i32;
-        (elapsed, remaining)
-    } else if sel_year < today_year || (sel_year == today_year && sel_month < today_month) {
-        (total_days as i32, 0)
-    } else {
-        (0, total_days as i32)
     }
 }
 

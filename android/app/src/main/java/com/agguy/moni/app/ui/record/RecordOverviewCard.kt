@@ -43,9 +43,9 @@ import com.agguy.moni.core.util.formatAmount
  * 账单页顶部月度概览卡片。
  *
  * 三行布局：
- * - 第一行：本月总支出（红色）+ 月结余（正绿负红）
+ * - 第一行：今日支出 + 日均剩余（主题色，大字号）
  * - 第二行（条件渲染）：总预算进度条，含理想进度标记
- * - 第三行：今日支出 + 日均支出 + 日均剩余（主题色）
+ * - 第三行：本月总支出（红色）+ 日均支出（主题色）+ 月结余（正绿负红）
  */
 @Composable
 fun RecordOverviewCard(
@@ -66,28 +66,24 @@ fun RecordOverviewCard(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 第一行：本月总支出（红色）+ 月结余（正绿负红）
+            // 第一行：今日支出 + 日均剩余（主题色，大字号）
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
                 OverviewStatItem(
-                    label = "本月总支出",
-                    amountCents = metrics.monthExpense,
+                    label = "今日支出",
+                    amountCents = metrics.todayExpense,
                     currencySymbol = currencySymbol,
-                    color = MaterialTheme.colorScheme.expenseRed,
+                    color = MaterialTheme.colorScheme.primary,
                     isLarge = true
                 )
                 OverviewStatItem(
-                    label = "月结余",
-                    amountCents = metrics.monthBalance,
+                    label = "日均剩余",
+                    amountCents = metrics.dailyRemaining,
                     currencySymbol = currencySymbol,
-                    color = if (metrics.monthBalance >= 0) {
-                        MaterialTheme.colorScheme.incomeGreen
-                    } else {
-                        MaterialTheme.colorScheme.expenseRed
-                    },
+                    color = MaterialTheme.colorScheme.primary,
                     isLarge = true,
                     alignEnd = true
                 )
@@ -106,16 +102,16 @@ fun RecordOverviewCard(
                 }
             }
 
-            // 第三行：今日支出 + 日均支出 + 日均剩余（白色）
+            // 第三行：本月总支出 + 日均支出 + 月结余
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top
             ) {
                 OverviewStatItem(
-                    label = "今日支出",
-                    amountCents = metrics.todayExpense,
+                    label = "本月总支出",
+                    amountCents = metrics.monthExpense,
                     currencySymbol = currencySymbol,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.expenseRed,
                     modifier = Modifier.weight(1f)
                 )
                 OverviewStatItem(
@@ -127,10 +123,14 @@ fun RecordOverviewCard(
                     alignCenter = true
                 )
                 OverviewStatItem(
-                    label = "日均剩余",
-                    amountCents = metrics.dailyRemaining,
+                    label = "月结余",
+                    amountCents = metrics.monthBalance,
                     currencySymbol = currencySymbol,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = if (metrics.monthBalance >= 0) {
+                        MaterialTheme.colorScheme.incomeGreen
+                    } else {
+                        MaterialTheme.colorScheme.expenseRed
+                    },
                     modifier = Modifier.weight(1f),
                     alignEnd = true
                 )

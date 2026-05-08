@@ -82,6 +82,10 @@ fun RecordListItem(
         secondaryText = record.note.takeIf { it.isNotBlank() }
     }
 
+    // 通过 categoryId 查找当前分类的 iconName，确保修改分类图标后旧记录同步更新
+    val category = categories.find { it.id == record.categoryId }
+    val iconNameToShow = category?.iconName ?: iconForCategory(record.categoryName)
+
     MoniCard(
         modifier = modifier
             .fillMaxWidth()
@@ -98,7 +102,7 @@ fun RecordListItem(
             if (showIcon) {
                 CategoryIndicator(
                     isExpense = isExpense,
-                    iconName = record.categoryName
+                    iconName = iconNameToShow
                 )
                 Spacer(modifier = Modifier.width(12.dp))
             }
@@ -149,7 +153,7 @@ private fun CategoryIndicator(isExpense: Boolean, iconName: String) {
         contentAlignment = Alignment.Center
     ) {
         SymbolIcon(
-            name = iconForCategory(iconName),
+            name = iconName,
             contentDescription = null,
             size = 22.dp,
             tint = color

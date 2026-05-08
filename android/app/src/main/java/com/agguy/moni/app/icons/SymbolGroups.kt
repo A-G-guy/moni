@@ -439,6 +439,14 @@ object SymbolGroups {
 
     val ALL_ICONS = ALL_GROUPS.flatMap { it.icons }
 
+    private val displayNameMap = ALL_ICONS.associate { it.name to it.displayName }
+
+    /**
+     * 按图标名称获取中文显示名。
+     * 找不到时返回原名称。
+     */
+    fun getDisplayName(name: String): String = displayNameMap[name] ?: name
+
     /**
      * 按分类名称关键词匹配推荐图标名。
      * 返回图标名称字符串（供数据库存储）。

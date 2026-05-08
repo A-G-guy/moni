@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.app.icons.SymbolGroups
 import com.agguy.moni.app.icons.SymbolIcon
 import androidx.compose.foundation.layout.Box
 import com.agguy.moni.app.theme.expenseRed
@@ -365,7 +366,7 @@ private fun IconSelectorRow(
                 )
 
                 Text(
-                    text = iconName,
+                    text = SymbolGroups.getDisplayName(iconName),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)

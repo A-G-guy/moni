@@ -13,6 +13,7 @@
     <string name="share">分享</string>
     <string name="edit">编辑</string>
     <string name="add">添加</string>
+    <string name="sort">排序</string>
     <string name="done">完成</string>
     <string name="enabled">已启用</string>
     <string name="disabled">已关闭</string>
@@ -203,7 +204,7 @@
     <string name="message_total_budget_saved">总预算已更新</string>
     <string name="message_budget_deleted">预算已删除</string>
     <string name="message_presets_reset">预设分类已重置</string>
-    <string name="message_mock_data_generated">已生成 %1$d 条测试数据</string>
+    <string name="message_mock_data_generated">已生成 %1$s 条测试数据</string>
     <string name="message_data_cleared">数据已清空</string>
 
     <!-- 错误消息 -->
@@ -240,7 +241,10 @@
     <string name="error_backup_restore_failed">备份恢复失败（阶段：%1$s，原因：%2$s）</string>
     <string name="error_backup_io">备份 IO 错误</string>
     <string name="error_note_too_long">备注长度不能超过 %1$s 字符</string>
-    <string name="error_operation_failed">操作失败</string>
+    <string name="error_db_init_failed">数据库初始化失败: %1$s</string>
+    <string name="error_memory_init_failed">内存模式初始化也失败: %1$s</string>
+    <string name="error_fallback_memory_mode">已回退到内存模式，数据未加载</string>
+    <string name="error_operation_failed">操作失败: %1$s</string>
 
     <!-- UI 通用标签 -->
     <string name="label_date">日期</string>

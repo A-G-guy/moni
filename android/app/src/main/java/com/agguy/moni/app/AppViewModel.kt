@@ -2,6 +2,7 @@ package com.agguy.moni.app
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import com.agguy.moni.R
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.agguy.moni.app.i18n.AppLocaleManager
@@ -119,7 +120,9 @@ class AppViewModel(
                 syncRecordItemDisplaySettingsFromDataStore()
                 syncLanguageFromDataStore()
             } catch (e: Exception) {
-                val err = "数据库初始化失败: ${e.javaClass.simpleName}: ${e.message?.take(100)}"
+                val app = getApplication<Application>()
+                val errDetail = "${e.javaClass.simpleName}: ${e.message?.take(100)}"
+                val err = app.getString(R.string.error_db_init_failed, errDetail)
                 LogCollector.e("AppViewModel", err, e)
                 try {
                     val mutation = rustCore.initialize()
@@ -127,9 +130,14 @@ class AppViewModel(
                     // 内存模式下也要加载基础数据，确保页面正常显示
                     dispatch(CoreIntent.CategoryList)
                     dispatch(CoreIntent.RecordListByMonth(yearMonth = currentYearMonth))
-                    _uiState.value = _uiState.value.copy(errorMessage = "$err (已回退到内存模式，数据未加载)")
+                    _uiState.value = _uiState.value.copy(
+                        errorMessage = "$err (${app.getString(R.string.error_fallback_memory_mode)})"
+                    )
                 } catch (inner: Exception) {
-                    val innerErr = "内存模式初始化也失败: ${inner.message?.take(100)}"
+                    val innerErr = app.getString(
+                        R.string.error_memory_init_failed,
+                        inner.message?.take(100) ?: ""
+                    )
                     LogCollector.e("AppViewModel", innerErr, inner)
                     _uiState.value = _uiState.value.copy(errorMessage = "$err; $innerErr")
                 }
@@ -180,7 +188,12 @@ class AppViewModel(
                 }
             } catch (e: Exception) {
                 LogCollector.e("AppViewModel", "Dispatch 失败: ${intent::class.simpleName}", e)
-                _uiState.value = _uiState.value.copy(errorMessage = "操作失败: ${e.message}")
+                _uiState.value = _uiState.value.copy(
+                    errorMessage = getApplication<Application>().getString(
+                        R.string.error_operation_failed,
+                        e.message ?: ""
+                    )
+                )
             }
         }
     }

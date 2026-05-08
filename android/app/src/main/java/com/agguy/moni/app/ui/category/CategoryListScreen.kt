@@ -92,7 +92,7 @@ fun CategoryListScreen(
                         }
                     }
                     TextButton(onClick = { isReorderMode = !isReorderMode }) {
-                        Text(if (isReorderMode) stringResource(R.string.done) else stringResource(R.string.add))
+                        Text(if (isReorderMode) stringResource(R.string.done) else stringResource(R.string.sort))
                     }
                 },
                 scrollBehavior = scrollBehavior

@@ -184,6 +184,7 @@ fun BudgetListScreen(
             categoryName = categoryName,
             parentBudget = editingParentBudget,
             yearMonth = selectedYearMonth,
+            currencySymbol = appState.currencySymbol,
             onDispatch = onDispatch,
             onDismiss = { editorVisible = false }
         )

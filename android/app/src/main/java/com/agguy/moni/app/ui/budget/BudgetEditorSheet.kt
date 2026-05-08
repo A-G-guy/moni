@@ -70,6 +70,7 @@ fun BudgetEditorSheet(
     categoryName: String,
     parentBudget: CoreBudget?,
     yearMonth: String,
+    currencySymbol: String,
     onDispatch: (CoreIntent) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -136,7 +137,7 @@ fun BudgetEditorSheet(
                     }
                 },
                 label = { Text(stringResource(R.string.budget_amount)) },
-                prefix = { Text("¥") },
+                prefix = { Text(currencySymbol) },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Done

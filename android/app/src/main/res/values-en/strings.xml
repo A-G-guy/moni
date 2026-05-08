@@ -13,6 +13,7 @@
     <string name="share">Share</string>
     <string name="edit">Edit</string>
     <string name="add">Add</string>
+    <string name="sort">Sort</string>
     <string name="done">Done</string>
     <string name="enabled">Enabled</string>
     <string name="disabled">Disabled</string>
@@ -203,7 +204,7 @@
     <string name="message_total_budget_saved">Total budget updated</string>
     <string name="message_budget_deleted">Budget deleted</string>
     <string name="message_presets_reset">Preset categories reset</string>
-    <string name="message_mock_data_generated">Generated %1$d test records</string>
+    <string name="message_mock_data_generated">Generated %1$s test records</string>
     <string name="message_data_cleared">Data cleared</string>
 
     <!-- Error Messages -->
@@ -240,7 +241,10 @@
     <string name="error_backup_restore_failed">Backup restore failed (stage: %1$s, reason: %2$s)</string>
     <string name="error_backup_io">Backup I/O error</string>
     <string name="error_note_too_long">Note length cannot exceed %1$s characters</string>
-    <string name="error_operation_failed">Operation failed</string>
+    <string name="error_db_init_failed">Database initialization failed: %1$s</string>
+    <string name="error_memory_init_failed">Memory mode initialization also failed: %1$s</string>
+    <string name="error_fallback_memory_mode">Fallback to memory mode, data not loaded</string>
+    <string name="error_operation_failed">Operation failed: %1$s</string>
 
     <!-- UI Common Labels -->
     <string name="label_date">Date</string>
@@ -293,7 +297,7 @@
     <string name="date_month_day_format">MMM d, EEEE</string>
     <string name="date_year_month_format">MMM yyyy</string>
     <string name="date_year_month_short">%1$s-%2$02d</string>
-    <string name="date_month_only">%1$d月</string>
+    <string name="date_month_only">%1$d</string>
     <string name="date_year_month_full">%1$s %2$s</string>
 
     <!-- Month Picker -->

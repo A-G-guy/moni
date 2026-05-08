@@ -299,16 +299,19 @@ private fun EmptyRecordList(
     }
 }
 
-private fun formatDisplayDate(dateStr: String): String = try {
-    val date = LocalDate.parse(dateStr)
-    val today = LocalDate.now()
-    when (date) {
-        today -> "Today"
-        today.minusDays(1) -> "Yesterday"
-        else -> date.format(DateTimeFormatter.ofPattern("MMM d, EEEE"))
+@Composable
+private fun formatDisplayDate(dateStr: String): String {
+    val parsed = try {
+        LocalDate.parse(dateStr) to LocalDate.now()
+    } catch (_: Exception) {
+        return dateStr
     }
-} catch (_: Exception) {
-    dateStr
+    val (date, today) = parsed
+    return when {
+        date == today -> stringResource(R.string.date_today)
+        date == today.minusDays(1) -> stringResource(R.string.date_yesterday)
+        else -> date.format(DateTimeFormatter.ofPattern(stringResource(R.string.date_month_day_format)))
+    }
 }
 
 private fun formatYearMonthShort(yearMonth: String): String = try {

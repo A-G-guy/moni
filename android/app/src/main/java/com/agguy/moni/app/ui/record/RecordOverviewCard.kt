@@ -270,8 +270,8 @@ private fun IdealProgressBar(
     progressStatus: String?,
     modifier: Modifier = Modifier
 ) {
-    // 进度条显示已花费比例：未花时空，花得越多越满
-    val clampedActual = actualPercentage.coerceIn(0.0, 1.0).toFloat()
+    // 进度条显示剩余预算比例：未花时满，花得越多越少
+    val clampedActual = (1.0 - actualPercentage).coerceIn(0.0, 1.0).toFloat()
     val clampedIdeal = idealPercentage.coerceIn(0.0, 1.0).toFloat()
 
     // 颜色由 Rust 内核根据实际支出与理想时间进度的对比计算
@@ -286,7 +286,7 @@ private fun IdealProgressBar(
             .fillMaxWidth()
             .height(8.dp)
     ) {
-        // 原生进度条：已花费比例
+        // 原生进度条：剩余预算比例
         LinearProgressIndicator(
             progress = { clampedActual },
             modifier = Modifier.fillMaxSize(),
@@ -296,12 +296,12 @@ private fun IdealProgressBar(
             gapSize = 0.dp
         )
 
-        // 理想进度标记：竖线（颜色用主题色系）
+        // 理想进度标记：竖线（跟随剩余预算逻辑，从右往左；颜色用主题色系）
         val markerColor = MaterialTheme.colorScheme.onPrimaryContainer
         Canvas(modifier = Modifier.fillMaxSize()) {
             val trackWidth = size.width
             val trackHeight = size.height
-            val markerX = trackWidth * clampedIdeal
+            val markerX = trackWidth * (1.0f - clampedIdeal)
             val markerWidth = 2.dp.toPx().coerceAtLeast(1f)
 
             drawRect(

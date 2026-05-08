@@ -112,9 +112,10 @@ class AppViewModel(
                 applyMutation(mutation)
                 LogCollector.i("AppViewModel", "数据库初始化完成: $dbPath")
 
-                dispatch(CoreIntent.CategoryList)
-                dispatch(CoreIntent.StatsMonthlySummary(months = 36))
-                dispatch(CoreIntent.RefreshMonthData(yearMonth = currentYearMonth))
+                // 同步顺序调用，避免 monthly_summaries 与 RefreshMonthData 竞态
+                applyMutation(rustCore.dispatch(CoreIntent.CategoryList))
+                applyMutation(rustCore.dispatch(CoreIntent.StatsMonthlySummary(months = 36)))
+                applyMutation(rustCore.dispatch(CoreIntent.RefreshMonthData(yearMonth = currentYearMonth)))
                 syncCurrencySymbolFromDataStore()
                 syncThemeSettingsFromDataStore()
                 syncRecordItemDisplaySettingsFromDataStore()

@@ -164,15 +164,17 @@ class AppViewModel(
                 ) {
                     val yearMonth = _selectedYearMonth.value
                     if (yearMonth.isNotEmpty()) {
-                        runCatching {
-                            rustCore.dispatch(CoreIntent.RefreshMonthData(yearMonth = yearMonth))
-                        }.onSuccess(::applyMutation).onFailure { e ->
-                            LogCollector.e("AppViewModel", "刷新月份数据失败", e)
-                        }
+                        // 先刷新月度汇总，确保 RefreshMonthData 中的 StatsOverviewMetrics
+                        // 在 Rust 端计算时使用的是最新的 monthly_summaries
                         runCatching {
                             rustCore.dispatch(CoreIntent.StatsMonthlySummary(months = 36))
                         }.onSuccess(::applyMutation).onFailure { e ->
                             LogCollector.e("AppViewModel", "刷新月度统计失败", e)
+                        }
+                        runCatching {
+                            rustCore.dispatch(CoreIntent.RefreshMonthData(yearMonth = yearMonth))
+                        }.onSuccess(::applyMutation).onFailure { e ->
+                            LogCollector.e("AppViewModel", "刷新月份数据失败", e)
                         }
                     }
                 }

@@ -17,8 +17,6 @@ pub struct OverviewMetrics {
     pub elapsed_days: i32,
     pub total_days: i32,
     pub remaining_days: i32,
-    /// 总预算进度状态：normal / warning / overrun
-    pub budget_progress_status: Option<String>,
 }
 
 /// 应用状态根

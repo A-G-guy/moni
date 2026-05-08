@@ -245,11 +245,13 @@ impl MoniCore {
                         // 刷新预算状态
                         let ym = chrono::Utc::now().format("%Y-%m").to_string();
                         let raw_budgets = crate::db::budget_repo::list_for_month(&inner.conn, &ym)?;
+                        let today = chrono::Local::now().format("%Y-%m-%d").to_string();
                         let (budget_dtos, _, _) = crate::domain::budget::calculator::build_budget_dtos(
                             &inner.conn,
                             &raw_budgets,
                             &inner.state.categories,
                             &ym,
+                            &today,
                         )?;
                         inner.state.budgets = budget_dtos;
 

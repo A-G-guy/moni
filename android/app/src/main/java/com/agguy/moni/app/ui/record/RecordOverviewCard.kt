@@ -101,7 +101,6 @@ fun RecordOverviewCard(
                         monthExpense = metrics.monthExpense,
                         elapsedDays = metrics.elapsedDays,
                         totalDays = metrics.totalDays,
-                        progressStatus = metrics.budgetProgressStatus,
                         currencySymbol = currencySymbol
                     )
                 }
@@ -206,7 +205,6 @@ private fun BudgetProgressSection(
     monthExpense: Long,
     elapsedDays: Int,
     totalDays: Int,
-    progressStatus: String?,
     currencySymbol: String,
     modifier: Modifier = Modifier
 ) {
@@ -256,7 +254,7 @@ private fun BudgetProgressSection(
         IdealProgressBar(
             actualPercentage = actualPercentage,
             idealPercentage = idealPercentage,
-            progressStatus = progressStatus
+            progressStatus = budget.progressStatus
         )
     }
 }

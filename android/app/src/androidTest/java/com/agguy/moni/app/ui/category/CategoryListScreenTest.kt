@@ -26,7 +26,8 @@ class CategoryListScreenTest {
                 CategoryListScreen(
                     appState = appState,
                     onDispatch = {},
-                    onNavigateBack = {}
+                    onNavigateBack = {},
+                    onNavigateToArchivedCategories = {}
                 )
             }
         }

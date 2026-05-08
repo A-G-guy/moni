@@ -212,8 +212,9 @@ impl AppCoreRuntime {
         }
 
         let raw_budgets = budget_repo::list_for_month(&self.conn, year_month)?;
+        let today = chrono::Local::now().format("%Y-%m-%d").to_string();
         let (budget_dtos, category_spending, parent_category_spending) =
-            calculator::build_budget_dtos(&self.conn, &raw_budgets, &self.state.categories, year_month)?;
+            calculator::build_budget_dtos(&self.conn, &raw_budgets, &self.state.categories, year_month, &today)?;
 
         let effective = calculator::effective_available(
             category_id,
@@ -272,11 +273,13 @@ impl AppCoreRuntime {
             .map(|s| s.to_string())
             .unwrap_or_else(|| chrono::Utc::now().format("%Y-%m").to_string());
         let raw_budgets = budget_repo::list_for_month(&self.conn, &year_month)?;
+        let today = chrono::Local::now().format("%Y-%m-%d").to_string();
         let (budget_dtos, _, _) = calculator::build_budget_dtos(
             &self.conn,
             &raw_budgets,
             &self.state.categories,
             &year_month,
+            &today,
         )?;
         self.state.budgets = budget_dtos;
         Ok(())

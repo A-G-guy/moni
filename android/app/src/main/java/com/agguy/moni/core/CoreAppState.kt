@@ -79,6 +79,7 @@ data class CoreBudget(
     val remainingCents: Long,
     val percentage: Double,
     val status: String,
+    val progressStatus: String? = null,
     val isSnapshot: Boolean = false
 )
 
@@ -93,8 +94,7 @@ data class CoreOverviewMetrics(
     val totalBudget: CoreBudget? = null,
     val elapsedDays: Int = 1,
     val totalDays: Int = 30,
-    val remainingDays: Int = 0,
-    val budgetProgressStatus: String? = null
+    val remainingDays: Int = 0
 )
 
 @Serializable

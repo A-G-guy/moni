@@ -72,29 +72,6 @@ pub fn calculate_overview_metrics(
         None
     };
 
-    // 总预算进度状态（基于实际支出与理想时间进度的对比）
-    let budget_progress_status = total_budget.as_ref().map(|budget| {
-        #[allow(clippy::cast_precision_loss)]
-        let actual_percentage = if budget.amount_cents > 0 {
-            month_expense as f64 / budget.amount_cents as f64
-        } else {
-            0.0
-        };
-        #[allow(clippy::cast_precision_loss)]
-        let ideal_percentage = if total_days > 0 {
-            elapsed_days as f64 / total_days as f64
-        } else {
-            0.0
-        };
-        if actual_percentage > ideal_percentage {
-            "overrun".to_string()
-        } else if actual_percentage > ideal_percentage * 0.9 {
-            "warning".to_string()
-        } else {
-            "normal".to_string()
-        }
-    });
-
     crate::models::state::OverviewMetrics {
         month_expense,
         month_income,
@@ -106,7 +83,6 @@ pub fn calculate_overview_metrics(
         elapsed_days,
         total_days: total_days as i32,
         remaining_days,
-        budget_progress_status,
     }
 }
 

@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use chrono::Datelike;
 use moni_contracts::budget::BudgetStatus;
 use moni_contracts::types::{AmountCents, CategoryId};
 use rusqlite::Connection;
@@ -196,6 +197,7 @@ pub fn build_budget_dtos(
     budgets: &[moni_contracts::budget::Budget],
     categories: &[CategoryDto],
     year_month: &str,
+    today: &str,
 ) -> Result<(Vec<BudgetDto>, HashMap<CategoryId, AmountCents>, HashMap<CategoryId, AmountCents>), rusqlite::Error> {
     let category_spending = compute_category_spending(conn, year_month)?;
     let parent_category_spending = compute_parent_category_spending(conn, year_month)?;
@@ -251,6 +253,13 @@ pub fn build_budget_dtos(
             dto.percentage = percentage;
             dto.status = BudgetStatus::from_percentage(percentage).as_str().to_string();
 
+            // 仅对总预算计算进度状态（需要 elapsed_days / total_days）
+            if b.category_id.is_none() {
+                dto.progress_status = compute_budget_progress_status(
+                    spent, b.amount_cents, year_month, today,
+                );
+            }
+
             dto
         })
         .collect();
@@ -297,4 +306,78 @@ pub fn build_budget_dtos(
     });
 
     Ok((dtos, category_spending, parent_category_spending))
+}
+
+/// 计算总预算进度状态。
+/// 基于实际支出比例与理想时间进度的对比。
+fn compute_budget_progress_status(
+    spent_cents: AmountCents,
+    amount_cents: AmountCents,
+    year_month: &str,
+    today: &str,
+) -> Option<String> {
+    let (sel_year, sel_month) = parse_year_month_for_budget(year_month)?;
+    let total_days = days_in_month_for_budget(sel_year, sel_month);
+
+    let today_date = chrono::NaiveDate::parse_from_str(today, "%Y-%m-%d").ok()?;
+    let today_year = today_date.year();
+    let today_month = today_date.month();
+    let today_day = today_date.day();
+
+    let elapsed_days = if sel_year == today_year && sel_month == today_month {
+        today_day.max(1) as i32
+    } else if sel_year < today_year || (sel_year == today_year && sel_month < today_month) {
+        total_days as i32
+    } else {
+        0
+    };
+
+    #[allow(clippy::cast_precision_loss)]
+    let actual_percentage = if amount_cents > 0 {
+        spent_cents as f64 / amount_cents as f64
+    } else {
+        0.0
+    };
+    #[allow(clippy::cast_precision_loss)]
+    let ideal_percentage = if total_days > 0 {
+        elapsed_days as f64 / total_days as f64
+    } else {
+        0.0
+    };
+
+    Some(if actual_percentage > ideal_percentage {
+        "overrun".to_string()
+    } else if actual_percentage > ideal_percentage * 0.9 {
+        "warning".to_string()
+    } else {
+        "normal".to_string()
+    })
+}
+
+fn parse_year_month_for_budget(year_month_str: &str) -> Option<(i32, u32)> {
+    let parts: Vec<&str> = year_month_str.split('-').collect();
+    if parts.len() != 2 {
+        return None;
+    }
+    let year = parts[0].parse::<i32>().ok()?;
+    let month = parts[1].parse::<u32>().ok()?;
+    if !(1..=12).contains(&month) {
+        return None;
+    }
+    Some((year, month))
+}
+
+fn days_in_month_for_budget(year: i32, month: u32) -> u32 {
+    match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 => {
+            if (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0) {
+                29
+            } else {
+                28
+            }
+        }
+        _ => 30,
+    }
 }

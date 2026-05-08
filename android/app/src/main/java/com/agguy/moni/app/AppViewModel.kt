@@ -323,10 +323,6 @@ class AppViewModel(
         _navController?.navigate(Screen.ThemeSettings)
     }
 
-    fun navigateToAutoBackupSettings() {
-        _navController?.navigate(Screen.AutoBackupSettings)
-    }
-
     fun navigateBack() {
         _navController?.popBackStack()
     }

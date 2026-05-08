@@ -2,6 +2,7 @@
 
 package com.agguy.moni.app.ui.backup
 
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -10,24 +11,26 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -39,17 +42,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.agguy.moni.app.components.SettingsItem
+import com.agguy.moni.app.components.SettingsToggleItem
 import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.ui.settings.ExportDataDialog
 import com.agguy.moni.app.ui.settings.ImportConfirmDialog
+import com.agguy.moni.core.platform.AutoBackupScheduler
+import com.agguy.moni.core.platform.DataStoreHelper
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -58,7 +70,7 @@ import java.util.Locale
 /**
  * 数据管理页面。
  *
- * 整合导出备份、导入恢复、应用内备份管理三个功能。
+ * 整合导出备份、导入恢复、自动备份设置、应用内备份管理四个功能。
  * 导出/导入对话框与 SAF launcher 在页面内部管理，不依赖 MoniApp 顶层。
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,8 +79,9 @@ fun DataManagementScreen(
     viewModel: BackupViewModel,
     dbPath: String,
     onNavigateBack: () -> Unit,
-    onNavigateToAutoBackupSettings: () -> Unit = {},
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val backups by viewModel.backups.collectAsState()
     val operationState by viewModel.operationState.collectAsState()
     val inspectResult by viewModel.inspectResult.collectAsState()
@@ -79,6 +92,37 @@ fun DataManagementScreen(
     var showImportDialog by remember { mutableStateOf(false) }
     var importUri by remember { mutableStateOf<Uri?>(null) }
     var showRestoreConfirm by remember { mutableStateOf<File?>(null) }
+
+    // 自动备份状态
+    var showFrequencyDialog by remember { mutableStateOf(false) }
+    val enabled by DataStoreHelper.autoBackupEnabledFlow(context)
+        .collectAsStateWithLifecycle(initialValue = false)
+    val frequency by DataStoreHelper.autoBackupFrequencyFlow(context)
+        .collectAsStateWithLifecycle(initialValue = "daily")
+    val maxCount by DataStoreHelper.autoBackupMaxCountFlow(context)
+        .collectAsStateWithLifecycle(initialValue = 7)
+    var sliderValue by remember { mutableFloatStateOf(maxCount.toFloat()) }
+    LaunchedEffect(maxCount) {
+        sliderValue = maxCount.toFloat()
+    }
+    val copyToExternal by DataStoreHelper.autoBackupCopyToExternalFlow(context)
+        .collectAsStateWithLifecycle(initialValue = false)
+    val externalUri by DataStoreHelper.autoBackupExternalUriFlow(context)
+        .collectAsStateWithLifecycle(initialValue = null)
+    val lastBackupTime by DataStoreHelper.autoBackupLastTimeFlow(context)
+        .collectAsStateWithLifecycle(initialValue = null)
+
+    LaunchedEffect(enabled, frequency) {
+        AutoBackupScheduler.schedule(context, enabled, frequency)
+    }
+
+    val frequencyLabel = when (frequency) {
+        "every_launch" -> "每次启动"
+        "daily" -> "每天"
+        "weekly" -> "每周"
+        "monthly" -> "每月"
+        else -> "每天"
+    }
 
     val exportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/zip")
@@ -94,6 +138,19 @@ fun DataManagementScreen(
             showImportDialog = true
             viewModel.clearInspectResult()
             viewModel.inspectBackupFromUri(it)
+        }
+    }
+
+    val externalDirPickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        uri?.let {
+            val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            context.contentResolver.takePersistableUriPermission(it, takeFlags)
+            scope.launch {
+                DataStoreHelper.saveAutoBackupExternalUri(context, it.toString())
+            }
         }
     }
 
@@ -113,12 +170,23 @@ fun DataManagementScreen(
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text("数据管理") },
+                title = {
+                    Text(
+                        "数据管理",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                },
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        SymbolIcon(name = "arrow_back", contentDescription = "返回", size = 24.dp)
+                        SymbolIcon(
+                            name = "arrow_back",
+                            contentDescription = "返回",
+                            size = 24.dp
+                        )
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -130,7 +198,8 @@ fun DataManagementScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // 操作区：导出 / 导入
@@ -139,14 +208,14 @@ fun DataManagementScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 ActionCard(
-                    iconName = "cloud",
+                    iconName = "cloud_upload",
                     title = "导出备份",
                     subtitle = "备份到应用内或外部",
                     modifier = Modifier.weight(1f),
                     onClick = { showExportDialog = true }
                 )
                 ActionCard(
-                    iconName = "archive",
+                    iconName = "cloud_download",
                     title = "导入备份",
                     subtitle = "从 ZIP 文件恢复",
                     modifier = Modifier.weight(1f),
@@ -154,43 +223,97 @@ fun DataManagementScreen(
                 )
             }
 
-            // 自动备份设置入口
-            Card(
-                onClick = onNavigateToAutoBackupSettings,
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    SymbolIcon(
-                        name = "archive",
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        size = 24.dp
+            // 自动备份设置（直接展开）
+            SettingsToggleItem(
+                iconName = "archive",
+                title = "启用自动备份",
+                subtitle = if (enabled) "已启用" else "已关闭",
+                checked = enabled,
+                onCheckedChange = {
+                    scope.launch { DataStoreHelper.saveAutoBackupEnabled(context, it) }
+                }
+            )
+
+            AnimatedVisibility(visible = enabled) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SettingsItem(
+                        iconName = "event_repeat",
+                        title = "备份频率",
+                        subtitle = frequencyLabel,
+                        onClick = { showFrequencyDialog = true }
                     )
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            "自动备份",
-                            style = MaterialTheme.typography.bodyLarge
+
+                    // 保留数量滑块
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "保留数量",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                "${sliderValue.toInt()} 个",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Slider(
+                            value = sliderValue,
+                            onValueChange = { sliderValue = it },
+                            onValueChangeFinished = {
+                                scope.launch {
+                                    DataStoreHelper.saveAutoBackupMaxCount(context, sliderValue.toInt())
+                                }
+                            },
+                            valueRange = 3f..30f,
+                            steps = 26
                         )
                         Text(
-                            "定时自动备份到本地或外部目录",
+                            "超出保留数量的旧备份将自动删除",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
                     }
-                    Text(
-                        "设置",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
+
+                    SettingsToggleItem(
+                        iconName = "folder_copy",
+                        title = "复制到外部目录",
+                        subtitle = if (copyToExternal) "已启用" else "关闭",
+                        checked = copyToExternal,
+                        onCheckedChange = {
+                            scope.launch {
+                                DataStoreHelper.saveAutoBackupCopyToExternal(context, it)
+                                if (!it) {
+                                    DataStoreHelper.saveAutoBackupExternalUri(context, null)
+                                }
+                            }
+                        }
                     )
+
+                    AnimatedVisibility(visible = copyToExternal) {
+                        SettingsItem(
+                            iconName = "folder_open",
+                            title = "选择外部目录",
+                            subtitle = externalUri ?: "未选择",
+                            onClick = { externalDirPickerLauncher.launch(null) }
+                        )
+                    }
+
+                    if (lastBackupTime != null) {
+                        Text(
+                            "上次备份: $lastBackupTime",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                        )
+                    }
                 }
             }
 
@@ -210,11 +333,18 @@ fun DataManagementScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Text(
-                "应用内备份 (${backups.size})",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            // 应用内备份（底部，不做内部滚动）
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    "应用内备份 (${backups.size})",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
             if (backups.isEmpty()) {
                 Column(
@@ -228,10 +358,10 @@ fun DataManagementScreen(
                     )
                 }
             } else {
-                LazyColumn(
+                Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(backups, key = { it.file.absolutePath }) { item ->
+                    backups.forEach { item ->
                         BackupItemCard(
                             item = item,
                             onRestore = { showRestoreConfirm = item.file },
@@ -241,6 +371,8 @@ fun DataManagementScreen(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 
@@ -300,6 +432,20 @@ fun DataManagementScreen(
             dismissButton = {
                 TextButton(onClick = { showRestoreConfirm = null }) { Text("取消") }
             }
+        )
+    }
+
+    // 频率选择对话框
+    if (showFrequencyDialog) {
+        FrequencyPickerDialog(
+            currentFrequency = frequency,
+            onConfirm = { selected ->
+                scope.launch {
+                    DataStoreHelper.saveAutoBackupFrequency(context, selected)
+                }
+                showFrequencyDialog = false
+            },
+            onDismiss = { showFrequencyDialog = false }
         )
     }
 }
@@ -393,6 +539,59 @@ private fun BackupItemCard(
             }
         }
     }
+}
+
+@Composable
+private fun FrequencyPickerDialog(
+    currentFrequency: String,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val options = listOf(
+        "every_launch" to "每次启动",
+        "daily" to "每天",
+        "weekly" to "每周",
+        "monthly" to "每月"
+    )
+    var selected by remember { mutableStateOf(currentFrequency) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = MaterialTheme.shapes.extraLarge,
+        title = { Text("选择备份频率") },
+        text = {
+            Column {
+                options.forEach { (value, label) ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    ) {
+                        RadioButton(
+                            selected = selected == value,
+                            onClick = { selected = value }
+                        )
+                        Text(
+                            label,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(selected) }) {
+                Text("确定")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("取消")
+            }
+        }
+    )
 }
 
 private fun formatFileSize(bytes: Long): String {

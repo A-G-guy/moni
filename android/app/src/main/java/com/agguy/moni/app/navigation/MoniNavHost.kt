@@ -31,7 +31,6 @@ import com.agguy.moni.app.ui.dev.DevLogScreen
 import com.agguy.moni.app.ui.dev.DeveloperOptionsScreen
 import com.agguy.moni.app.ui.record.RecordDetailScreen
 import com.agguy.moni.app.ui.record.RecordListScreen
-import com.agguy.moni.app.ui.backup.AutoBackupSettingsScreen
 import com.agguy.moni.app.ui.settings.SettingsScreen
 import com.agguy.moni.app.ui.stats.StatsScreen
 import com.agguy.moni.core.CoreIntent
@@ -96,7 +95,6 @@ fun MoniNavHost(
     onNavigateToDevLog: () -> Unit = {},
     onClearAllData: () -> Unit = {},
     onNavigateToDataManagement: () -> Unit = {},
-    onNavigateToAutoBackupSettings: () -> Unit = {},
     onNavigateToThemeSettings: () -> Unit = {},
     onNavigateToBudgetList: () -> Unit = {},
     backupViewModel: BackupViewModel,
@@ -193,7 +191,6 @@ fun MoniNavHost(
                 viewModel = backupViewModel,
                 dbPath = dbPath,
                 onNavigateBack = onNavigateBack,
-                onNavigateToAutoBackupSettings = onNavigateToAutoBackupSettings,
             )
         }
         composable<Screen.DeveloperOptions> {
@@ -228,11 +225,6 @@ fun MoniNavHost(
                 onDispatch = onDispatch,
                 onSelectYearMonth = onSelectYearMonth,
                 onNavigateBack = onNavigateBack
-            )
-        }
-        composable<Screen.AutoBackupSettings> {
-            AutoBackupSettingsScreen(
-                onNavigateBack = onNavigateBack,
             )
         }
     }

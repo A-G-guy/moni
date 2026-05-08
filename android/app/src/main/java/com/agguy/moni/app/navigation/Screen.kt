@@ -36,7 +36,4 @@ sealed class Screen {
 
     @Serializable
     data object BudgetList : Screen()
-
-    @Serializable
-    data object AutoBackupSettings : Screen()
 }

@@ -281,6 +281,10 @@
     <string name="budget_status_overrun">Overrun</string>
     <string name="budget_status_critical">Near Limit</string>
     <string name="budget_status_safe">Safe</string>
+    <string name="budget_daily_average">Daily Budget</string>
+    <string name="budget_daily_remaining">Daily Remaining</string>
+    <string name="budget_not_set">Not Set</string>
+    <string name="budget_tap_to_set">Tap to set budget</string>
     <string name="budget_remaining_format">Remaining %1$s</string>
     <string name="budget_total_format">Total %1$s</string>
     <string name="budget_spent_format">Spent %1$s</string>

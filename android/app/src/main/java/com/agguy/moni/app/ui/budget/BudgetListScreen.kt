@@ -2,7 +2,7 @@
 
 package com.agguy.moni.app.ui.budget
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,8 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,12 +33,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.stringResource
 import com.agguy.moni.R
 import com.agguy.moni.app.AppState
+import com.agguy.moni.app.components.MoniCard
 import com.agguy.moni.app.components.MonthPickerSheet
 import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
@@ -51,11 +52,53 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 /**
+ * 预算列表项数据模型。
+ */
+private sealed class BudgetListItem {
+    data class Total(val budget: CoreBudget?) : BudgetListItem()
+    data class Category(
+        val category: CoreCategory,
+        val budget: CoreBudget?,
+        val isChild: Boolean,
+        val parentBudget: CoreBudget? = null
+    ) : BudgetListItem()
+}
+
+/**
+ * 将支出分类按层级展平：一级分类在前，子分类紧跟其后。
+ * 总预算作为独立项排在最前面。
+ */
+private fun flattenBudgetItems(
+    categories: List<CoreCategory>,
+    budgets: List<CoreBudget>
+): List<BudgetListItem> {
+    val expense = categories.filter { it.categoryType == "expense" && it.archivedAt == null }
+    val parents = expense.filter { it.parentId == null }
+    return buildList {
+        add(BudgetListItem.Total(budgets.find { it.categoryId == null }))
+        for (parent in parents) {
+            val parentBudget = budgets.find { it.categoryId == parent.id }
+            add(BudgetListItem.Category(parent, parentBudget, isChild = false))
+            expense
+                .filter { it.parentId == parent.id }
+                .forEach { child ->
+                    add(BudgetListItem.Category(
+                        category = child,
+                        budget = budgets.find { it.categoryId == child.id },
+                        isChild = true,
+                        parentBudget = parentBudget
+                    ))
+                }
+        }
+    }
+}
+
+/**
  * 预算管理主屏。
  *
- * - 顶部总预算卡片
- * - 支出分类预算列表（一级分类可展开/收起，二级分类缩进）
- * - 默认展开有预算设置的分类
+ * - 总预算卡片 + 分类预算列表，统一使用 MoniCard（Tonal）样式
+ * - 层级展平（参考分类管理页），整行点击弹出编辑弹窗
+ * - 已设置预算的卡片显示进度条 + 日均/剩余日均/剩余统计
  */
 @Composable
 fun BudgetListScreen(
@@ -81,19 +124,8 @@ fun BudgetListScreen(
         }
     }
 
-    // 仅支出分类
-    val expenseCategories = remember(appState.categories) {
-        appState.categories.filter { it.categoryType == "expense" && it.archivedAt == null }
-    }
-
-    // 一级分类
-    val parentCategories = remember(expenseCategories) {
-        expenseCategories.filter { it.parentId == null }
-    }
-
-    // 预算查找辅助
-    fun findBudget(categoryId: Long?): CoreBudget? {
-        return appState.budgets.find { it.categoryId == categoryId }
+    val budgetItems = remember(appState.categories, appState.budgets) {
+        flattenBudgetItems(appState.categories, appState.budgets)
     }
 
     Scaffold(
@@ -125,44 +157,48 @@ fun BudgetListScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // 总预算卡片
-            item {
-                TotalBudgetCard(
-                    totalBudget = findBudget(null),
-                    onClick = {
-                        editingBudget = findBudget(null)
-                        editingCategory = null
-                        editingParentBudget = null
-                        editorVisible = true
+            items(
+                items = budgetItems,
+                key = { item ->
+                    when (item) {
+                        is BudgetListItem.Total -> -1L
+                        is BudgetListItem.Category -> item.category.id
                     }
-                )
-            }
-
-            // 分类预算列表
-            items(parentCategories, key = { it.id }) { parent ->
-                val children = expenseCategories.filter { it.parentId == parent.id }
-                val parentBudget = findBudget(parent.id)
-
-                ParentBudgetItem(
-                    category = parent,
-                    budget = parentBudget,
-                    children = children,
-                    childrenBudgets = children.map { findBudget(it.id) },
-                    onParentClick = {
-                        editingBudget = parentBudget
-                        editingCategory = parent
-                        editingParentBudget = null
-                        editorVisible = true
-                    },
-                    onChildClick = { child ->
-                        editingBudget = findBudget(child.id)
-                        editingCategory = child
-                        editingParentBudget = parentBudget
-                        editorVisible = true
+                }
+            ) { item ->
+                when (item) {
+                    is BudgetListItem.Total -> {
+                        TotalBudgetCard(
+                            totalBudget = item.budget,
+                            yearMonth = selectedYearMonth,
+                            currencySymbol = appState.currencySymbol,
+                            onClick = {
+                                editingBudget = item.budget
+                                editingCategory = null
+                                editingParentBudget = null
+                                editorVisible = true
+                            }
+                        )
                     }
-                )
+                    is BudgetListItem.Category -> {
+                        BudgetCategoryCard(
+                            category = item.category,
+                            budget = item.budget,
+                            isChild = item.isChild,
+                            parentBudget = item.parentBudget,
+                            yearMonth = selectedYearMonth,
+                            currencySymbol = appState.currencySymbol,
+                            onClick = {
+                                editingBudget = item.budget
+                                editingCategory = item.category
+                                editingParentBudget = item.parentBudget
+                                editorVisible = true
+                            }
+                        )
+                    }
+                }
             }
         }
     }
@@ -194,7 +230,6 @@ fun BudgetListScreen(
             onDismiss = { monthPickerVisible = false }
         )
     }
-
 }
 
 /**
@@ -203,15 +238,19 @@ fun BudgetListScreen(
 @Composable
 private fun TotalBudgetCard(
     totalBudget: CoreBudget?,
+    yearMonth: String,
+    currencySymbol: String,
     onClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
+    val dailyStats = remember(totalBudget, yearMonth) {
+        totalBudget?.let {
+            calculateBudgetDailyStats(it.amountCents, it.remainingCents, yearMonth)
+        }
+    }
+
+    MoniCard(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -219,51 +258,42 @@ private fun TotalBudgetCard(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = stringResource(R.string.budget_total),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.weight(1f)
                 )
                 if (totalBudget != null) {
-                    BudgetStatusLabel(status = totalBudget.status)
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = "$currencySymbol${formatAmount(totalBudget.amountCents)}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        BudgetStatusLabel(status = totalBudget.status)
+                    }
+                } else {
+                    Text(
+                        text = stringResource(R.string.budget_not_set),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
 
-            if (totalBudget != null) {
-                // 大字显示预算金额，避免与已用金额混淆
-                Text(
-                    text = "¥${formatAmount(totalBudget.amountCents)}",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-
+            if (totalBudget != null && dailyStats != null) {
                 BudgetProgressBar(percentage = totalBudget.percentage)
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = stringResource(R.string.budget_spent_format, "¥${formatAmount(totalBudget.spentCents)}"),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = stringResource(R.string.budget_remaining_format, "¥${formatAmount(totalBudget.remainingCents)}"),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = when (totalBudget.status) {
-                            "overrun" -> MaterialTheme.colorScheme.expenseRed
-                            "critical" -> Color(0xFFFFA726)
-                            else -> MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                    )
-                }
+                BudgetDailyStatsRow(
+                    dailyStats = dailyStats,
+                    currencySymbol = currencySymbol,
+                    status = totalBudget.status
+                )
             } else {
                 Text(
-                    text = stringResource(R.string.budget_set_total_hint),
+                    text = stringResource(R.string.budget_tap_to_set),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -273,179 +303,176 @@ private fun TotalBudgetCard(
 }
 
 /**
- * 一级分类预算项（可展开/收起）。
+ * 分类预算卡片。
  */
 @Composable
-private fun ParentBudgetItem(
+private fun BudgetCategoryCard(
     category: CoreCategory,
     budget: CoreBudget?,
-    children: List<CoreCategory>,
-    childrenBudgets: List<CoreBudget?>,
-    onParentClick: () -> Unit,
-    onChildClick: (CoreCategory) -> Unit
+    isChild: Boolean,
+    parentBudget: CoreBudget?,
+    yearMonth: String,
+    currencySymbol: String,
+    onClick: () -> Unit
 ) {
-    // 所有分类默认展开
-    val hasChildren = children.isNotEmpty()
-    var expanded by remember(category.id) { mutableStateOf(true) }
+    val dailyStats = remember(budget, yearMonth) {
+        budget?.let {
+            calculateBudgetDailyStats(it.amountCents, it.remainingCents, yearMonth)
+        }
+    }
+    val categoryColor = MaterialTheme.colorScheme.expenseRed
 
-    Card(
+    MoniCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+        onClick = onClick
     ) {
-        Column {
-            // 一级分类头部（点击展开/收起 或 编辑）
+        Column(
+            modifier = Modifier.padding(
+                start = if (isChild) 40.dp else 16.dp,
+                end = 16.dp,
+                top = 12.dp,
+                bottom = 12.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expanded = !expanded }
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                // 图标容器
+                Box(
+                    modifier = Modifier
+                        .padding(end = 12.dp)
+                        .size(if (isChild) 32.dp else 40.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(categoryColor.copy(alpha = if (isChild) 0.1f else 0.15f)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // 展开/收起图标（仅当有子分类时显示）
-                    if (hasChildren) {
-                        SymbolIcon(
-                            name = if (expanded) "expand_less" else "expand_more",
-                            contentDescription = if (expanded) stringResource(R.string.close) else stringResource(R.string.search),
-                            size = 20.dp,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    } else {
-                        // 无子分类时占同等宽度保持对齐
-                        Spacer(modifier = Modifier.size(20.dp))
-                    }
-
-                    // 分类图标 + 名称
                     SymbolIcon(
                         name = category.iconName,
                         contentDescription = null,
-                        size = 24.dp,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = category.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium
+                        size = if (isChild) 18.dp else 22.dp,
+                        tint = categoryColor
                     )
                 }
 
-                // 右侧：预算信息或设置按钮
+                // 分类名称
+                Text(
+                    text = if (isChild) "› ${category.name}" else category.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = if (isChild) FontWeight.Normal else FontWeight.Medium,
+                    modifier = Modifier.weight(1f)
+                )
+
+                // 右侧金额或状态
                 if (budget != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(
-                                text = "¥${formatAmount(budget.amountCents)}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = stringResource(R.string.budget_spent_format, "¥${formatAmount(budget.spentCents)}"),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            BudgetStatusLabel(status = budget.status)
-                        }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = "$currencySymbol${formatAmount(budget.amountCents)}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        BudgetStatusLabel(status = budget.status)
                     }
                 } else {
-                    TextButton(onClick = onParentClick) {
-                        Text(stringResource(R.string.budget_set))
-                    }
+                    Text(
+                        text = stringResource(R.string.budget_not_set),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
 
-            // 进度条（一级分类）
-            if (budget != null) {
-                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    BudgetProgressBar(percentage = budget.percentage)
-                }
-                Spacer(modifier = Modifier.height(8.dp))
+            if (budget != null && dailyStats != null) {
+                BudgetProgressBar(percentage = budget.percentage)
+                BudgetDailyStatsRow(
+                    dailyStats = dailyStats,
+                    currencySymbol = currencySymbol,
+                    status = budget.status
+                )
             }
 
-            // 二级分类列表（展开时显示）
-            if (expanded && children.isNotEmpty()) {
-                Column {
-                    children.forEachIndexed { index, child ->
-                        val childBudget = childrenBudgets.getOrNull(index)
-                        ChildBudgetItem(
-                            category = child,
-                            budget = childBudget,
-                            parentBudget = budget,
-                            onClick = { onChildClick(child) }
-                        )
-                    }
-                }
+            // 软冲突提示
+            if (isChild && parentBudget != null && budget != null &&
+                budget.amountCents > parentBudget.amountCents
+            ) {
+                BudgetSoftConflictWarning(
+                    childAmount = budget.amountCents,
+                    parentAmount = parentBudget.amountCents
+                )
             }
         }
     }
 }
 
 /**
- * 二级分类预算项。
+ * 预算日均统计信息行。
  */
 @Composable
-private fun ChildBudgetItem(
-    category: CoreCategory,
-    budget: CoreBudget?,
-    parentBudget: CoreBudget?,
-    onClick: () -> Unit
+private fun BudgetDailyStatsRow(
+    dailyStats: BudgetDailyStats,
+    currencySymbol: String,
+    status: String
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(start = 48.dp, end = 16.dp, top = 10.dp, bottom = 10.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            SymbolIcon(
-                name = category.iconName,
-                contentDescription = null,
-                size = 20.dp,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = category.name,
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
+        DailyStatItem(
+            label = stringResource(R.string.budget_daily_average),
+            amountCents = dailyStats.dailyBudgetCents,
+            currencySymbol = currencySymbol
+        )
+        DailyStatItem(
+            label = stringResource(R.string.budget_daily_remaining),
+            amountCents = dailyStats.dailyRemainingCents,
+            currencySymbol = currencySymbol,
+            isNegativeHighlighted = true,
+            status = status
+        )
+        DailyStatItem(
+            label = stringResource(R.string.budget_remaining),
+            amountCents = dailyStats.remainingCents,
+            currencySymbol = currencySymbol,
+            isNegativeHighlighted = true,
+            status = status
+        )
+    }
+}
 
-        if (budget != null) {
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = "¥${formatAmount(budget.amountCents)}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = stringResource(R.string.budget_spent_format, "¥${formatAmount(budget.spentCents)}"),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                BudgetStatusLabel(status = budget.status)
-            }
-        } else {
-            TextButton(onClick = onClick) {
-                Text(stringResource(R.string.action_set))
-            }
+/**
+ * 单日统计数据项。
+ */
+@Composable
+private fun DailyStatItem(
+    label: String,
+    amountCents: Long,
+    currencySymbol: String,
+    isNegativeHighlighted: Boolean = false,
+    status: String = ""
+) {
+    val isNegative = amountCents < 0
+    val amountColor = if (isNegativeHighlighted && isNegative) {
+        when (status) {
+            "overrun" -> MaterialTheme.colorScheme.expenseRed
+            "critical" -> Color(0xFFFFA726)
+            else -> MaterialTheme.colorScheme.onSurfaceVariant
         }
+    } else {
+        MaterialTheme.colorScheme.onSurface
     }
 
-    // 软冲突提示
-    if (budget != null && parentBudget != null && budget.amountCents > parentBudget.amountCents) {
-        BudgetSoftConflictWarning(
-            childAmount = budget.amountCents,
-            parentAmount = parentBudget.amountCents,
-            modifier = Modifier.padding(start = 48.dp, end = 16.dp)
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = "$currencySymbol${formatAmount(amountCents)}",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = amountColor
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

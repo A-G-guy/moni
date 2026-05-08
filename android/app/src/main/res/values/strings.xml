@@ -281,6 +281,10 @@
     <string name="budget_status_overrun">超支</string>
     <string name="budget_status_critical">接近上限</string>
     <string name="budget_status_safe">安全</string>
+    <string name="budget_daily_average">日均预算</string>
+    <string name="budget_daily_remaining">剩余日均</string>
+    <string name="budget_not_set">未设置</string>
+    <string name="budget_tap_to_set">点击设置预算</string>
     <string name="budget_remaining_format">剩余 %1$s</string>
     <string name="budget_total_format">共 %1$s</string>
     <string name="budget_spent_format">已用 %1$s</string>

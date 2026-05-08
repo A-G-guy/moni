@@ -41,13 +41,16 @@ pub fn calculate_overview_metrics(
     let month_income = summary.map(|s| s.income_cents).unwrap_or(0);
     let month_balance = summary.map(|s| s.balance_cents).unwrap_or(0);
 
-    // 今日支出（仅当前月有效）
+    // 今日支出（仅当前月有效；今日无记录时视为 0）
     let today_expense = if sel_year == today_year && sel_month == today_month {
         let today_str = today_date.format("%Y-%m-%d").to_string();
-        record_groups
-            .iter()
-            .find(|g| g.date == today_str)
-            .map(|g| g.expense_cents)
+        Some(
+            record_groups
+                .iter()
+                .find(|g| g.date == today_str)
+                .map(|g| g.expense_cents)
+                .unwrap_or(0),
+        )
     } else {
         None
     };

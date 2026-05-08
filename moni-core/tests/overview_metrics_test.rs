@@ -110,6 +110,37 @@ fn test_overview_metrics_past_month() {
 }
 
 #[test]
+fn test_overview_metrics_current_month_no_records_today() {
+    // 当前月，但今日无记录：today_expense 应为 Some(0)
+    let groups = vec![
+        moni_core::dto::RecordDayGroup {
+            date: "2024-03-14".to_string(),
+            income_cents: 0,
+            expense_cents: 3000,
+            records: vec![],
+        },
+    ];
+
+    let summaries = vec![moni_contracts::stats::MonthlySummary {
+        year_month: "2024-03".to_string(),
+        income_cents: 0,
+        expense_cents: 3000,
+        balance_cents: -3000,
+    }];
+
+    let metrics = calculator::calculate_overview_metrics(
+        "2024-03",
+        &groups,
+        &summaries,
+        &[],
+        "2024-03-15",
+    );
+
+    assert_eq!(metrics.today_expense, Some(0));
+    assert_eq!(metrics.month_expense, 3000);
+}
+
+#[test]
 fn test_overview_metrics_no_budget() {
     let summaries = vec![moni_contracts::stats::MonthlySummary {
         year_month: "2024-03".to_string(),

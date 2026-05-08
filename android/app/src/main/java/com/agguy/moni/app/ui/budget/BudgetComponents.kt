@@ -41,8 +41,8 @@ fun BudgetProgressBar(
     percentage: Double,
     modifier: Modifier = Modifier
 ) {
-    // 进度条显示剩余比例：未花时满，花得越多越少
-    val clamped = (1.0 - percentage).coerceIn(0.0, 1.0)
+    // 进度条显示已花费比例：未花时空，花得越多越满
+    val clamped = percentage.coerceIn(0.0, 1.0)
     val color = when {
         percentage > 1.0 -> MaterialTheme.colorScheme.expenseRed
         percentage >= 0.8 -> Color(0xFFFFA726)

@@ -43,9 +43,9 @@ import com.agguy.moni.core.util.formatAmount
  * 账单页顶部月度概览卡片。
  *
  * 三行布局：
- * - 第一行：今日支出 + 日均剩余（主题色，大字号）
+ * - 第一行：今日支出（expenseRed）+ 日均剩余（incomeGreen，大字号）
  * - 第二行（条件渲染）：总预算进度条，含理想进度标记
- * - 第三行：本月总支出（红色）+ 日均支出（主题色）+ 月结余（正绿负红）
+ * - 第三行：本月总支出 + 日均支出 + 月结余（主题色）
  */
 @Composable
 fun RecordOverviewCard(
@@ -66,7 +66,7 @@ fun RecordOverviewCard(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 第一行：今日支出 + 日均剩余（主题色，大字号）
+            // 第一行：今日支出（expenseRed）+ 日均剩余（incomeGreen，大字号）
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -76,14 +76,14 @@ fun RecordOverviewCard(
                     label = "今日支出",
                     amountCents = metrics.todayExpense,
                     currencySymbol = currencySymbol,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.expenseRed,
                     isLarge = true
                 )
                 OverviewStatItem(
                     label = "日均剩余",
                     amountCents = metrics.dailyRemaining,
                     currencySymbol = currencySymbol,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.incomeGreen,
                     isLarge = true,
                     alignEnd = true
                 )
@@ -102,7 +102,7 @@ fun RecordOverviewCard(
                 }
             }
 
-            // 第三行：本月总支出 + 日均支出 + 月结余
+            // 第三行：本月总支出（主题色）+ 日均支出 + 月结余（主题色）
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top
@@ -111,7 +111,7 @@ fun RecordOverviewCard(
                     label = "本月总支出",
                     amountCents = metrics.monthExpense,
                     currencySymbol = currencySymbol,
-                    color = MaterialTheme.colorScheme.expenseRed,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
                 OverviewStatItem(
@@ -126,11 +126,7 @@ fun RecordOverviewCard(
                     label = "月结余",
                     amountCents = metrics.monthBalance,
                     currencySymbol = currencySymbol,
-                    color = if (metrics.monthBalance >= 0) {
-                        MaterialTheme.colorScheme.incomeGreen
-                    } else {
-                        MaterialTheme.colorScheme.expenseRed
-                    },
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f),
                     alignEnd = true
                 )
@@ -298,16 +294,16 @@ private fun IdealProgressBar(
             gapSize = 0.dp
         )
 
-        // 理想进度标记：竖线
+        // 理想进度标记：竖线（跟随剩余预算逻辑，从右往左；颜色用主题色系）
+        val markerColor = MaterialTheme.colorScheme.onPrimaryContainer
         Canvas(modifier = Modifier.fillMaxSize()) {
             val trackWidth = size.width
             val trackHeight = size.height
-            val markerX = trackWidth * clampedIdeal
+            val markerX = trackWidth * (1.0f - clampedIdeal)
             val markerWidth = 2.dp.toPx().coerceAtLeast(1f)
 
-            // 竖线
             drawRect(
-                color = Color.White,
+                color = markerColor,
                 topLeft = Offset(
                     x = (markerX - markerWidth / 2f).coerceIn(0f, trackWidth - markerWidth),
                     y = 0f

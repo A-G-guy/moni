@@ -15,10 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -48,7 +46,6 @@ import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.core.CoreBudget
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreIntent
-import com.agguy.moni.core.BudgetScope
 import com.agguy.moni.core.util.formatAmount
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -74,7 +71,6 @@ fun BudgetListScreen(
     var editingCategory by remember { mutableStateOf<CoreCategory?>(null) }
     var editingParentBudget by remember { mutableStateOf<CoreBudget?>(null) }
     var monthPickerVisible by remember { mutableStateOf(false) }
-    var deleteConfirmBudget by remember { mutableStateOf<CoreBudget?>(null) }
 
     val monthLabel = remember(selectedYearMonth) {
         val parts = selectedYearMonth.split("-")
@@ -140,8 +136,7 @@ fun BudgetListScreen(
                         editingCategory = null
                         editingParentBudget = null
                         editorVisible = true
-                    },
-                    onDelete = { findBudget(null)?.let { deleteConfirmBudget = it } }
+                    }
                 )
             }
 
@@ -161,15 +156,11 @@ fun BudgetListScreen(
                         editingParentBudget = null
                         editorVisible = true
                     },
-                    onParentDelete = { parentBudget?.let { deleteConfirmBudget = it } },
                     onChildClick = { child ->
                         editingBudget = findBudget(child.id)
                         editingCategory = child
                         editingParentBudget = parentBudget
                         editorVisible = true
-                    },
-                    onChildDelete = { child ->
-                        findBudget(child.id)?.let { deleteConfirmBudget = it }
                     }
                 )
             }
@@ -204,53 +195,6 @@ fun BudgetListScreen(
         )
     }
 
-    // 列表直接删除确认
-    if (deleteConfirmBudget != null) {
-        val budget = deleteConfirmBudget!!
-        AlertDialog(
-            onDismissRequest = { deleteConfirmBudget = null },
-            title = { Text(stringResource(R.string.budget_delete_title)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.budget_delete_message))
-                    TextButton(
-                        onClick = {
-                            onDispatch(
-                                CoreIntent.BudgetDelete(
-                                    id = budget.id,
-                                    yearMonth = selectedYearMonth,
-                                    scope = BudgetScope.THIS_MONTH
-                                )
-                            )
-                            deleteConfirmBudget = null
-                        }
-                    ) {
-                        Text(stringResource(R.string.budget_stop_this_month))
-                    }
-                    TextButton(
-                        onClick = {
-                            onDispatch(
-                                CoreIntent.BudgetDelete(
-                                    id = budget.id,
-                                    yearMonth = selectedYearMonth,
-                                    scope = BudgetScope.FUTURE_ONLY
-                                )
-                            )
-                            deleteConfirmBudget = null
-                        }
-                    ) {
-                        Text(stringResource(R.string.budget_stop_next_month))
-                    }
-                }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(onClick = { deleteConfirmBudget = null }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
-        )
-    }
 }
 
 /**
@@ -259,8 +203,7 @@ fun BudgetListScreen(
 @Composable
 private fun TotalBudgetCard(
     totalBudget: CoreBudget?,
-    onClick: () -> Unit,
-    onDelete: () -> Unit
+    onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -284,18 +227,8 @@ private fun TotalBudgetCard(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (totalBudget != null) {
-                        BudgetStatusDot(status = totalBudget.status)
-                        IconButton(onClick = onDelete) {
-                            SymbolIcon(
-                                name = "delete",
-                                contentDescription = stringResource(R.string.budget_delete_total),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                size = 24.dp
-                            )
-                        }
-                    }
+                if (totalBudget != null) {
+                    BudgetStatusLabel(status = totalBudget.status)
                 }
             }
 
@@ -349,9 +282,7 @@ private fun ParentBudgetItem(
     children: List<CoreCategory>,
     childrenBudgets: List<CoreBudget?>,
     onParentClick: () -> Unit,
-    onParentDelete: () -> Unit,
-    onChildClick: (CoreCategory) -> Unit,
-    onChildDelete: (CoreCategory) -> Unit
+    onChildClick: (CoreCategory) -> Unit
 ) {
     // 所有分类默认展开
     val hasChildren = children.isNotEmpty()
@@ -420,14 +351,6 @@ private fun ParentBudgetItem(
                             )
                             BudgetStatusLabel(status = budget.status)
                         }
-                        IconButton(onClick = onParentDelete) {
-                            SymbolIcon(
-                                name = "delete",
-                                contentDescription = stringResource(R.string.budget_delete_total),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                size = 24.dp
-                            )
-                        }
                     }
                 } else {
                     TextButton(onClick = onParentClick) {
@@ -453,8 +376,7 @@ private fun ParentBudgetItem(
                             category = child,
                             budget = childBudget,
                             parentBudget = budget,
-                            onClick = { onChildClick(child) },
-                            onDelete = { onChildDelete(child) }
+                            onClick = { onChildClick(child) }
                         )
                     }
                 }
@@ -471,8 +393,7 @@ private fun ChildBudgetItem(
     category: CoreCategory,
     budget: CoreBudget?,
     parentBudget: CoreBudget?,
-    onClick: () -> Unit,
-    onDelete: () -> Unit
+    onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -499,28 +420,18 @@ private fun ChildBudgetItem(
         }
 
         if (budget != null) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = "¥${formatAmount(budget.amountCents)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = stringResource(R.string.budget_spent_format, "¥${formatAmount(budget.spentCents)}"),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    BudgetStatusLabel(status = budget.status)
-                }
-                IconButton(onClick = onDelete) {
-                    SymbolIcon(
-                        name = "delete",
-                        contentDescription = stringResource(R.string.budget_delete_total),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        size = 24.dp
-                    )
-                }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = "¥${formatAmount(budget.amountCents)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = stringResource(R.string.budget_spent_format, "¥${formatAmount(budget.spentCents)}"),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                BudgetStatusLabel(status = budget.status)
             }
         } else {
             TextButton(onClick = onClick) {

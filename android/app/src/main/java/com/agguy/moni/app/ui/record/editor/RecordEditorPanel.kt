@@ -49,8 +49,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.agguy.moni.app.components.AutoResizeText
-import com.agguy.moni.app.icons.MoniIcon
-import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreBudgetCheckResult
@@ -226,10 +225,10 @@ private fun InfoRow(
                 onClick = onDateClick,
                 modifier = Modifier.height(36.dp)
             ) {
-                MoniIcon(
-                    icon = MoniIcons.Event,
+                SymbolIcon(
+                    name = "event",
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    size = 16.dp
                 )
                 Text(
                     text = dateText,
@@ -292,10 +291,10 @@ private fun InfoRow(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
-                            MoniIcon(
-                                icon = MoniIcons.Edit,
+                            SymbolIcon(
+                                name = "edit",
                                 contentDescription = null,
-                                modifier = Modifier.size(16.dp),
+                                size = 16.dp,
                                 tint = MaterialTheme.colorScheme.primary
                             )
                             Box(
@@ -309,10 +308,10 @@ private fun InfoRow(
                                 onClick = onNoteDone,
                                 modifier = Modifier.size(24.dp)
                             ) {
-                                MoniIcon(
-                                    icon = MoniIcons.Check,
+                                SymbolIcon(
+                                    name = "check",
                                     contentDescription = "完成",
-                                    modifier = Modifier.size(18.dp)
+                                    size = 18.dp
                                 )
                             }
                         }
@@ -324,10 +323,10 @@ private fun InfoRow(
                 onClick = onNoteClick,
                 modifier = Modifier.height(36.dp)
             ) {
-                MoniIcon(
-                    icon = MoniIcons.Edit,
+                SymbolIcon(
+                    name = "edit",
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    size = 16.dp
                 )
                 Text(
                     text = state.note.ifEmpty { "备注" },

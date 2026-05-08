@@ -47,8 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.painterResource
-import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.ui.settings.ExportDataDialog
 import com.agguy.moni.app.ui.settings.ImportConfirmDialog
 import java.io.File
@@ -119,7 +118,7 @@ fun DataManagementScreen(
                 title = { Text("数据管理") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(painterResource(MoniIcons.ArrowBack), contentDescription = "返回")
+                        SymbolIcon(name = "arrow_back", contentDescription = "返回", size = 24.dp)
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -140,14 +139,14 @@ fun DataManagementScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 ActionCard(
-                    icon = MoniIcons.Cloud,
+                    iconName = "cloud",
                     title = "导出备份",
                     subtitle = "备份到应用内或外部",
                     modifier = Modifier.weight(1f),
                     onClick = { showExportDialog = true }
                 )
                 ActionCard(
-                    icon = MoniIcons.Archive,
+                    iconName = "archive",
                     title = "导入备份",
                     subtitle = "从 ZIP 文件恢复",
                     modifier = Modifier.weight(1f),
@@ -170,10 +169,11 @@ fun DataManagementScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(MoniIcons.Archive),
+                    SymbolIcon(
+                        name = "archive",
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        size = 24.dp
                     )
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
@@ -306,7 +306,7 @@ fun DataManagementScreen(
 
 @Composable
 private fun ActionCard(
-    icon: Int,
+    iconName: String,
     title: String,
     subtitle: String,
     onClick: () -> Unit,
@@ -325,10 +325,11 @@ private fun ActionCard(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                painter = painterResource(icon),
+            SymbolIcon(
+                name = iconName,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                size = 24.dp
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -381,7 +382,7 @@ private fun BackupItemCard(
                     Text("分享", style = MaterialTheme.typography.labelLarge)
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(painterResource(MoniIcons.Delete), contentDescription = "删除")
+                    SymbolIcon(name = "delete", contentDescription = "删除", size = 24.dp)
                 }
             }
             OutlinedButton(

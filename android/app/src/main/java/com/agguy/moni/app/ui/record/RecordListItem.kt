@@ -22,7 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.components.MoniCard
-import com.agguy.moni.app.icons.MoniIcon
+import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.app.theme.iconForCategory
 import com.agguy.moni.app.theme.incomeGreen
@@ -148,10 +148,10 @@ private fun CategoryIndicator(isExpense: Boolean, iconName: String) {
             .background(color.copy(alpha = 0.15f)),
         contentAlignment = Alignment.Center
     ) {
-        MoniIcon(
-            icon = iconForCategory(iconName),
+        SymbolIcon(
+            name = iconForCategory(iconName),
             contentDescription = null,
-            modifier = Modifier.size(22.dp),
+            size = 22.dp,
             tint = color
         )
     }

@@ -16,10 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.agguy.moni.app.icons.MoniIcon
+import com.agguy.moni.app.icons.SymbolIcon
 
 @Composable
-fun SettingsItem(icon: Int, title: String, subtitle: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun SettingsItem(iconName: String, title: String, subtitle: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     MoniCard(
         modifier = modifier.fillMaxWidth(),
         onClick = onClick
@@ -34,11 +34,11 @@ fun SettingsItem(icon: Int, title: String, subtitle: String, onClick: () -> Unit
                 modifier = Modifier.size(32.dp),
                 contentAlignment = Alignment.Center
             ) {
-                MoniIcon(
-                    icon = icon,
+                SymbolIcon(
+                    name = iconName,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+                    size = 24.dp
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
@@ -60,7 +60,7 @@ fun SettingsItem(icon: Int, title: String, subtitle: String, onClick: () -> Unit
 
 @Composable
 fun SettingsToggleItem(
-    icon: Int,
+    iconName: String,
     title: String,
     subtitle: String,
     checked: Boolean,
@@ -81,11 +81,11 @@ fun SettingsToggleItem(
                 modifier = Modifier.size(32.dp),
                 contentAlignment = Alignment.Center
             ) {
-                MoniIcon(
-                    icon = icon,
+                SymbolIcon(
+                    name = iconName,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+                    size = 24.dp
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))

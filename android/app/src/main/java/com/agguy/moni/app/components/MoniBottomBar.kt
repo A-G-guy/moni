@@ -13,8 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
-import com.agguy.moni.app.icons.MoniIcon
-import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.icons.SymbolIcon
 
 /**
  * 底部导航栏。
@@ -38,8 +37,9 @@ fun MoniBottomBar(
         NavigationBar(modifier = modifier) {
             NavigationBarItem(
                 icon = {
-                    MoniIcon(
-                        icon = if (activeTab == "records") MoniIcons.ReceiptFilled else MoniIcons.Receipt,
+                    SymbolIcon(
+                        name = "receipt",
+                        filled = activeTab == "records",
                         contentDescription = "账单"
                     )
                 },
@@ -49,8 +49,9 @@ fun MoniBottomBar(
             )
             NavigationBarItem(
                 icon = {
-                    MoniIcon(
-                        icon = if (activeTab == "stats") MoniIcons.BarChartFilled else MoniIcons.BarChart,
+                    SymbolIcon(
+                        name = "bar_chart",
+                        filled = activeTab == "stats",
                         contentDescription = "统计"
                     )
                 },
@@ -60,8 +61,9 @@ fun MoniBottomBar(
             )
             NavigationBarItem(
                 icon = {
-                    MoniIcon(
-                        icon = if (activeTab == "settings") MoniIcons.SettingsFilled else MoniIcons.Settings,
+                    SymbolIcon(
+                        name = "settings",
+                        filled = activeTab == "settings",
                         contentDescription = "设置"
                     )
                 },

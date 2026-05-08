@@ -42,9 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.components.MoniCard
-import com.agguy.moni.app.icons.MoniIcon
-import com.agguy.moni.app.icons.MoniIcons
-import com.agguy.moni.app.theme.iconNameToRes
+import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.RecordType
@@ -88,7 +86,7 @@ fun ArchivedCategoriesScreen(
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        MoniIcon(MoniIcons.ArrowBack, contentDescription = "返回")
+                        SymbolIcon(name = "arrow_back", contentDescription = "返回", size = 24.dp)
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -209,10 +207,10 @@ private fun ArchivedCategoryItem(
                     .background(categoryColor.copy(alpha = if (isSubCategory) 0.1f else 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
-                MoniIcon(
-                    icon = iconNameToRes(category.iconName),
+                SymbolIcon(
+                    name = category.iconName,
                     contentDescription = null,
-                    modifier = Modifier.size(if (isSubCategory) 18.dp else 22.dp),
+                    size = if (isSubCategory) 18.dp else 22.dp,
                     tint = categoryColor
                 )
             }
@@ -226,10 +224,11 @@ private fun ArchivedCategoryItem(
             }
 
             IconButton(onClick = onUnarchiveClick) {
-                MoniIcon(
-                    icon = MoniIcons.Unarchive,
+                SymbolIcon(
+                    name = "unarchive",
                     contentDescription = "恢复",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    size = 24.dp
                 )
             }
         }

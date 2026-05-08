@@ -28,9 +28,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
-import com.agguy.moni.app.icons.MoniIcon
-import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.RecordType
@@ -80,13 +80,13 @@ fun CategoryListScreen(
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        MoniIcon(MoniIcons.ArrowBack, contentDescription = "返回")
+                        SymbolIcon(name = "arrow_back", contentDescription = "返回", size = 24.dp)
                     }
                 },
                 actions = {
                     if (!isReorderMode) {
                         IconButton(onClick = onNavigateToArchivedCategories) {
-                            MoniIcon(MoniIcons.Archive, contentDescription = "已归档分类")
+                            SymbolIcon(name = "archive", contentDescription = "已归档分类", size = 24.dp)
                         }
                     }
                     TextButton(onClick = { isReorderMode = !isReorderMode }) {
@@ -102,7 +102,7 @@ fun CategoryListScreen(
                     onClick = { showAddSheet = true },
                     shape = MaterialTheme.shapes.large
                 ) {
-                    MoniIcon(MoniIcons.AddFilled, contentDescription = "添加分类")
+                    SymbolIcon(name = "add", filled = true, contentDescription = "添加分类", size = 24.dp)
                 }
             }
         }

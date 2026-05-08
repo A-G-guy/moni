@@ -30,7 +30,6 @@ import com.agguy.moni.BuildConfig
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.ThemeSettings
 import com.agguy.moni.app.components.SettingsItem
-import com.agguy.moni.app.icons.MoniIcons
 import com.agguy.moni.app.theme.ThemeMode
 import com.agguy.moni.app.theme.displayName
 import com.agguy.moni.core.CoreIntent
@@ -86,35 +85,35 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             SettingsItem(
-                icon = MoniIcons.Palette,
+                iconName = "palette",
                 title = "外观",
                 subtitle = appearanceSubtitle,
                 onClick = onNavigateToThemeSettings
             )
 
             SettingsItem(
-                icon = MoniIcons.AttachMoney,
+                iconName = "attach_money",
                 title = "货币符号",
                 subtitle = "当前: ${appState.currencySymbol}",
                 onClick = { showCurrencyDialog = true }
             )
 
             SettingsItem(
-                icon = MoniIcons.Cloud,
+                iconName = "cloud",
                 title = "数据管理",
                 subtitle = "备份导出、导入恢复、管理应用内备份",
                 onClick = onNavigateToDataManagement
             )
 
             SettingsItem(
-                icon = MoniIcons.Tune,
+                iconName = "tune",
                 title = "开发者选项",
                 subtitle = "日志、Mock 数据、清空数据",
                 onClick = onNavigateToDeveloperOptions
             )
 
             SettingsItem(
-                icon = MoniIcons.Help,
+                iconName = "help",
                 title = "关于",
                 subtitle = "Moni v${BuildConfig.VERSION_NAME}",
                 onClick = { }

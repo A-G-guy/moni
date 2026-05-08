@@ -32,10 +32,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.components.MoniCard
-import com.agguy.moni.app.icons.MoniIcon
-import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
-import com.agguy.moni.app.theme.iconNameToRes
 import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreIntent
@@ -188,10 +186,10 @@ fun CategoryListItem(
                     .background(categoryColor.copy(alpha = if (isSubCategory) 0.1f else 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
-                MoniIcon(
-                    icon = iconNameToRes(category.iconName),
+                SymbolIcon(
+                    name = category.iconName,
                     contentDescription = null,
-                    modifier = Modifier.size(if (isSubCategory) 18.dp else 22.dp),
+                    size = if (isSubCategory) 18.dp else 22.dp,
                     tint = categoryColor
                 )
             }
@@ -222,10 +220,10 @@ fun CategoryListItem(
                         enabled = canMoveUp,
                         modifier = Modifier.size(32.dp)
                     ) {
-                        MoniIcon(
-                            icon = MoniIcons.ExpandLess,
+                        SymbolIcon(
+                            name = "expand_less",
                             contentDescription = "上移",
-                            modifier = Modifier.size(20.dp),
+                            size = 20.dp,
                             tint = if (canMoveUp) MaterialTheme.colorScheme.primary
                             else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                         )
@@ -235,10 +233,10 @@ fun CategoryListItem(
                         enabled = canMoveDown,
                         modifier = Modifier.size(32.dp)
                     ) {
-                        MoniIcon(
-                            icon = MoniIcons.ExpandMore,
+                        SymbolIcon(
+                            name = "expand_more",
                             contentDescription = "下移",
-                            modifier = Modifier.size(20.dp),
+                            size = 20.dp,
                             tint = if (canMoveDown) MaterialTheme.colorScheme.primary
                             else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                         )
@@ -247,18 +245,20 @@ fun CategoryListItem(
             } else {
                 // 普通模式：显示编辑/归档按钮
                 IconButton(onClick = onEditClick) {
-                    MoniIcon(
-                        icon = MoniIcons.Edit,
+                    SymbolIcon(
+                        name = "edit",
                         contentDescription = "编辑",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        size = 24.dp
                     )
                 }
 
                 IconButton(onClick = onArchiveClick) {
-                    MoniIcon(
-                        icon = MoniIcons.Archive,
+                    SymbolIcon(
+                        name = "archive",
                         contentDescription = "归档",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        size = 24.dp
                     )
                 }
             }

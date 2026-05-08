@@ -25,7 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.components.SettingsItem
-import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.core.CoreIntent
 
 /**
@@ -58,11 +58,10 @@ fun DeveloperOptionsScreen(
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        androidx.compose.material3.Icon(
-                            painter = androidx.compose.ui.res.painterResource(
-                                id = MoniIcons.ArrowBack
-                            ),
-                            contentDescription = "返回"
+                        SymbolIcon(
+                            name = "arrow_back",
+                            contentDescription = "返回",
+                            size = 24.dp
                         )
                     }
                 },
@@ -78,28 +77,28 @@ fun DeveloperOptionsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             SettingsItem(
-                icon = MoniIcons.Info,
+                iconName = "info",
                 title = "复制日志",
                 subtitle = "查看并导出最近日志",
                 onClick = onNavigateToDevLog
             )
 
             SettingsItem(
-                icon = MoniIcons.Add,
+                iconName = "add",
                 title = "生成测试数据",
                 subtitle = "注入 Mock 数据用于测试",
                 onClick = { showMockDataDialog = true }
             )
 
             SettingsItem(
-                icon = MoniIcons.Delete,
+                iconName = "delete",
                 title = "清空所有数据",
                 subtitle = "删除所有数据并重启（危险）",
                 onClick = { showClearDataDialog = true }
             )
 
             SettingsItem(
-                icon = MoniIcons.Category,
+                iconName = "category",
                 title = "重置预设分类",
                 subtitle = "插入默认的分类模板",
                 onClick = { onDispatch(CoreIntent.DevSeedPresets) }

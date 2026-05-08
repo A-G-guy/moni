@@ -31,8 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
-import com.agguy.moni.app.icons.MoniIcon
-import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.app.ui.record.editor.CategoryGridPager
 import com.agguy.moni.app.ui.record.editor.DatePickerBottomSheet
@@ -138,7 +137,7 @@ fun RecordDetailScreen(
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        MoniIcon(MoniIcons.ArrowBack, contentDescription = "返回")
+                        SymbolIcon(name = "arrow_back", contentDescription = "返回", size = 24.dp)
                     }
                 },
                 actions = {
@@ -152,10 +151,11 @@ fun RecordDetailScreen(
                                 onNavigateBack()
                             }
                         ) {
-                            MoniIcon(
-                                MoniIcons.Delete,
+                            SymbolIcon(
+                                name = "delete",
                                 contentDescription = "删除",
-                                tint = MaterialTheme.colorScheme.expenseRed
+                                tint = MaterialTheme.colorScheme.expenseRed,
+                                size = 24.dp
                             )
                         }
                     }
@@ -282,7 +282,7 @@ private fun RecordTypeToggle(
             onCheckedChange = { if (it) onTypeSelected(RecordType.EXPENSE) },
             icon = {
                 if (selectedType == RecordType.EXPENSE) {
-                    MoniIcon(MoniIcons.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                    SymbolIcon(name = "check", contentDescription = null, size = 18.dp)
                 }
             },
             weight = 1f
@@ -293,7 +293,7 @@ private fun RecordTypeToggle(
             onCheckedChange = { if (it) onTypeSelected(RecordType.INCOME) },
             icon = {
                 if (selectedType == RecordType.INCOME) {
-                    MoniIcon(MoniIcons.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                    SymbolIcon(name = "check", contentDescription = null, size = 18.dp)
                 }
             },
             weight = 1f

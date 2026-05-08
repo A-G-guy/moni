@@ -41,10 +41,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.components.MonthPickerSheet
-import com.agguy.moni.app.icons.MoniIcon
-import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
-import com.agguy.moni.app.theme.iconNameToRes
 import com.agguy.moni.core.CoreBudget
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreIntent
@@ -108,7 +106,7 @@ fun BudgetListScreen(
                 title = { Text("预算管理") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        MoniIcon(MoniIcons.ArrowBack, contentDescription = "返回")
+                        SymbolIcon(name = "arrow_back", contentDescription = "返回", size = 24.dp)
                     }
                 },
                 actions = {
@@ -287,10 +285,11 @@ private fun TotalBudgetCard(
                     if (totalBudget != null) {
                         BudgetStatusDot(status = totalBudget.status)
                         IconButton(onClick = onDelete) {
-                            MoniIcon(
-                                icon = MoniIcons.Delete,
+                            SymbolIcon(
+                                name = "delete",
                                 contentDescription = "删除总预算",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                size = 24.dp
                             )
                         }
                     }
@@ -377,10 +376,10 @@ private fun ParentBudgetItem(
                 ) {
                     // 展开/收起图标（仅当有子分类时显示）
                     if (hasChildren) {
-                        MoniIcon(
-                            icon = if (expanded) MoniIcons.ExpandLess else MoniIcons.ExpandMore,
+                        SymbolIcon(
+                            name = if (expanded) "expand_less" else "expand_more",
                             contentDescription = if (expanded) "收起" else "展开",
-                            modifier = Modifier.size(20.dp),
+                            size = 20.dp,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
@@ -389,10 +388,10 @@ private fun ParentBudgetItem(
                     }
 
                     // 分类图标 + 名称
-                    MoniIcon(
-                        icon = iconNameToRes(category.iconName),
+                    SymbolIcon(
+                        name = category.iconName,
                         contentDescription = null,
-                        modifier = Modifier.size(24.dp),
+                        size = 24.dp,
                         tint = MaterialTheme.colorScheme.primary
                     )
                     Text(
@@ -419,10 +418,11 @@ private fun ParentBudgetItem(
                             BudgetStatusLabel(status = budget.status)
                         }
                         IconButton(onClick = onParentDelete) {
-                            MoniIcon(
-                                icon = MoniIcons.Delete,
+                            SymbolIcon(
+                                name = "delete",
                                 contentDescription = "删除预算",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                size = 24.dp
                             )
                         }
                     }
@@ -483,10 +483,10 @@ private fun ChildBudgetItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            MoniIcon(
-                icon = iconNameToRes(category.iconName),
+            SymbolIcon(
+                name = category.iconName,
                 contentDescription = null,
-                modifier = Modifier.size(20.dp),
+                size = 20.dp,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
@@ -511,10 +511,11 @@ private fun ChildBudgetItem(
                     BudgetStatusLabel(status = budget.status)
                 }
                 IconButton(onClick = onDelete) {
-                    MoniIcon(
-                        icon = MoniIcons.Delete,
+                    SymbolIcon(
+                        name = "delete",
                         contentDescription = "删除预算",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        size = 24.dp
                     )
                 }
             }

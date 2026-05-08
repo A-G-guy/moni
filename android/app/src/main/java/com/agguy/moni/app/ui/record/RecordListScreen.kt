@@ -40,8 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.RecordItemDisplaySettings
 import com.agguy.moni.app.components.MonthPickerSheet
-import com.agguy.moni.app.icons.MoniIcon
-import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreIntent
@@ -96,15 +95,17 @@ fun RecordListScreen(
                         )
                     }
                     IconButton(onClick = onNavigateToBudgetList) {
-                        MoniIcon(
-                            icon = MoniIcons.Budget,
-                            contentDescription = "预算管理"
+                        SymbolIcon(
+                            name = "savings",
+                            contentDescription = "预算管理",
+                            size = 24.dp
                         )
                     }
                     IconButton(onClick = onNavigateToCategoryList) {
-                        MoniIcon(
-                            icon = MoniIcons.FilterList,
-                            contentDescription = "分类管理"
+                        SymbolIcon(
+                            name = "filter_list",
+                            contentDescription = "分类管理",
+                            size = 24.dp
                         )
                     }
                 },
@@ -117,9 +118,11 @@ fun RecordListScreen(
                 onClick = { onNavigateToRecordDetail(null) },
                 shape = MaterialTheme.shapes.large
             ) {
-                MoniIcon(
-                    icon = MoniIcons.AddFilled,
-                    contentDescription = "记一笔"
+                SymbolIcon(
+                    name = "add",
+                    filled = true,
+                    contentDescription = "记一笔",
+                    size = 24.dp
                 )
             }
         }

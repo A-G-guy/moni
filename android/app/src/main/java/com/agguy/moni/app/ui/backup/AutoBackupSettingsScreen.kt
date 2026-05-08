@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.agguy.moni.app.components.SettingsItem
 import com.agguy.moni.app.components.SettingsToggleItem
-import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.core.platform.AutoBackupScheduler
 import com.agguy.moni.core.platform.DataStoreHelper
 import kotlinx.coroutines.launch
@@ -130,7 +130,7 @@ fun AutoBackupSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             SettingsToggleItem(
-                icon = MoniIcons.Cloud,
+                iconName = "cloud",
                 title = "启用自动备份",
                 subtitle = if (enabled) "已启用" else "已关闭",
                 checked = enabled,
@@ -142,7 +142,7 @@ fun AutoBackupSettingsScreen(
             AnimatedVisibility(visible = enabled) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     SettingsItem(
-                        icon = MoniIcons.Event,
+                        iconName = "event",
                         title = "备份频率",
                         subtitle = frequencyLabel,
                         onClick = { showFrequencyDialog = true }
@@ -188,7 +188,7 @@ fun AutoBackupSettingsScreen(
                     }
 
                     SettingsToggleItem(
-                        icon = MoniIcons.Archive,
+                        iconName = "archive",
                         title = "复制到外部目录",
                         subtitle = if (copyToExternal) "已启用" else "关闭",
                         checked = copyToExternal,
@@ -204,7 +204,7 @@ fun AutoBackupSettingsScreen(
 
                     AnimatedVisibility(visible = copyToExternal) {
                         SettingsItem(
-                            icon = MoniIcons.Archive,
+                            iconName = "archive",
                             title = "选择外部目录",
                             subtitle = externalUri ?: "未选择",
                             onClick = { externalDirPickerLauncher.launch(null) }

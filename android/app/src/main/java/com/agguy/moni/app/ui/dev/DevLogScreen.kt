@@ -36,7 +36,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.BuildConfig
-import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.core.platform.LogCollector
 import com.agguy.moni.core.platform.LogLevel
@@ -73,11 +73,10 @@ fun DevLogScreen(onNavigateBack: () -> Unit, modifier: Modifier = Modifier) {
                 windowInsets = WindowInsets(0, 0, 0, 0),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        androidx.compose.material3.Icon(
-                            painter = androidx.compose.ui.res.painterResource(
-                                id = MoniIcons.ArrowBack
-                            ),
-                            contentDescription = "返回"
+                        SymbolIcon(
+                            name = "arrow_back",
+                            contentDescription = "返回",
+                            size = 24.dp
                         )
                     }
                 },

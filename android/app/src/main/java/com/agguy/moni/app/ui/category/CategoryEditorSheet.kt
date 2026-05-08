@@ -35,11 +35,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.agguy.moni.app.icons.MoniIcon
-import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.icons.SymbolIcon
 import androidx.compose.foundation.layout.Box
 import com.agguy.moni.app.theme.expenseRed
-import com.agguy.moni.app.theme.iconNameToRes
 import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreIntent
@@ -297,10 +295,10 @@ private fun CategoryTypeSelector(
                 onCheckedChange = { if (it) onTypeSelected(RecordType.EXPENSE) },
                 icon = {
                     if (selectedType == RecordType.EXPENSE) {
-                        MoniIcon(
-                            MoniIcons.Check,
+                        SymbolIcon(
+                            name = "check",
                             contentDescription = null,
-                            modifier = Modifier.size(18.dp)
+                            size = 18.dp
                         )
                     }
                 },
@@ -312,10 +310,10 @@ private fun CategoryTypeSelector(
                 onCheckedChange = { if (it) onTypeSelected(RecordType.INCOME) },
                 icon = {
                     if (selectedType == RecordType.INCOME) {
-                        MoniIcon(
-                            MoniIcons.Check,
+                        SymbolIcon(
+                            name = "check",
                             contentDescription = null,
-                            modifier = Modifier.size(18.dp)
+                            size = 18.dp
                         )
                     }
                 },
@@ -359,10 +357,10 @@ private fun IconSelectorRow(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                MoniIcon(
-                    icon = iconNameToRes(iconName),
+                SymbolIcon(
+                    name = iconName,
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp),
+                    size = 24.dp,
                     tint = MaterialTheme.colorScheme.onSurface
                 )
 
@@ -373,9 +371,10 @@ private fun IconSelectorRow(
                     modifier = Modifier.weight(1f)
                 )
 
-                MoniIcon(
-                    icon = MoniIcons.ExpandMore,
+                SymbolIcon(
+                    name = "expand_more",
                     contentDescription = "选择图标",
+                    size = 24.dp,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -424,10 +423,10 @@ private fun ParentCategorySelectorRow(
                     else
                         MaterialTheme.colorScheme.incomeGreen
 
-                    MoniIcon(
-                        icon = iconNameToRes(parent.iconName),
+                    SymbolIcon(
+                        name = parent.iconName,
                         contentDescription = null,
-                        modifier = Modifier.size(20.dp),
+                        size = 20.dp,
                         tint = parentColor
                     )
 
@@ -455,9 +454,10 @@ private fun ParentCategorySelectorRow(
                     )
                 }
 
-                MoniIcon(
-                    icon = MoniIcons.ExpandMore,
+                SymbolIcon(
+                    name = "expand_more",
                     contentDescription = "选择父分类",
+                    size = 24.dp,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

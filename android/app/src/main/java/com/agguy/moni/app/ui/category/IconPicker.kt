@@ -30,7 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.agguy.moni.app.icons.MoniIcon
+import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.CategoryIcon
 import com.agguy.moni.app.theme.GroupedCategoryIcons
 import com.agguy.moni.app.theme.IconGroup
@@ -56,7 +56,7 @@ fun IconPicker(selectedIconName: String, onIconSelected: (String) -> Unit, modif
             val query = searchQuery.lowercase()
             GroupedCategoryIcons.mapNotNull { group ->
                 val matched = group.icons.filter {
-                    it.name.lowercase().contains(query)
+                    it.name.lowercase().contains(query) || it.displayName.contains(query)
                 }
                 if (matched.isNotEmpty()) {
                     IconGroup(label = group.label, icons = matched)
@@ -136,7 +136,7 @@ private fun IconGroupSection(group: IconGroup, selectedIconName: String, onIconS
         )
 
         BoxWithConstraints(modifier = Modifier.fillMaxWidth().padding(4.dp)) {
-            val itemSize = 48.dp
+            val itemSize = 64.dp
             val spacing = 8.dp
             val columns = maxOf(
                 1,
@@ -190,42 +190,47 @@ private fun IconPickerOption(
     modifier: Modifier = Modifier
 ) {
     val optionShape = MaterialTheme.shapes.medium
-    val iconRes = if (isSelected) icon.iconResFilled else icon.iconRes
-
-    Box(
-        modifier = modifier
-            .clip(optionShape),
-        contentAlignment = Alignment.Center
+    Surface(
+        onClick = onClick,
+        shape = optionShape,
+        color = if (isSelected) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHighest
+        },
+        modifier = modifier.clip(optionShape),
+        border = if (isSelected) {
+            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+        } else {
+            null
+        }
     ) {
-        Surface(
-            onClick = onClick,
-            shape = optionShape,
-            color = if (isSelected) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.surfaceContainerHighest
-            },
+        Column(
             modifier = Modifier.fillMaxSize(),
-            border = if (isSelected) {
-                BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-            } else {
-                null
-            }
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically)
         ) {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                MoniIcon(
-                    icon = iconRes,
-                    contentDescription = icon.name,
-                    tint = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                )
-            }
+            SymbolIcon(
+                name = icon.name,
+                filled = isSelected,
+                contentDescription = icon.displayName,
+                size = 32.dp,
+                tint = if (isSelected) {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
+            )
+            Text(
+                text = icon.displayName,
+                style = MaterialTheme.typography.labelSmall,
+                color = if (isSelected) {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                maxLines = 1
+            )
         }
     }
 }

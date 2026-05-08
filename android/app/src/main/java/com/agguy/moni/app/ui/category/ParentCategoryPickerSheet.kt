@@ -25,10 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.agguy.moni.app.icons.MoniIcon
-import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
-import com.agguy.moni.app.theme.iconNameToRes
 import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreCategory
 
@@ -140,10 +138,10 @@ fun ParentCategoryPickerSheet(
                                     .background(parentColor.copy(alpha = 0.15f)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                MoniIcon(
-                                    icon = iconNameToRes(parent.iconName),
+                                SymbolIcon(
+                                    name = parent.iconName,
                                     contentDescription = null,
-                                    modifier = Modifier.size(20.dp),
+                                    size = 20.dp,
                                     tint = parentColor
                                 )
                             }
@@ -160,11 +158,11 @@ fun ParentCategoryPickerSheet(
                             )
 
                             if (isSelected) {
-                                MoniIcon(
-                                    icon = MoniIcons.Check,
+                                SymbolIcon(
+                                    name = "check",
                                     contentDescription = "已选中",
                                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    modifier = Modifier.size(20.dp)
+                                    size = 20.dp
                                 )
                             }
                         }

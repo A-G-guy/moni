@@ -19,8 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
-import com.agguy.moni.app.icons.MoniIcon
-import com.agguy.moni.app.icons.MoniIcons
+import androidx.compose.ui.unit.dp
+import com.agguy.moni.app.icons.SymbolIcon
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -52,7 +52,7 @@ fun DatePickerField(timestamp: Long, onTimestampChange: (Long) -> Unit, modifier
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         trailingIcon = {
             FilledTonalIconButton(onClick = { showDialog = true }) {
-                MoniIcon(MoniIcons.Event, contentDescription = "选择日期")
+                SymbolIcon(name = "event", contentDescription = "选择日期", size = 24.dp)
             }
         },
         modifier = modifier.fillMaxWidth()

@@ -39,7 +39,7 @@ import androidx.compose.foundation.shape.CircleShape
 import com.agguy.moni.app.RecordItemDisplaySettings
 import com.agguy.moni.app.ThemeSettings
 import com.agguy.moni.app.components.SettingsToggleItem
-import com.agguy.moni.app.icons.MoniIcons
+import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.PresetColorScheme
 import com.agguy.moni.app.theme.ThemeMode
 import com.agguy.moni.app.theme.displayName
@@ -73,9 +73,10 @@ fun ThemeSettingsScreen(
                 title = { Text("外观") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        androidx.compose.material3.Icon(
-                            painter = androidx.compose.ui.res.painterResource(id = MoniIcons.ArrowBack),
-                            contentDescription = "返回"
+                        SymbolIcon(
+                            name = "arrow_back",
+                            contentDescription = "返回",
+                            size = 24.dp
                         )
                     }
                 },
@@ -114,21 +115,21 @@ fun ThemeSettingsScreen(
             // === 账单条目内容 ===
             SectionTitle("账单条目内容")
             SettingsToggleItem(
-                icon = MoniIcons.Category,
+                iconName = "category",
                 title = "显示图标",
                 subtitle = "在账单条目中显示分类图标",
                 checked = recordItemDisplaySettings.showIcon,
                 onCheckedChange = onUpdateRecordShowIcon
             )
             SettingsToggleItem(
-                icon = MoniIcons.FilterList,
+                iconName = "filter_list",
                 title = "显示完整分类",
                 subtitle = "同时显示一级和二级分类名称",
                 checked = recordItemDisplaySettings.showFullCategory,
                 onCheckedChange = onUpdateRecordShowFullCategory
             )
             SettingsToggleItem(
-                icon = MoniIcons.Edit,
+                iconName = "edit",
                 title = "备注优先",
                 subtitle = "备注和分类名称的显示位置互换",
                 checked = recordItemDisplaySettings.notePriority,

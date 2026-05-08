@@ -27,9 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.agguy.moni.app.icons.MoniIcon
-import com.agguy.moni.app.theme.GroupedCategoryIcons
-import com.agguy.moni.app.theme.iconNameToRes
+import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.core.CoreBudgetCheckResult
 import com.agguy.moni.core.CoreCategory
 
@@ -151,14 +149,6 @@ private fun PrimaryCategoryItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val iconRes = remember(category.iconName) {
-        iconNameToRes(category.iconName)
-    }
-    val filledIconRes = remember(category.iconName) {
-        iconNameToFilledRes(category.iconName)
-    }
-    val displayIcon = if (isSelected && filledIconRes != null) filledIconRes else iconRes
-
     val borderColor = if (isSelected) {
         MaterialTheme.colorScheme.primary
     } else {
@@ -195,10 +185,11 @@ private fun PrimaryCategoryItem(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically)
         ) {
-            MoniIcon(
-                icon = displayIcon,
+            SymbolIcon(
+                name = category.iconName,
+                filled = isSelected,
                 contentDescription = null,
-                modifier = Modifier.size(28.dp),
+                size = 28.dp,
                 tint = contentColor
             )
             Text(
@@ -222,14 +213,6 @@ private fun SubCategoryItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val iconRes = remember(category.iconName) {
-        iconNameToRes(category.iconName)
-    }
-    val filledIconRes = remember(category.iconName) {
-        iconNameToFilledRes(category.iconName)
-    }
-    val displayIcon = if (isSelected && filledIconRes != null) filledIconRes else iconRes
-
     val borderColor = if (isSelected) {
         MaterialTheme.colorScheme.primary
     } else {
@@ -266,10 +249,11 @@ private fun SubCategoryItem(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically)
         ) {
-            MoniIcon(
-                icon = displayIcon,
+            SymbolIcon(
+                name = category.iconName,
+                filled = isSelected,
                 contentDescription = null,
-                modifier = Modifier.size(28.dp),
+                size = 28.dp,
                 tint = contentColor
             )
             Text(
@@ -286,13 +270,3 @@ private fun SubCategoryItem(
     }
 }
 
-/**
- * 根据图标名称查找选中态（filled）图标资源 ID。
- */
-private fun iconNameToFilledRes(iconName: String): Int? {
-    return GroupedCategoryIcons
-        .asSequence()
-        .flatMap { it.icons.asSequence() }
-        .firstOrNull { it.name == iconName }
-        ?.iconResFilled
-}

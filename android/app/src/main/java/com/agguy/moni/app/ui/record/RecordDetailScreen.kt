@@ -23,7 +23,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,6 +66,8 @@ fun RecordDetailScreen(
     recordId: Long?,
     onDispatch: (CoreIntent) -> Unit,
     onNavigateBack: () -> Unit,
+    onCheckBudget: (Long, Long) -> Unit = { _, _ -> },
+    onClearBudgetCheck: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val existingRecord = remember(recordId, appState.records) {
@@ -79,12 +83,15 @@ fun RecordDetailScreen(
     // 仅在切换分类或切到收入时清空；金额变化期间保持旧值显示直到新结果到达。
     var displayedCheckResult by remember { mutableStateOf<com.agguy.moni.core.CoreBudgetCheckResult?>(null) }
 
+    // 分类切换或切到收入时清空预算检查缓存并通知 ViewModel
     LaunchedEffect(state.selectedCategoryId, state.recordType) {
         if (state.recordType != RecordType.EXPENSE || state.selectedCategoryId == -1L) {
             displayedCheckResult = null
+            onClearBudgetCheck()
         }
     }
 
+    // 预算结果到达时更新显示缓存
     LaunchedEffect(appState.budgetCheckResult) {
         appState.budgetCheckResult?.let { result ->
             if (result.categoryId == state.selectedCategoryId) {
@@ -93,23 +100,15 @@ fun RecordDetailScreen(
         }
     }
 
-    // 监听金额/分类变化，触发预算实时检查。
-    // 首次延迟 50ms（几乎立即），后续延迟 150ms（避免快速输入时过度触发）。
-    LaunchedEffect(state.confirmedAmountCents, state.selectedCategoryId, state.recordType) {
-        if (state.recordType == RecordType.EXPENSE &&
-            state.confirmedAmountCents > 0 &&
-            state.selectedCategoryId != -1L
-        ) {
-            val delayMs = if (displayedCheckResult == null) 50L else 150L
-            kotlinx.coroutines.delay(delayMs)
-            val yearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))
-            onDispatch(
-                CoreIntent.BudgetCheck(
-                    categoryId = state.selectedCategoryId,
-                    yearMonth = yearMonth,
-                    amountCents = state.confirmedAmountCents
-                )
-            )
+    // 金额变化时触发预算检查（去抖动逻辑在 ViewModel 中处理）
+    SideEffect {
+        state.onAmountChanged = { amountCents ->
+            if (state.recordType == RecordType.EXPENSE &&
+                state.selectedCategoryId != -1L &&
+                amountCents > 0
+            ) {
+                onCheckBudget(state.selectedCategoryId, amountCents)
+            }
         }
     }
 
@@ -217,7 +216,8 @@ fun RecordDetailScreen(
                                     amountCents = state.confirmedAmountCents,
                                     recordType = state.recordType,
                                     categoryId = state.selectedCategoryId,
-                                    note = state.note
+                                    note = state.note,
+                                    timestamp = state.timestamp
                                 )
                             )
                         } else {

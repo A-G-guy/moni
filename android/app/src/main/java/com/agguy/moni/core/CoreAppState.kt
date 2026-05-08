@@ -11,6 +11,7 @@ data class CoreAppState(
     val currentMonthBreakdown: List<CoreCategoryBreakdown> = emptyList(),
     val budgets: List<CoreBudget> = emptyList(),
     val budgetCheckResult: CoreBudgetCheckResult? = null,
+    val overviewMetrics: CoreOverviewMetrics? = null,
     val settings: CoreSettings = CoreSettings(),
     val ui: CoreUiState = CoreUiState()
 )
@@ -79,6 +80,21 @@ data class CoreBudget(
     val percentage: Double,
     val status: String,
     val isSnapshot: Boolean = false
+)
+
+@Serializable
+data class CoreOverviewMetrics(
+    val monthExpense: Long = 0,
+    val monthIncome: Long = 0,
+    val monthBalance: Long = 0,
+    val todayExpense: Long? = null,
+    val dailyAvg: Long? = null,
+    val dailyRemaining: Long? = null,
+    val totalBudget: CoreBudget? = null,
+    val elapsedDays: Int = 1,
+    val totalDays: Int = 30,
+    val remainingDays: Int = 0,
+    val budgetProgressStatus: String? = null
 )
 
 @Serializable

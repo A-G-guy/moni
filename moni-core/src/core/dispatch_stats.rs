@@ -26,6 +26,17 @@ impl AppCoreRuntime {
                     calculator::calculate_category_breakdown(aggregates);
                 self.finish(Vec::new())
             }
+            CoreIntent::StatsOverviewMetrics { year_month, today } => {
+                let metrics = calculator::calculate_overview_metrics(
+                    &year_month,
+                    &self.state.record_groups,
+                    &self.state.monthly_summaries,
+                    &self.state.budgets,
+                    &today,
+                );
+                self.state.overview_metrics = Some(metrics);
+                self.finish(Vec::new())
+            }
             _ => {
                 log::warn!("统计模块收到未支持的意图类型");
                 Err(CoreError::Internal("未支持的意图类型".to_string()))

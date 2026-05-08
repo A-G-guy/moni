@@ -39,6 +39,7 @@ pub enum CoreIntent {
         record_type: Option<RecordType>,
         category_id: Option<CategoryId>,
         note: Option<String>,
+        timestamp: Option<TimestampSec>,
     },
     RecordDelete {
         id: RecordId,
@@ -87,6 +88,10 @@ pub enum CoreIntent {
         year_month: String,
         aggregate_by_parent: bool,
     },
+    StatsOverviewMetrics {
+        year_month: String,
+        today: String,
+    },
 
     SettingsUpdateCurrency {
         symbol: String,
@@ -110,6 +115,10 @@ pub enum CoreIntent {
         category_id: CategoryId,
         year_month: String,
         amount_cents: AmountCents,
+    },
+
+    RefreshMonthData {
+        year_month: String,
     },
 
     DevClearAllData,

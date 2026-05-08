@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import com.agguy.moni.app.navigation.Screen
 import com.agguy.moni.app.theme.PresetColorScheme
 import com.agguy.moni.app.theme.ThemeMode
+import com.agguy.moni.app.ui.record.editor.ExpressionEvaluator
 import com.agguy.moni.core.CoreEffectRunner
 import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.RustCoreController
@@ -49,6 +50,7 @@ class AppViewModel(
     val selectedYearMonth: StateFlow<String> = _selectedYearMonth.asStateFlow()
 
     private var _navController: NavHostController? = null
+    private var budgetCheckJob: kotlinx.coroutines.Job? = null
 
     /** 供 UI 层绑定导航控制器。 */
     fun bindNavController(navController: NavHostController) {
@@ -61,6 +63,18 @@ class AppViewModel(
     }
 
     init {
+        // 初始化表达式计算器（委托给 Rust 内核）
+        ExpressionEvaluator.initialize(rustCore)
+
+        effectRunner.onPersistSetting = { key, value ->
+            viewModelScope.launch {
+                when (key) {
+                    "currency_symbol" -> DataStoreHelper.saveCurrencySymbol(getApplication(), value)
+                    else -> LogCollector.w("AppViewModel", "未知的持久化设置 key: $key")
+                }
+            }
+        }
+
         effectRunner.onNavigate = { screen ->
             LogCollector.d("MoniNavigate", "Navigate to: $screen")
             _navController?.let { nav ->
@@ -94,9 +108,7 @@ class AppViewModel(
 
                 dispatch(CoreIntent.CategoryList)
                 dispatch(CoreIntent.StatsMonthlySummary(months = 36))
-                dispatch(CoreIntent.RecordListByMonth(yearMonth = currentYearMonth))
-                dispatch(CoreIntent.StatsCategoryBreakdown(yearMonth = currentYearMonth))
-                dispatch(CoreIntent.BudgetList(yearMonth = currentYearMonth))
+                dispatch(CoreIntent.RefreshMonthData(yearMonth = currentYearMonth))
                 syncCurrencySymbolFromDataStore()
                 syncThemeSettingsFromDataStore()
                 syncRecordItemDisplaySettingsFromDataStore()
@@ -129,21 +141,13 @@ class AppViewModel(
     fun selectYearMonth(yearMonth: String) {
         if (_selectedYearMonth.value == yearMonth) return
         _selectedYearMonth.value = yearMonth
-        dispatch(CoreIntent.RecordListByMonth(yearMonth = yearMonth))
-        dispatch(CoreIntent.StatsCategoryBreakdown(yearMonth = yearMonth))
-        dispatch(CoreIntent.BudgetList(yearMonth = yearMonth))
+        dispatch(CoreIntent.RefreshMonthData(yearMonth = yearMonth))
     }
 
     fun dispatch(intent: CoreIntent) {
         viewModelScope.launch {
             LogCollector.i("AppViewModel", "Dispatch intent: ${intent::class.simpleName}")
             try {
-                if (intent is CoreIntent.SettingsUpdateCurrency) {
-                    DataStoreHelper.saveCurrencySymbol(
-                        getApplication(),
-                        intent.symbol
-                    )
-                }
                 val mutation = rustCore.dispatch(intent)
                 applyMutation(mutation)
 
@@ -155,24 +159,14 @@ class AppViewModel(
                     val yearMonth = _selectedYearMonth.value
                     if (yearMonth.isNotEmpty()) {
                         runCatching {
-                            rustCore.dispatch(CoreIntent.RecordListByMonth(yearMonth = yearMonth))
+                            rustCore.dispatch(CoreIntent.RefreshMonthData(yearMonth = yearMonth))
                         }.onSuccess(::applyMutation).onFailure { e ->
-                            LogCollector.e("AppViewModel", "刷新记录列表失败", e)
+                            LogCollector.e("AppViewModel", "刷新月份数据失败", e)
                         }
                         runCatching {
                             rustCore.dispatch(CoreIntent.StatsMonthlySummary(months = 36))
                         }.onSuccess(::applyMutation).onFailure { e ->
                             LogCollector.e("AppViewModel", "刷新月度统计失败", e)
-                        }
-                        runCatching {
-                            rustCore.dispatch(CoreIntent.StatsCategoryBreakdown(yearMonth = yearMonth, aggregateByParent = false))
-                        }.onSuccess(::applyMutation).onFailure { e ->
-                            LogCollector.e("AppViewModel", "刷新分类统计失败", e)
-                        }
-                        runCatching {
-                            rustCore.dispatch(CoreIntent.BudgetList(yearMonth = yearMonth))
-                        }.onSuccess(::applyMutation).onFailure { e ->
-                            LogCollector.e("AppViewModel", "刷新预算列表失败", e)
                         }
                     }
                 }
@@ -287,6 +281,34 @@ class AppViewModel(
 
     fun navigateToDevLog() {
         _navController?.navigate(Screen.DevLog)
+    }
+
+    /**
+     * 触发预算检查（含去抖动）。
+     * 首次延迟 50ms，后续延迟 150ms，避免快速输入时过度触发 FFI。
+     */
+    fun checkBudget(categoryId: Long, amountCents: Long) {
+        budgetCheckJob?.cancel()
+        budgetCheckJob = viewModelScope.launch {
+            val delayMs = if (_uiState.value.budgetCheckResult == null) 50L else 150L
+            kotlinx.coroutines.delay(delayMs)
+            val yearMonth = _selectedYearMonth.value
+            if (yearMonth.isNotEmpty() && amountCents > 0) {
+                dispatch(
+                    CoreIntent.BudgetCheck(
+                        categoryId = categoryId,
+                        yearMonth = yearMonth,
+                        amountCents = amountCents
+                    )
+                )
+            }
+        }
+    }
+
+    /** 取消正在进行的预算检查并清空结果。 */
+    fun clearBudgetCheck() {
+        budgetCheckJob?.cancel()
+        _uiState.value = _uiState.value.copy(budgetCheckResult = null)
     }
 
     fun navigateToArchivedCategories() {

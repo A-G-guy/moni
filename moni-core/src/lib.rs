@@ -366,6 +366,23 @@ impl MoniCore {
             .await
             .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
     }
+
+    // === 纯计算函数（不涉及数据库，同步执行） ===
+
+    /// 解析表达式并返回计算结果（分）。
+    pub fn evaluate_expression(&self, expression: String) -> Option<i64> {
+        crate::domain::calculator::expression::evaluate_expression(&expression)
+    }
+
+    /// 判断表达式是否包含未计算的运算符。
+    pub fn has_pending_operation(&self, expression: String) -> bool {
+        crate::domain::calculator::expression::has_pending_operation(&expression)
+    }
+
+    /// 格式化表达式用于显示，在运算符两侧添加空格。
+    pub fn format_expression_for_display(&self, expression: String) -> String {
+        crate::domain::calculator::expression::format_for_display(&expression)
+    }
 }
 
 uniffi::setup_scaffolding!();

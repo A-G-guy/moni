@@ -22,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,11 +36,8 @@ import com.agguy.moni.app.components.MoniCardVariant
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.app.theme.incomeGreen
 import com.agguy.moni.core.CoreBudget
-import com.agguy.moni.core.CoreMonthlySummary
-import com.agguy.moni.core.CoreRecordGroup
+import com.agguy.moni.core.CoreOverviewMetrics
 import com.agguy.moni.core.util.formatAmount
-import java.time.LocalDate
-import java.time.YearMonth
 
 /**
  * 账单页顶部月度概览卡片。
@@ -54,15 +50,11 @@ import java.time.YearMonth
 @Composable
 fun RecordOverviewCard(
     selectedYearMonth: String,
-    recordGroups: List<CoreRecordGroup>,
-    monthlySummaries: List<CoreMonthlySummary>,
-    budgets: List<CoreBudget>,
+    overviewMetrics: CoreOverviewMetrics?,
     currencySymbol: String,
     modifier: Modifier = Modifier
 ) {
-    val metrics = remember(selectedYearMonth, recordGroups, monthlySummaries, budgets) {
-        calculateOverviewMetrics(selectedYearMonth, recordGroups, monthlySummaries, budgets, LocalDate.now())
-    }
+    val metrics = overviewMetrics ?: CoreOverviewMetrics()
 
     MoniCard(
         modifier = modifier.fillMaxWidth(),
@@ -109,6 +101,7 @@ fun RecordOverviewCard(
                         monthExpense = metrics.monthExpense,
                         elapsedDays = metrics.elapsedDays,
                         totalDays = metrics.totalDays,
+                        progressStatus = metrics.budgetProgressStatus,
                         currencySymbol = currencySymbol
                     )
                 }
@@ -213,6 +206,7 @@ private fun BudgetProgressSection(
     monthExpense: Long,
     elapsedDays: Int,
     totalDays: Int,
+    progressStatus: String?,
     currencySymbol: String,
     modifier: Modifier = Modifier
 ) {
@@ -261,7 +255,8 @@ private fun BudgetProgressSection(
 
         IdealProgressBar(
             actualPercentage = actualPercentage,
-            idealPercentage = idealPercentage
+            idealPercentage = idealPercentage,
+            progressStatus = progressStatus
         )
     }
 }
@@ -276,14 +271,17 @@ private fun BudgetProgressSection(
 private fun IdealProgressBar(
     actualPercentage: Double,
     idealPercentage: Double,
+    progressStatus: String?,
     modifier: Modifier = Modifier
 ) {
-    val clampedActual = actualPercentage.coerceIn(0.0, 1.0).toFloat()
+    // 进度条显示剩余比例：未花时满，花得越多越少
+    val clampedActual = (1.0 - actualPercentage).coerceIn(0.0, 1.0).toFloat()
     val clampedIdeal = idealPercentage.coerceIn(0.0, 1.0).toFloat()
 
-    val progressColor = when {
-        actualPercentage > 1.0 -> MaterialTheme.colorScheme.expenseRed
-        actualPercentage >= 0.8 -> Color(0xFFFFA726)
+    // 颜色由 Rust 内核根据实际支出与理想时间进度的对比计算
+    val progressColor = when (progressStatus) {
+        "overrun" -> MaterialTheme.colorScheme.expenseRed
+        "warning" -> Color(0xFFFFA726)
         else -> MaterialTheme.colorScheme.primary
     }
 
@@ -292,7 +290,7 @@ private fun IdealProgressBar(
             .fillMaxWidth()
             .height(8.dp)
     ) {
-        // 原生进度条：实际支出进度
+        // 原生进度条：剩余预算比例
         LinearProgressIndicator(
             progress = { clampedActual },
             modifier = Modifier.fillMaxSize(),
@@ -319,124 +317,5 @@ private fun IdealProgressBar(
                 size = Size(width = markerWidth, height = trackHeight)
             )
         }
-    }
-}
-
-/**
- * 概览指标数据。
- */
-internal data class OverviewMetrics(
-    val monthExpense: Long = 0,
-    val monthIncome: Long = 0,
-    val monthBalance: Long = 0,
-    val todayExpense: Long? = null,
-    val dailyAvg: Long? = null,
-    val dailyRemaining: Long? = null,
-    val totalBudget: CoreBudget? = null,
-    val elapsedDays: Int = 1,
-    val totalDays: Int = 30,
-    val remainingDays: Int = 0
-)
-
-/**
- * 计算概览所需的全部指标。
- */
-internal fun calculateOverviewMetrics(
-    selectedYearMonth: String,
-    recordGroups: List<CoreRecordGroup>,
-    monthlySummaries: List<CoreMonthlySummary>,
-    budgets: List<CoreBudget>,
-    today: LocalDate
-): OverviewMetrics {
-    val yearMonth = parseYearMonth(selectedYearMonth)
-        ?: return OverviewMetrics()
-
-    val totalDays = yearMonth.lengthOfMonth()
-    val currentYearMonth = YearMonth.from(today)
-
-    val (elapsedDays, remainingDays) = calculateDayCounts(yearMonth, currentYearMonth, today, totalDays)
-
-    // 月度汇总
-    val summary = monthlySummaries.find { it.yearMonth == selectedYearMonth }
-    val monthExpense = summary?.expenseCents ?: 0
-    val monthIncome = summary?.incomeCents ?: 0
-    val monthBalance = summary?.balanceCents ?: 0
-
-    // 今日支出（仅当前月有效）
-    val todayExpense = if (yearMonth == currentYearMonth) {
-        recordGroups.find { it.date == today.toString() }?.expenseCents ?: 0
-    } else {
-        null
-    }
-
-    // 日均支出（未来月不显示）
-    val dailyAvg = if (yearMonth.isAfter(currentYearMonth)) {
-        null
-    } else {
-        monthExpense / elapsedDays.coerceAtLeast(1)
-    }
-
-    // 总预算
-    val totalBudget = budgets.find { it.categoryId == null }
-
-    // 日均剩余：有总预算时为"剩余总预算 / 剩余天数"，否则为"月结余 / 剩余天数"
-    val dailyRemaining = if (remainingDays > 0) {
-        if (totalBudget != null) {
-            (totalBudget.amountCents - monthExpense) / remainingDays
-        } else {
-            monthBalance / remainingDays
-        }
-    } else {
-        null
-    }
-
-    return OverviewMetrics(
-        monthExpense = monthExpense,
-        monthIncome = monthIncome,
-        monthBalance = monthBalance,
-        todayExpense = todayExpense,
-        dailyAvg = dailyAvg,
-        dailyRemaining = dailyRemaining,
-        totalBudget = totalBudget,
-        elapsedDays = elapsedDays,
-        totalDays = totalDays,
-        remainingDays = remainingDays
-    )
-}
-
-/**
- * 解析 "YYYY-MM" 字符串为 YearMonth。
- */
-internal fun parseYearMonth(yearMonthStr: String): YearMonth? {
-    val parts = yearMonthStr.split("-")
-    if (parts.size != 2) return null
-    val year = parts[0].toIntOrNull() ?: return null
-    val month = parts[1].toIntOrNull() ?: return null
-    return try {
-        YearMonth.of(year, month)
-    } catch (_: Exception) {
-        null
-    }
-}
-
-/**
- * 计算已过天数、剩余天数。
- */
-internal fun calculateDayCounts(
-    yearMonth: YearMonth,
-    currentYearMonth: YearMonth,
-    today: LocalDate,
-    totalDays: Int
-): Pair<Int, Int> = when {
-    yearMonth == currentYearMonth -> {
-        val elapsed = today.dayOfMonth.coerceAtLeast(1)
-        val remaining = (totalDays - elapsed).coerceAtLeast(0)
-        elapsed to remaining
-    }
-    yearMonth.isBefore(currentYearMonth) -> {
-        totalDays to 0
-    }
-    else -> {
-        0 to totalDays
     }
 }

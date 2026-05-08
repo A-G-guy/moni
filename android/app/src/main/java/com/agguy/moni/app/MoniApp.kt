@@ -125,6 +125,8 @@ fun MoniApp() {
                 onNavigateToCategoryList = viewModel::navigateToCategoryList,
                 onNavigateToArchivedCategories = viewModel::navigateToArchivedCategories,
                 onNavigateBack = viewModel::navigateBack,
+                onCheckBudget = viewModel::checkBudget,
+                onClearBudgetCheck = viewModel::clearBudgetCheck,
                 onUpdateThemeMode = viewModel::updateThemeMode,
                 onUpdatePresetColorScheme = viewModel::updatePresetColorScheme,
                 onUpdateRecordShowIcon = viewModel::updateRecordShowIcon,

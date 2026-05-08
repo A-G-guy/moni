@@ -94,6 +94,23 @@ class RustCoreController {
         return core.autoBackupCleanup(backupDir, maxCount)
     }
 
+    // === 纯计算函数（同步调用，不涉及数据库） ===
+
+    /** 解析表达式并返回计算结果（分）。 */
+    fun evaluateExpression(expression: String): Long? {
+        return core.evaluateExpression(expression)
+    }
+
+    /** 判断表达式是否包含未计算的运算符。 */
+    fun hasPendingOperation(expression: String): Boolean {
+        return core.hasPendingOperation(expression)
+    }
+
+    /** 格式化表达式用于显示，在运算符两侧添加空格。 */
+    fun formatExpressionForDisplay(expression: String): String {
+        return core.formatExpressionForDisplay(expression)
+    }
+
     private fun decodeMutation(update: uniffi.moni_core.CoreUpdate): CoreMutation {
         return try {
             CoreMutation(

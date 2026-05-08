@@ -5,6 +5,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.agguy.moni.BuildConfig
 import com.agguy.moni.core.RustCoreController
+import com.agguy.moni.di.AppModule
 import kotlinx.coroutines.flow.first
 
 /**
@@ -13,8 +14,8 @@ import kotlinx.coroutines.flow.first
  * 从 DataStore 读取配置，调用 Rust 核心完成备份决策、执行与清理。
  * 若配置了外部目录复制，通过 SAF 将备份复制到指定位置。
  *
- * 注意：每次执行都会创建独立的 [RustCoreController] 并初始化到实际数据库路径，
- * 以确保 Worker 在独立进程中也能正确访问数据。
+ * 使用 [AppModule] 提供的全局单例 [RustCoreController]，避免独立实例导致未初始化数据库。
+ * 若 Worker 运行在独立进程，单例会在该进程中首次创建并初始化。
  */
 class AutoBackupWorker(
     context: Context,
@@ -37,9 +38,9 @@ class AutoBackupWorker(
         val externalUri = DataStoreHelper.autoBackupExternalUriFlow(ctx).first()
         val lastTime = DataStoreHelper.autoBackupLastTimeFlow(ctx).first()
 
-        // 2. 初始化 Rust 核心到实际数据库
+        // 2. 获取 Rust 核心单例并确保已初始化
         val dbPath = ctx.filesDir.absolutePath + "/moni.db"
-        val rustCore = RustCoreController()
+        val rustCore = AppModule.provideRustCoreController()
         try {
             rustCore.initializeWithDb(dbPath)
         } catch (e: Exception) {

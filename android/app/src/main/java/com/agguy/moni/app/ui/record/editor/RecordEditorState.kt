@@ -59,6 +59,9 @@ class RecordEditorState(saved: List<Any?>?) {
     var isInSubCategoryView by mutableStateOf(false)
         private set
 
+    /** 金额变化回调，供调用方监听以触发预算检查等副作用。 */
+    var onAmountChanged: ((Long) -> Unit)? = null
+
     /** 当前是否正在输入小数部分 */
     private var isInDecimalMode by mutableStateOf(false)
 
@@ -284,6 +287,7 @@ class RecordEditorState(saved: List<Any?>?) {
     private fun recalculateIfNeeded() {
         if (!ExpressionEvaluator.hasPendingOperation(amountExpression)) {
             confirmedAmountCents = ExpressionEvaluator.evaluateToCents(amountExpression) ?: 0L
+            onAmountChanged?.invoke(confirmedAmountCents)
         } else {
             confirmedAmountCents = 0L
         }

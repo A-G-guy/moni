@@ -75,7 +75,7 @@ fn test_update() {
     let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
     let id = record_repo::insert(&conn, 100, RecordType::Expense, cat_id, None, "旧备注", None).unwrap();
 
-    record_repo::update(&conn, id, Some(200), None, None, None, Some("新备注")).unwrap();
+    record_repo::update(&conn, id, Some(200), None, None, None, Some("新备注"), None).unwrap();
     let rec = record_repo::get_by_id(&conn, id).unwrap().unwrap();
     assert_eq!(rec.amount_cents, 200);
     assert_eq!(rec.note, "新备注");

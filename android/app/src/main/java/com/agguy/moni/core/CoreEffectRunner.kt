@@ -7,10 +7,29 @@ import kotlinx.serialization.json.jsonPrimitive
 class CoreEffectRunner {
     var onShowSnackbar: ((String) -> Unit)? = null
     var onNavigate: ((String) -> Unit)? = null
+    var onPersistSetting: ((String, String) -> Unit)? = null
 
     fun runEffect(effect: CoreEffect) {
         when (effect.kind) {
             "log" -> LogCollector.d("MoniEffect", effect.payloadJson)
+
+            "persist_setting" -> {
+                val payload = try {
+                    kotlinx.serialization.json.Json.parseToJsonElement(effect.payloadJson)
+                        .jsonObject
+                } catch (e: Exception) {
+                    LogCollector.w("Moni", "persist_setting payload 解析失败: ${e.message}")
+                    null
+                }
+                val key = payload?.get("key")?.jsonPrimitive?.content
+                val value = payload?.get("value")?.jsonPrimitive?.content
+                if (key != null && value != null) {
+                    LogCollector.i("CoreEffectRunner", "持久化设置: $key = $value")
+                    onPersistSetting?.invoke(key, value)
+                } else {
+                    LogCollector.w("Moni", "persist_setting 缺少 key 或 value")
+                }
+            }
 
             "show_snackbar" -> {
                 val message = try {

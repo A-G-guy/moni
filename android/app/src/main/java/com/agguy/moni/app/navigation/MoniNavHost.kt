@@ -85,6 +85,8 @@ fun MoniNavHost(
     onNavigateToCategoryList: () -> Unit,
     onNavigateToArchivedCategories: () -> Unit,
     onNavigateBack: () -> Unit,
+    onCheckBudget: (Long, Long) -> Unit = { _, _ -> },
+    onClearBudgetCheck: () -> Unit = {},
     onUpdateThemeMode: (ThemeMode) -> Unit,
     onUpdatePresetColorScheme: (PresetColorScheme) -> Unit,
     onUpdateRecordShowIcon: (Boolean) -> Unit = {},
@@ -147,7 +149,9 @@ fun MoniNavHost(
                 appState = appState,
                 recordId = detail.recordId,
                 onDispatch = onDispatch,
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
+                onCheckBudget = onCheckBudget,
+                onClearBudgetCheck = onClearBudgetCheck
             )
         }
         composable<Screen.CategoryList> {

@@ -62,7 +62,8 @@ sealed class CoreIntent {
         val amountCents: Long? = null,
         val recordType: RecordType? = null,
         val categoryId: Long? = null,
-        val note: String? = null
+        val note: String? = null,
+        val timestamp: Long? = null
     ) : CoreIntent()
 
     @Serializable
@@ -131,10 +132,22 @@ sealed class CoreIntent {
         val aggregateByParent: Boolean = false
     ) : CoreIntent()
 
+    @Serializable
+    @SerialName("stats_overview_metrics")
+    data class StatsOverviewMetrics(
+        val yearMonth: String,
+        val today: String
+    ) : CoreIntent()
+
     // 设置相关
     @Serializable
     @SerialName("settings_update_currency")
     data class SettingsUpdateCurrency(val symbol: String) : CoreIntent()
+
+    // 聚合 Intent：刷新当月全部数据（减少 FFI 往返）
+    @Serializable
+    @SerialName("refresh_month_data")
+    data class RefreshMonthData(val yearMonth: String) : CoreIntent()
 
     @Serializable
     @SerialName("settings_export_data")

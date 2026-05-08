@@ -168,9 +168,7 @@ private fun RecordListContent(
         item(key = "overview") {
             RecordOverviewCard(
                 selectedYearMonth = selectedYearMonth,
-                recordGroups = appState.recordGroups,
-                monthlySummaries = appState.monthlySummaries,
-                budgets = appState.budgets,
+                overviewMetrics = appState.overviewMetrics,
                 currencySymbol = appState.currencySymbol,
                 modifier = Modifier.padding(bottom = 8.dp)
             )

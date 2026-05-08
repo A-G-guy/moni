@@ -112,20 +112,26 @@ pub fn update(
     category_id: Option<i64>,
     parent_category_id: Option<Option<CategoryId>>,
     note: Option<&str>,
+    timestamp: Option<TimestampSec>,
 ) -> Result<usize, rusqlite::Error> {
     let now = chrono::Utc::now().timestamp();
     let type_str = record_type.map(|t| match t {
         RecordType::Income => "income",
         RecordType::Expense => "expense",
     });
+    let (created_at, year_month) = timestamp.map(|ts| {
+        let ym = year_month_from_timestamp(ts);
+        (Some(ts), Some(ym))
+    }).unwrap_or((None, None));
+
     match parent_category_id {
         Some(pid) => conn.execute(
-            "UPDATE records SET amount_cents = COALESCE(?2, amount_cents), record_type = COALESCE(?3, record_type), category_id = COALESCE(?4, category_id), parent_category_id = ?5, note = COALESCE(?6, note), updated_at = ?7 WHERE id = ?1",
-            (id, amount_cents, type_str, category_id, pid, note, now),
+            "UPDATE records SET amount_cents = COALESCE(?2, amount_cents), record_type = COALESCE(?3, record_type), category_id = COALESCE(?4, category_id), parent_category_id = ?5, note = COALESCE(?6, note), updated_at = ?7, created_at = COALESCE(?8, created_at), year_month = COALESCE(?9, year_month) WHERE id = ?1",
+            (id, amount_cents, type_str, category_id, pid, note, now, created_at, year_month),
         ),
         None => conn.execute(
-            "UPDATE records SET amount_cents = COALESCE(?2, amount_cents), record_type = COALESCE(?3, record_type), category_id = COALESCE(?4, category_id), note = COALESCE(?5, note), updated_at = ?6 WHERE id = ?1",
-            (id, amount_cents, type_str, category_id, note, now),
+            "UPDATE records SET amount_cents = COALESCE(?2, amount_cents), record_type = COALESCE(?3, record_type), category_id = COALESCE(?4, category_id), note = COALESCE(?5, note), updated_at = ?6, created_at = COALESCE(?7, created_at), year_month = COALESCE(?8, year_month) WHERE id = ?1",
+            (id, amount_cents, type_str, category_id, note, now, created_at, year_month),
         ),
     }
 }

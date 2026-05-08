@@ -36,8 +36,13 @@ impl AppCoreRuntime {
             | CoreIntent::CategoryUnarchive { .. }
             | CoreIntent::CategoryList
             | CoreIntent::CategoryReorder { .. } => self.dispatch_category(intent),
-            CoreIntent::StatsMonthlySummary { .. } | CoreIntent::StatsCategoryBreakdown { .. } => {
+            CoreIntent::StatsMonthlySummary { .. }
+            | CoreIntent::StatsCategoryBreakdown { .. }
+            | CoreIntent::StatsOverviewMetrics { .. } => {
                 self.dispatch_stats(intent)
+            }
+            CoreIntent::RefreshMonthData { year_month } => {
+                self.dispatch_refresh_month_data(year_month)
             }
             CoreIntent::SettingsUpdateCurrency { .. } => {
                 self.dispatch_settings(intent)
@@ -58,5 +63,36 @@ impl AppCoreRuntime {
                 self.finish(Vec::new())
             }
         }
+    }
+
+    fn dispatch_refresh_month_data(
+        &mut self,
+        year_month: String,
+    ) -> Result<CoreUpdate, CoreError> {
+        // 依次执行各子操作，任一失败不影响其他
+        if let Err(e) = self.dispatch_record(CoreIntent::RecordListByMonth {
+            year_month: year_month.clone(),
+        }) {
+            log::warn!("RefreshMonthData 中 RecordListByMonth 失败: {e}");
+        }
+        if let Err(e) = self.dispatch_stats(CoreIntent::StatsCategoryBreakdown {
+            year_month: year_month.clone(),
+            aggregate_by_parent: false,
+        }) {
+            log::warn!("RefreshMonthData 中 StatsCategoryBreakdown 失败: {e}");
+        }
+        if let Err(e) = self.dispatch_budget(CoreIntent::BudgetList {
+            year_month: Some(year_month.clone()),
+        }) {
+            log::warn!("RefreshMonthData 中 BudgetList 失败: {e}");
+        }
+        let today = chrono::Local::now().format("%Y-%m-%d").to_string();
+        if let Err(e) = self.dispatch_stats(CoreIntent::StatsOverviewMetrics {
+            year_month: year_month.clone(),
+            today,
+        }) {
+            log::warn!("RefreshMonthData 中 StatsOverviewMetrics 失败: {e}");
+        }
+        self.finish(Vec::new())
     }
 }

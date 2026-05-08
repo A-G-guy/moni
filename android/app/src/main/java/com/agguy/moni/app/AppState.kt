@@ -6,6 +6,7 @@ import com.agguy.moni.core.CoreBudgetCheckResult
 import com.agguy.moni.core.CoreCategory
 import com.agguy.moni.core.CoreCategoryBreakdown
 import com.agguy.moni.core.CoreMonthlySummary
+import com.agguy.moni.core.CoreOverviewMetrics
 import com.agguy.moni.core.CoreRecord
 import com.agguy.moni.core.CoreRecordGroup
 
@@ -17,6 +18,7 @@ data class AppState(
     val currentMonthBreakdown: List<CoreCategoryBreakdown> = emptyList(),
     val budgets: List<CoreBudget> = emptyList(),
     val budgetCheckResult: CoreBudgetCheckResult? = null,
+    val overviewMetrics: CoreOverviewMetrics? = null,
     val errorMessage: String? = null,
     val currencySymbol: String = "¥"
 )
@@ -29,6 +31,7 @@ fun CoreAppState.toAppState(): AppState = AppState(
     currentMonthBreakdown = currentMonthBreakdown,
     budgets = budgets,
     budgetCheckResult = budgetCheckResult,
+    overviewMetrics = overviewMetrics,
     errorMessage = ui.errorMessage,
     currencySymbol = settings.currencySymbol
 )

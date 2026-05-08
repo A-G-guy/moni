@@ -15,8 +15,15 @@ impl AppCoreRuntime {
                     "currency_symbol",
                     &symbol,
                 )?;
-                self.state.settings.currency_symbol = symbol;
-                self.finish(Vec::new())
+                self.state.settings.currency_symbol = symbol.clone();
+                let effect = crate::models::effects::CoreEffect {
+                    kind: "persist_setting".to_string(),
+                    payload_json: serde_json::json!({
+                        "key": "currency_symbol",
+                        "value": symbol
+                    }).to_string(),
+                };
+                self.finish(vec![effect])
             }
             _ => {
                 log::warn!("设置模块收到未支持的意图类型");

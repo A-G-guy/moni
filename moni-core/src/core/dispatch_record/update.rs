@@ -18,6 +18,7 @@ impl AppCoreRuntime {
             record_type,
             category_id,
             note,
+            timestamp,
         } = intent
         else {
             return Err(CoreError::Internal("意图类型不匹配".to_string()));
@@ -63,6 +64,7 @@ impl AppCoreRuntime {
             category_id,
             parent_category_id,
             note.as_deref(),
+            timestamp,
         )?;
         let updated = record_repo::get_by_id(&self.conn, id)?
             .ok_or_else(|| CoreError::Internal(format!("更新后查询记录失败: id={id}")))?;
@@ -76,8 +78,13 @@ impl AppCoreRuntime {
         if original.record_type == moni_contracts::record::RecordType::Expense
             || updated.record_type == moni_contracts::record::RecordType::Expense
         {
-            let ym = super::year_month_from_timestamp(updated.created_at);
-            self.refresh_budget_states(Some(&ym))?;
+            let original_ym = super::year_month_from_timestamp(original.created_at);
+            let new_ym = super::year_month_from_timestamp(updated.created_at);
+            if original_ym != new_ym {
+                // 跨月份：新旧月份预算均需刷新
+                self.refresh_budget_states(Some(&original_ym))?;
+            }
+            self.refresh_budget_states(Some(&new_ym))?;
         }
 
         self.finish(vec![CoreEffect {

@@ -103,7 +103,7 @@ fun RecordListScreen(
                     }
                     IconButton(onClick = onNavigateToCategoryList) {
                         SymbolIcon(
-                            name = "filter_list",
+                            name = "category",
                             contentDescription = "分类管理",
                             size = 24.dp
                         )

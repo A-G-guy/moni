@@ -54,7 +54,7 @@ object AppLocaleManager {
             return context
         }
 
-        val locale = Locale(language.code)
+        val locale = Locale.forLanguageTag(language.code)
         Locale.setDefault(locale)
 
         val config = Configuration(context.resources.configuration)

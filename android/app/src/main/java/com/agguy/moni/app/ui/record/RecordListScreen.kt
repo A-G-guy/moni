@@ -2,6 +2,11 @@
 
 package com.agguy.moni.app.ui.record
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +21,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -24,6 +33,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -34,13 +45,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import com.agguy.moni.R
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.RecordItemDisplaySettings
+import com.agguy.moni.app.SearchParams
 import com.agguy.moni.app.components.MonthPickerSheet
 import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
@@ -68,13 +86,31 @@ fun RecordListScreen(
     onNavigateToRecordDetail: (Long?) -> Unit,
     onNavigateToCategoryList: () -> Unit,
     onNavigateToBudgetList: () -> Unit,
+    onEnterSearchMode: () -> Unit,
+    onExitSearchMode: () -> Unit,
+    onUpdateSearchKeyword: (String) -> Unit,
+    onUpdateSearchParams: (SearchParams) -> Unit,
+    onResetSearchParams: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var sheetVisible by remember { mutableStateOf(false) }
+    var filterSheetVisible by remember { mutableStateOf(false) }
+    var moreMenuExpanded by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val searchFocusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
 
     val monthLabel = remember(selectedYearMonth) {
         formatYearMonthShort(selectedYearMonth)
+    }
+
+    // 进入搜索模式时自动聚焦搜索框
+    if (appState.isSearchMode) {
+        androidx.compose.runtime.LaunchedEffect(Unit) {
+            searchFocusRequester.requestFocus()
+            keyboardController?.show()
+        }
     }
 
     Scaffold(
@@ -83,32 +119,137 @@ fun RecordListScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        stringResource(R.string.record_list_title),
-                        style = MaterialTheme.typography.headlineSmall
-                    )
+                    AnimatedContent(
+                        targetState = appState.isSearchMode,
+                        transitionSpec = {
+                            fadeIn(animationSpec = tween(150)) togetherWith
+                                fadeOut(animationSpec = tween(150))
+                        },
+                        label = "top_bar_title"
+                    ) { isSearchMode ->
+                        if (isSearchMode) {
+                            TextField(
+                                value = appState.searchKeyword,
+                                onValueChange = { onUpdateSearchKeyword(it) },
+                                placeholder = { Text(stringResource(R.string.search_hint)) },
+                                singleLine = true,
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                    disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                    focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                                    unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                                    disabledIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                                ),
+                                shape = MaterialTheme.shapes.large,
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                                keyboardActions = KeyboardActions(
+                                    onSearch = { focusManager.clearFocus() }
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(searchFocusRequester),
+                            )
+                        } else {
+                            Text(
+                                stringResource(R.string.record_list_title),
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                        }
+                    }
+                },
+                navigationIcon = {
+                    if (appState.isSearchMode) {
+                        IconButton(onClick = {
+                            focusManager.clearFocus()
+                            keyboardController?.hide()
+                            onExitSearchMode()
+                        }) {
+                            SymbolIcon(
+                                name = "arrow_back",
+                                contentDescription = stringResource(R.string.back),
+                                size = 24.dp
+                            )
+                        }
+                    }
                 },
                 actions = {
-                    TextButton(onClick = { sheetVisible = true }) {
-                        Text(
-                            text = monthLabel,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    IconButton(onClick = onNavigateToBudgetList) {
-                        SymbolIcon(
-                            name = "savings",
-                            contentDescription = stringResource(R.string.budget_list_title),
-                            size = 24.dp
-                        )
-                    }
-                    IconButton(onClick = onNavigateToCategoryList) {
-                        SymbolIcon(
-                            name = "category",
-                            contentDescription = stringResource(R.string.category_list_title),
-                            size = 24.dp
-                        )
+                    AnimatedContent(
+                        targetState = appState.isSearchMode,
+                        transitionSpec = {
+                            fadeIn(animationSpec = tween(150)) togetherWith
+                                fadeOut(animationSpec = tween(150))
+                        },
+                        label = "top_bar_actions"
+                    ) { isSearchMode ->
+                        if (isSearchMode) {
+                            IconButton(onClick = { filterSheetVisible = true }) {
+                                SymbolIcon(
+                                    name = "filter_list",
+                                    contentDescription = stringResource(R.string.filter_title),
+                                    size = 24.dp
+                                )
+                            }
+                        } else {
+                            Row {
+                                TextButton(onClick = { sheetVisible = true }) {
+                                    Text(
+                                        text = monthLabel,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                                Box {
+                                    IconButton(onClick = { moreMenuExpanded = true }) {
+                                        SymbolIcon(
+                                            name = "more_vert",
+                                            contentDescription = stringResource(R.string.more),
+                                            size = 24.dp
+                                        )
+                                    }
+                                    DropdownMenu(
+                                        expanded = moreMenuExpanded,
+                                        onDismissRequest = { moreMenuExpanded = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.more_menu_budget)) },
+                                            leadingIcon = {
+                                                SymbolIcon(
+                                                    name = "savings",
+                                                    contentDescription = null,
+                                                    size = 20.dp
+                                                )
+                                            },
+                                            onClick = {
+                                                moreMenuExpanded = false
+                                                onNavigateToBudgetList()
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.more_menu_category)) },
+                                            leadingIcon = {
+                                                SymbolIcon(
+                                                    name = "category",
+                                                    contentDescription = null,
+                                                    size = 20.dp
+                                                )
+                                            },
+                                            onClick = {
+                                                moreMenuExpanded = false
+                                                onNavigateToCategoryList()
+                                            }
+                                        )
+                                    }
+                                }
+                                IconButton(onClick = onEnterSearchMode) {
+                                    SymbolIcon(
+                                        name = "search",
+                                        contentDescription = stringResource(R.string.search),
+                                        size = 24.dp
+                                    )
+                                }
+                            }
+                        }
                     }
                 },
                 windowInsets = WindowInsets(0, 0, 0, 0),
@@ -116,16 +257,18 @@ fun RecordListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onNavigateToRecordDetail(null) },
-                shape = MaterialTheme.shapes.large
-            ) {
-                SymbolIcon(
-                    name = "add",
-                    filled = true,
-                    contentDescription = stringResource(R.string.editor_title_new),
-                    size = 24.dp
-                )
+            if (!appState.isSearchMode) {
+                FloatingActionButton(
+                    onClick = { onNavigateToRecordDetail(null) },
+                    shape = MaterialTheme.shapes.large
+                ) {
+                    SymbolIcon(
+                        name = "add",
+                        filled = true,
+                        contentDescription = stringResource(R.string.editor_title_new),
+                        size = 24.dp
+                    )
+                }
             }
         }
     ) { innerPadding ->
@@ -152,6 +295,22 @@ fun RecordListScreen(
             onDismiss = { sheetVisible = false }
         )
     }
+
+    if (filterSheetVisible) {
+        FilterSheet(
+            categories = appState.categories,
+            currentParams = SearchParams(),
+            onApply = { params ->
+                onUpdateSearchParams(params)
+                filterSheetVisible = false
+            },
+            onReset = {
+                onResetSearchParams()
+                filterSheetVisible = false
+            },
+            onDismiss = { filterSheetVisible = false }
+        )
+    }
 }
 
 @Composable
@@ -167,24 +326,42 @@ private fun RecordListContent(
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 80.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        item(key = "overview") {
-            RecordOverviewCard(
-                selectedYearMonth = selectedYearMonth,
-                overviewMetrics = appState.overviewMetrics,
-                currencySymbol = appState.currencySymbol,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+        if (appState.isSearchMode) {
+            // 搜索模式：显示搜索结果统计卡片
+            item(key = "search_overview") {
+                SearchResultOverviewCard(
+                    recordCount = appState.searchResultCount,
+                    overviewMetrics = appState.overviewMetrics,
+                    currencySymbol = appState.currencySymbol,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+        } else {
+            item(key = "overview") {
+                RecordOverviewCard(
+                    selectedYearMonth = selectedYearMonth,
+                    overviewMetrics = appState.overviewMetrics,
+                    currencySymbol = appState.currencySymbol,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
         }
 
         if (appState.recordGroups.isEmpty()) {
             item(key = "empty") {
-                val hasAnyRecords = appState.monthlySummaries.isNotEmpty()
-                EmptyRecordList(
-                    isMonthEmpty = hasAnyRecords,
-                    yearMonth = selectedYearMonth,
-                    errorMessage = appState.errorMessage,
-                    modifier = Modifier.fillParentMaxSize()
-                )
+                if (appState.isSearchMode) {
+                    EmptySearchResult(
+                        modifier = Modifier.fillParentMaxSize()
+                    )
+                } else {
+                    val hasAnyRecords = appState.monthlySummaries.isNotEmpty()
+                    EmptyRecordList(
+                        isMonthEmpty = hasAnyRecords,
+                        yearMonth = selectedYearMonth,
+                        errorMessage = appState.errorMessage,
+                        modifier = Modifier.fillParentMaxSize()
+                    )
+                }
             }
         } else {
             appState.recordGroups.forEach { group ->
@@ -311,6 +488,31 @@ private fun formatDisplayDate(dateStr: String): String {
         date == today -> stringResource(R.string.date_today)
         date == today.minusDays(1) -> stringResource(R.string.date_yesterday)
         else -> date.format(DateTimeFormatter.ofPattern(stringResource(R.string.date_month_day_format)))
+    }
+}
+
+@Composable
+private fun EmptySearchResult(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            SymbolIcon(
+                name = "search_off",
+                contentDescription = null,
+                size = 48.dp,
+                modifier = Modifier.alpha(0.5f)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = stringResource(R.string.search_empty),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 

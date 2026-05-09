@@ -141,6 +141,11 @@ fun MoniApp() {
                 onNavigateToDataManagement = viewModel::navigateToDataManagement,
                 onNavigateToThemeSettings = viewModel::navigateToThemeSettings,
                 onNavigateToBudgetList = viewModel::navigateToBudgetList,
+                onEnterSearchMode = viewModel::enterSearchMode,
+                onExitSearchMode = viewModel::exitSearchMode,
+                onUpdateSearchKeyword = viewModel::updateSearchKeyword,
+                onUpdateSearchParams = viewModel::updateSearchParams,
+                onResetSearchParams = viewModel::resetSearchParams,
                 backupViewModel = backupViewModel,
                 dbPath = dbPath,
                 modifier = Modifier.padding(innerPadding)

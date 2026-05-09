@@ -21,7 +21,13 @@ import com.agguy.moni.core.platform.LogCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -55,8 +61,11 @@ class AppViewModel(
     private val _language = MutableStateFlow(AppLocaleManager.AppLanguage.SYSTEM)
     val language: StateFlow<AppLocaleManager.AppLanguage> = _language.asStateFlow()
 
+    private val _searchParams = MutableStateFlow(SearchParams())
+
     private var _navController: NavHostController? = null
     private var budgetCheckJob: kotlinx.coroutines.Job? = null
+    private var searchDebounceJob: kotlinx.coroutines.Job? = null
 
     /** 供 UI 层绑定导航控制器。 */
     fun bindNavController(navController: NavHostController) {
@@ -159,6 +168,77 @@ class AppViewModel(
         dispatch(CoreIntent.RefreshMonthData(yearMonth = yearMonth))
     }
 
+    // region 搜索功能
+
+    fun enterSearchMode() {
+        _uiState.value = _uiState.value.copy(isSearchMode = true)
+    }
+
+    fun exitSearchMode() {
+        searchDebounceJob?.cancel()
+        _uiState.value = _uiState.value.copy(
+            isSearchMode = false,
+            searchKeyword = "",
+            searchResultCount = 0
+        )
+        _searchParams.value = SearchParams()
+        val yearMonth = _selectedYearMonth.value
+        if (yearMonth.isNotEmpty()) {
+            dispatch(CoreIntent.RefreshMonthData(yearMonth = yearMonth))
+        }
+    }
+
+    fun updateSearchKeyword(keyword: String) {
+        _uiState.value = _uiState.value.copy(searchKeyword = keyword)
+        if (_uiState.value.isSearchMode) {
+            scheduleSearch()
+        }
+    }
+
+    fun updateSearchParams(params: SearchParams) {
+        _searchParams.value = params
+        if (_uiState.value.isSearchMode) {
+            scheduleSearch()
+        }
+    }
+
+    fun resetSearchParams() {
+        _searchParams.value = SearchParams()
+        if (_uiState.value.isSearchMode) {
+            scheduleSearch()
+        }
+    }
+
+    private fun scheduleSearch() {
+        searchDebounceJob?.cancel()
+        searchDebounceJob = viewModelScope.launch {
+            kotlinx.coroutines.delay(300)
+            if (_uiState.value.isSearchMode) {
+                performSearch()
+            }
+        }
+    }
+
+    private fun performSearch() {
+        val keyword = _uiState.value.searchKeyword
+        val params = _searchParams.value
+        dispatch(
+            CoreIntent.RecordSearch(
+                keyword = keyword.takeIf { it.isNotBlank() },
+                recordType = params.recordType,
+                categoryIds = params.categoryIds,
+                amountMin = params.amountMin,
+                amountMax = params.amountMax,
+                dateStart = params.dateStart,
+                dateEnd = params.dateEnd,
+                sortBy = params.sortBy,
+                sortOrder = params.sortOrder
+            )
+        )
+    }
+
+    // endregion
+
     fun dispatch(intent: CoreIntent) {
         viewModelScope.launch {
             LogCollector.i("AppViewModel", "Dispatch intent: ${intent::class.simpleName}")
@@ -171,19 +251,47 @@ class AppViewModel(
                     intent is CoreIntent.RecordDelete ||
                     intent is CoreIntent.RecordUpdate
                 ) {
-                    val yearMonth = _selectedYearMonth.value
-                    if (yearMonth.isNotEmpty()) {
-                        // 先刷新月度汇总，确保 RefreshMonthData 中的 StatsOverviewMetrics
-                        // 在 Rust 端计算时使用的是最新的 monthly_summaries
+                    if (_uiState.value.isSearchMode) {
+                        // 搜索模式下刷新搜索结果
                         runCatching {
                             rustCore.dispatch(CoreIntent.StatsMonthlySummary(months = 36))
                         }.onSuccess(::applyMutation).onFailure { e ->
                             LogCollector.e("AppViewModel", "刷新月度统计失败", e)
                         }
                         runCatching {
-                            rustCore.dispatch(CoreIntent.RefreshMonthData(yearMonth = yearMonth))
+                            val keyword = _uiState.value.searchKeyword
+                            val params = _searchParams.value
+                            rustCore.dispatch(
+                                CoreIntent.RecordSearch(
+                                    keyword = keyword.takeIf { it.isNotBlank() },
+                                    recordType = params.recordType,
+                                    categoryIds = params.categoryIds,
+                                    amountMin = params.amountMin,
+                                    amountMax = params.amountMax,
+                                    dateStart = params.dateStart,
+                                    dateEnd = params.dateEnd,
+                                    sortBy = params.sortBy,
+                                    sortOrder = params.sortOrder
+                                )
+                            )
                         }.onSuccess(::applyMutation).onFailure { e ->
-                            LogCollector.e("AppViewModel", "刷新月份数据失败", e)
+                            LogCollector.e("AppViewModel", "刷新搜索结果失败", e)
+                        }
+                    } else {
+                        val yearMonth = _selectedYearMonth.value
+                        if (yearMonth.isNotEmpty()) {
+                            // 先刷新月度汇总，确保 RefreshMonthData 中的 StatsOverviewMetrics
+                            // 在 Rust 端计算时使用的是最新的 monthly_summaries
+                            runCatching {
+                                rustCore.dispatch(CoreIntent.StatsMonthlySummary(months = 36))
+                            }.onSuccess(::applyMutation).onFailure { e ->
+                                LogCollector.e("AppViewModel", "刷新月度统计失败", e)
+                            }
+                            runCatching {
+                                rustCore.dispatch(CoreIntent.RefreshMonthData(yearMonth = yearMonth))
+                            }.onSuccess(::applyMutation).onFailure { e ->
+                                LogCollector.e("AppViewModel", "刷新月份数据失败", e)
+                            }
                         }
                     }
                 }
@@ -386,12 +494,18 @@ class AppViewModel(
     }
 
     private fun applyMutation(mutation: com.agguy.moni.core.CoreMutation) {
+        val current = _uiState.value
         val appState = mutation.state.toAppState()
         // 如果 Rust 返回了 error_key，使用本地化错误消息
         val localizedError = appState.errorKey?.let { key ->
             ErrorMessageResolver.resolve(getApplication(), key, appState.errorArgs)
         } ?: appState.errorMessage
-        _uiState.value = appState.copy(errorMessage = localizedError)
+        // 保留 Kotlin 侧纯 UI 状态（搜索模式、关键词等），其余使用 Rust 返回的新状态
+        _uiState.value = appState.copy(
+            errorMessage = localizedError,
+            isSearchMode = current.isSearchMode,
+            searchKeyword = current.searchKeyword
+        )
         mutation.effects.forEach { effectRunner.runEffect(it) }
     }
 }

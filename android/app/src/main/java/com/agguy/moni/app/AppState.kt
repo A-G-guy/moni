@@ -22,7 +22,24 @@ data class AppState(
     val errorMessage: String? = null,
     val errorKey: String? = null,
     val errorArgs: List<String> = emptyList(),
-    val currencySymbol: String = "¥"
+    val currencySymbol: String = "¥",
+    val isSearchMode: Boolean = false,
+    val searchKeyword: String = "",
+    val searchResultCount: Int = 0,
+)
+
+/**
+ * 搜索筛选参数。
+ */
+data class SearchParams(
+    val recordType: String? = null,
+    val categoryIds: List<Long> = emptyList(),
+    val amountMin: Long? = null,
+    val amountMax: Long? = null,
+    val dateStart: Long? = null,
+    val dateEnd: Long? = null,
+    val sortBy: String = "created_at",
+    val sortOrder: String = "desc",
 )
 
 fun CoreAppState.toAppState(): AppState = AppState(
@@ -34,6 +51,7 @@ fun CoreAppState.toAppState(): AppState = AppState(
     budgets = budgets,
     budgetCheckResult = budgetCheckResult,
     overviewMetrics = overviewMetrics,
+    searchResultCount = searchResultCount,
     errorMessage = ui.errorMessage,
     errorKey = ui.errorKey,
     errorArgs = ui.errorArgs,

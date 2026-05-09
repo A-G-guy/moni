@@ -31,7 +31,8 @@ impl AppCoreRuntime {
             | CoreIntent::RecordDelete { .. }
             | CoreIntent::RecordList { .. }
             | CoreIntent::RecordListByMonth { .. }
-            | CoreIntent::RecordGet { .. } => self.dispatch_record(intent),
+            | CoreIntent::RecordGet { .. }
+            | CoreIntent::RecordSearch { .. } => self.dispatch_record(intent),
             CoreIntent::CategoryCreate { .. }
             | CoreIntent::CategoryUpdate { .. }
             | CoreIntent::CategoryArchive { .. }

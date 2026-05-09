@@ -31,6 +31,7 @@ pub struct AppState {
     pub budgets: Vec<BudgetDto>,
     pub budget_check_result: Option<BudgetCheckResult>,
     pub overview_metrics: Option<OverviewMetrics>,
+    pub search_result_count: i64,
     pub settings: AppSettings,
     pub ui: UiState,
 }

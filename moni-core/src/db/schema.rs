@@ -2,7 +2,7 @@ use rusqlite::Connection;
 
 /// 当前数据库 schema 版本号。
 /// 每次 schema 发生非向后兼容的变更时同步递增。
-pub const CURRENT_SCHEMA_VERSION: u32 = 6;
+pub const CURRENT_SCHEMA_VERSION: u32 = 7;
 
 const SCHEMA_SQL: &str = "
 CREATE TABLE IF NOT EXISTS categories (
@@ -31,6 +31,9 @@ CREATE TABLE IF NOT EXISTS records (
 
 CREATE INDEX IF NOT EXISTS idx_records_created_at ON records(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_records_category ON records(category_id);
+CREATE INDEX IF NOT EXISTS idx_records_note ON records(note);
+CREATE INDEX IF NOT EXISTS idx_records_type_date ON records(record_type, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_records_amount ON records(amount_cents);
 
 CREATE TABLE IF NOT EXISTS budgets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,6 +69,9 @@ pub fn init_schema(conn: &Connection) -> Result<(), rusqlite::Error> {
         }
         if schema_version < 6 {
             init_schema_v6(conn)?;
+        }
+        if schema_version < 7 {
+            init_schema_v7(conn)?;
         }
         conn.execute(
             &format!("PRAGMA user_version = {}", CURRENT_SCHEMA_VERSION),
@@ -256,5 +262,23 @@ fn init_schema_v6(conn: &Connection) -> Result<(), rusqlite::Error> {
         [],
     )?;
 
+    Ok(())
+}
+
+/// v7 迁移：
+/// 为搜索功能创建新索引。
+fn init_schema_v7(conn: &Connection) -> Result<(), rusqlite::Error> {
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_records_note ON records(note)",
+        [],
+    )?;
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_records_type_date ON records(record_type, created_at DESC)",
+        [],
+    )?;
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_records_amount ON records(amount_cents)",
+        [],
+    )?;
     Ok(())
 }

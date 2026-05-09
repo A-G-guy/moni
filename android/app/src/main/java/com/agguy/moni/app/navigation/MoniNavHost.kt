@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.agguy.moni.app.AppState
 import com.agguy.moni.app.RecordItemDisplaySettings
+import com.agguy.moni.app.SearchParams
 import com.agguy.moni.app.ThemeSettings
 import com.agguy.moni.app.i18n.AppLocaleManager
 import com.agguy.moni.app.theme.PresetColorScheme
@@ -100,6 +101,11 @@ fun MoniNavHost(
     onNavigateToDataManagement: () -> Unit = {},
     onNavigateToThemeSettings: () -> Unit = {},
     onNavigateToBudgetList: () -> Unit = {},
+    onEnterSearchMode: () -> Unit = {},
+    onExitSearchMode: () -> Unit = {},
+    onUpdateSearchKeyword: (String) -> Unit = {},
+    onUpdateSearchParams: (com.agguy.moni.app.SearchParams) -> Unit = {},
+    onResetSearchParams: () -> Unit = {},
     backupViewModel: BackupViewModel,
     dbPath: String,
     modifier: Modifier = Modifier
@@ -141,7 +147,12 @@ fun MoniNavHost(
                 onSelectYearMonth = onSelectYearMonth,
                 onNavigateToRecordDetail = onNavigateToRecordDetail,
                 onNavigateToCategoryList = onNavigateToCategoryList,
-                onNavigateToBudgetList = onNavigateToBudgetList
+                onNavigateToBudgetList = onNavigateToBudgetList,
+                onEnterSearchMode = onEnterSearchMode,
+                onExitSearchMode = onExitSearchMode,
+                onUpdateSearchKeyword = onUpdateSearchKeyword,
+                onUpdateSearchParams = onUpdateSearchParams,
+                onResetSearchParams = onResetSearchParams
             )
         }
         composable<Screen.RecordDetail> { backStackEntry ->

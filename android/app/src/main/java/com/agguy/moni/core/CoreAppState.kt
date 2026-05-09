@@ -12,6 +12,7 @@ data class CoreAppState(
     val budgets: List<CoreBudget> = emptyList(),
     val budgetCheckResult: CoreBudgetCheckResult? = null,
     val overviewMetrics: CoreOverviewMetrics? = null,
+    val searchResultCount: Int = 0,
     val settings: CoreSettings = CoreSettings(),
     val ui: CoreUiState = CoreUiState()
 )

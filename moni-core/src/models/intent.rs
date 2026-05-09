@@ -54,6 +54,19 @@ pub enum CoreIntent {
     RecordGet {
         id: RecordId,
     },
+    RecordSearch {
+        keyword: Option<String>,
+        record_type: Option<RecordType>,
+        category_ids: Option<Vec<i64>>,
+        amount_min: Option<i64>,
+        amount_max: Option<i64>,
+        date_start: Option<i64>,
+        date_end: Option<i64>,
+        sort_by: String,
+        sort_order: String,
+        page: u32,
+        page_size: u32,
+    },
 
     CategoryCreate {
         name: String,

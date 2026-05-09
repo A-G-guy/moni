@@ -242,3 +242,176 @@ pub fn category_aggregates_by_parent(
     })?;
     rows.collect()
 }
+
+/// 转义 LIKE 模式中的通配符。
+fn escape_like_pattern(input: &str) -> String {
+    input.replace('\\', "\\\\").replace('%', "\\%").replace('_', "\\_")
+}
+
+/// 构建搜索查询的 WHERE 条件和参数列表。
+fn build_search_conditions(
+    keyword: Option<&str>,
+    record_type: Option<&str>,
+    category_ids: Option<&[i64]>,
+    amount_min: Option<i64>,
+    amount_max: Option<i64>,
+    date_start: Option<i64>,
+    date_end: Option<i64>,
+) -> (String, Vec<rusqlite::types::Value>) {
+    let mut conditions: Vec<String> = Vec::new();
+    let mut params: Vec<rusqlite::types::Value> = Vec::new();
+    let mut idx = 1usize;
+
+    if let Some(kw) = keyword {
+        let escaped = escape_like_pattern(kw);
+        conditions.push(format!(
+            "(r.note LIKE '%' || ?{idx} || '%' ESCAPE '\\' OR c.name LIKE '%' || ?{} || '%' ESCAPE '\\')",
+            idx + 1
+        ));
+        params.push(rusqlite::types::Value::Text(escaped.clone()));
+        params.push(rusqlite::types::Value::Text(escaped));
+        idx += 2;
+    }
+
+    if let Some(rt) = record_type {
+        conditions.push(format!("r.record_type = ?{idx}"));
+        params.push(rusqlite::types::Value::Text(rt.to_string()));
+        idx += 1;
+    }
+
+    if let Some(ids) = category_ids {
+        if !ids.is_empty() {
+            let placeholders: Vec<String> = (0..ids.len())
+                .map(|i| format!("?{}", idx + i))
+                .collect();
+            conditions.push(format!("r.category_id IN ({})", placeholders.join(", ")));
+            for id in ids {
+                params.push(rusqlite::types::Value::Integer(*id));
+            }
+            idx += ids.len();
+        }
+    }
+
+    if let Some(min) = amount_min {
+        conditions.push(format!("r.amount_cents >= ?{idx}"));
+        params.push(rusqlite::types::Value::Integer(min));
+        idx += 1;
+    }
+
+    if let Some(max) = amount_max {
+        conditions.push(format!("r.amount_cents <= ?{idx}"));
+        params.push(rusqlite::types::Value::Integer(max));
+        idx += 1;
+    }
+
+    if let Some(start) = date_start {
+        conditions.push(format!("r.created_at >= ?{idx}"));
+        params.push(rusqlite::types::Value::Integer(start));
+        idx += 1;
+    }
+
+    if let Some(end) = date_end {
+        conditions.push(format!("r.created_at <= ?{idx}"));
+        params.push(rusqlite::types::Value::Integer(end));
+    }
+
+    let where_clause = if conditions.is_empty() {
+        String::new()
+    } else {
+        format!("WHERE {}", conditions.join(" AND "))
+    };
+
+    (where_clause, params)
+}
+
+/// 组合条件搜索记录。
+///
+/// keyword: 模糊匹配备注和分类名称（已做 LIKE 转义）
+/// record_type: "income" | "expense"
+/// category_ids: 分类 ID 列表（上限 50）
+/// amount_min/max: 金额范围（单位：分）
+/// date_start/end: 时间范围（Unix 时间戳）
+/// sort_by: "created_at" | "amount_cents"
+/// sort_order: "asc" | "desc"
+pub fn search(
+    conn: &Connection,
+    keyword: Option<&str>,
+    record_type: Option<&str>,
+    category_ids: Option<&[i64]>,
+    amount_min: Option<i64>,
+    amount_max: Option<i64>,
+    date_start: Option<i64>,
+    date_end: Option<i64>,
+    sort_by: &str,
+    sort_order: &str,
+    page: u32,
+    page_size: u32,
+) -> Result<Vec<Record>, rusqlite::Error> {
+    let (where_clause, mut params) = build_search_conditions(
+        keyword, record_type, category_ids, amount_min, amount_max, date_start, date_end,
+    );
+
+    let offset = i64::from(page)
+        .checked_mul(i64::from(page_size))
+        .unwrap_or(i64::MAX);
+    if offset == i64::MAX {
+        return Ok(Vec::new());
+    }
+    let limit = i64::from(page_size);
+
+    params.push(rusqlite::types::Value::Integer(limit));
+    params.push(rusqlite::types::Value::Integer(offset));
+
+    let sql = format!(
+        "SELECT r.* FROM records r LEFT JOIN categories c ON r.category_id = c.id {} ORDER BY r.{} {} LIMIT ?{} OFFSET ?{}",
+        where_clause,
+        sort_by,
+        sort_order,
+        params.len() - 1,
+        params.len(),
+    );
+
+    let param_refs: Vec<&dyn rusqlite::ToSql> = params.iter().map(|v| v as &dyn rusqlite::ToSql).collect();
+    let mut stmt = conn.prepare(&sql)?;
+    let rows = stmt.query_map(param_refs.as_slice(), map_record)?;
+    rows.collect()
+}
+
+/// 搜索结果的聚合统计。
+/// 返回: (总条数, 总收入分, 总支出分, 总金额分)
+pub fn search_summary(
+    conn: &Connection,
+    keyword: Option<&str>,
+    record_type: Option<&str>,
+    category_ids: Option<&[i64]>,
+    amount_min: Option<i64>,
+    amount_max: Option<i64>,
+    date_start: Option<i64>,
+    date_end: Option<i64>,
+) -> Result<(i64, i64, i64, i64), rusqlite::Error> {
+    let (where_clause, params) = build_search_conditions(
+        keyword, record_type, category_ids, amount_min, amount_max, date_start, date_end,
+    );
+
+    let sql = format!(
+        "SELECT
+            COUNT(*) as total,
+            COALESCE(SUM(CASE WHEN r.record_type = 'income' THEN r.amount_cents ELSE 0 END), 0) as income,
+            COALESCE(SUM(CASE WHEN r.record_type = 'expense' THEN r.amount_cents ELSE 0 END), 0) as expense,
+            COALESCE(SUM(r.amount_cents), 0) as total_amount
+         FROM records r
+         LEFT JOIN categories c ON r.category_id = c.id
+         {}",
+        where_clause,
+    );
+
+    let param_refs: Vec<&dyn rusqlite::ToSql> = params.iter().map(|v| v as &dyn rusqlite::ToSql).collect();
+    conn.query_row(&sql, param_refs.as_slice(), |row| {
+        Ok((
+            row.get::<_, i64>(0)?,
+            row.get::<_, i64>(1)?,
+            row.get::<_, i64>(2)?,
+            row.get::<_, i64>(3)?,
+        ))
+    })
+}

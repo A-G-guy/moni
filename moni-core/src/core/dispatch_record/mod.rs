@@ -3,6 +3,7 @@ mod delete;
 mod get;
 mod list;
 mod list_by_month;
+mod search;
 mod update;
 
 use moni_contracts::category::Category;
@@ -45,6 +46,7 @@ impl AppCoreRuntime {
             CoreIntent::RecordList { .. } => self.handle_record_list(&intent),
             CoreIntent::RecordListByMonth { .. } => self.handle_record_list_by_month(&intent),
             CoreIntent::RecordGet { .. } => self.handle_record_get(&intent),
+            CoreIntent::RecordSearch { .. } => self.handle_record_search(&intent),
             _ => {
                 log::warn!("记录模块收到未支持的意图类型");
                 Err(CoreError::Internal("未支持的意图类型".to_string()))

@@ -82,6 +82,22 @@ sealed class CoreIntent {
     @SerialName("record_get")
     data class RecordGet(val id: Long) : CoreIntent()
 
+    @Serializable
+    @SerialName("record_search")
+    data class RecordSearch(
+        val keyword: String? = null,
+        val recordType: String? = null,
+        val categoryIds: List<Long> = emptyList(),
+        val amountMin: Long? = null,
+        val amountMax: Long? = null,
+        val dateStart: Long? = null,
+        val dateEnd: Long? = null,
+        val sortBy: String = "created_at",
+        val sortOrder: String = "desc",
+        val page: Int = 0,
+        val pageSize: Int = 50
+    ) : CoreIntent()
+
     // 分类相关
     @Serializable
     @SerialName("category_create")

@@ -2,6 +2,7 @@
 
 package com.agguy.moni.app.ui.category
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,6 +47,11 @@ import com.agguy.moni.core.serialName
  * - 分类编辑/新增统一使用 [CategoryEditorSheet]（ModalBottomSheet），支持编辑模式；
  * - FAB 圆角与新的 corner token 体系（large=20）保持一致；
  * - 移除 `material-icons-extended` 依赖，统一使用项目内 [MoniIcons] (Material Symbols Rounded vectors)。
+ *
+ * 返回导航层级（由内到外）：
+ * 1. 覆盖层：ModalBottomSheet（分类编辑器）/ AlertDialog（归档确认）— Material 3 组件内置处理
+ * 2. 状态模式：排序模式 — BackHandler 退出排序
+ * 3. 页面级：子页面 — popBackStack 返回
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +69,11 @@ fun CategoryListScreen(
     var isReorderMode by remember { mutableStateOf(false) }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+
+    // 排序模式下拦截系统返回键，优先退出排序而非页面返回
+    BackHandler(enabled = isReorderMode) {
+        isReorderMode = false
+    }
 
     LaunchedEffect(Unit) {
         onDispatch(CoreIntent.CategoryList)

@@ -39,6 +39,10 @@ import com.agguy.moni.core.CoreIntent
 
 /**
  * 设置页面。
+ *
+ * 返回导航层级（由内到外）：
+ * 1. 覆盖层：AlertDialog（货币选择、语言选择）— Material 3 组件内置处理
+ * 2. 页面级：根页面 — 系统默认退出应用
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

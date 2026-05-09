@@ -99,6 +99,10 @@ private fun flattenBudgetItems(
  * - 总预算卡片 + 分类预算列表，统一使用 MoniCard（Tonal）样式
  * - 层级展平（参考分类管理页），整行点击弹出编辑弹窗
  * - 已设置预算的卡片显示进度条 + 日均/剩余日均/剩余统计
+ *
+ * 返回导航层级（由内到外）：
+ * 1. 覆盖层：ModalBottomSheet（预算编辑器、月份选择）— Material 3 组件内置处理
+ * 2. 页面级：子页面 — popBackStack 返回
  */
 @Composable
 fun BudgetListScreen(

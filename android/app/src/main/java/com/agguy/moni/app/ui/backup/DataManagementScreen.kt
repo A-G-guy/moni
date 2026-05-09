@@ -74,6 +74,10 @@ import java.util.Locale
  *
  * 整合导出备份、导入恢复、自动备份设置、应用内备份管理四个功能。
  * 导出/导入对话框与 SAF launcher 在页面内部管理，不依赖 MoniApp 顶层。
+ *
+ * 返回导航层级（由内到外）：
+ * 1. 覆盖层：AlertDialog（导出、导入、恢复、频率选择）— Material 3 组件内置处理
+ * 2. 页面级：子页面 — popBackStack 返回
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

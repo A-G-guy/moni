@@ -32,6 +32,10 @@ import com.agguy.moni.core.CoreIntent
 
 /**
  * 开发者选项页面。
+ *
+ * 返回导航层级（由内到外）：
+ * 1. 覆盖层：AlertDialog（Mock 数据、清空数据）— Material 3 组件内置处理
+ * 2. 页面级：子页面 — popBackStack 返回
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

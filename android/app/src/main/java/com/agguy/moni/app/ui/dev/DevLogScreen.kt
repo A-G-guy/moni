@@ -48,6 +48,9 @@ import java.time.format.DateTimeFormatter
 
 /**
  * 日志查看页面。
+ *
+ * 返回导航层级（由内到外）：
+ * 1. 页面级：子页面 — popBackStack 返回
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

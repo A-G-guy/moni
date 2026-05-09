@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DropdownMenu
@@ -75,6 +76,11 @@ import java.time.format.DateTimeFormatter
  * - TopAppBar 右侧展示当前月份按钮（点击唤起 [MonthPickerSheet]）和分类管理图标；
  * - FAB 改为独立圆形，仅保留"记一笔"；
  * - 默认显示系统当前月的账单数据，空状态区分"全局无记录"与"该月无记录"。
+ *
+ * 返回导航层级（由内到外）：
+ * 1. 覆盖层：DropdownMenu / ModalBottomSheet — Material 3 组件内置处理
+ * 2. 状态模式：搜索模式 — BackHandler 退出搜索
+ * 3. 页面级：根页面 — 系统默认退出应用
  */
 @Composable
 fun RecordListScreen(
@@ -103,6 +109,13 @@ fun RecordListScreen(
 
     val monthLabel = remember(selectedYearMonth) {
         formatYearMonthShort(selectedYearMonth)
+    }
+
+    // 搜索模式下拦截系统返回键，优先退出搜索而非退出应用
+    BackHandler(enabled = appState.isSearchMode) {
+        focusManager.clearFocus()
+        keyboardController?.hide()
+        onExitSearchMode()
     }
 
     // 进入搜索模式时自动聚焦搜索框

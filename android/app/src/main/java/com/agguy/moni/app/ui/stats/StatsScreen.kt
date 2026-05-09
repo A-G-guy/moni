@@ -56,6 +56,9 @@ import java.time.format.DateTimeFormatter
  *
  * 月份联动：本页通过 [selectedYearMonth] 与账单页共享当前选中月份；
  * [MonthSummaryCarousel] 既响应外部月份变化自动滚动，也向外部通知用户手动滑动产生的月份切换。
+ *
+ * 返回导航层级（由内到外）：
+ * 1. 页面级：根页面 — 系统默认退出应用
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

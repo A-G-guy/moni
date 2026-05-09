@@ -56,6 +56,10 @@ import com.agguy.moni.core.serialName
  * - 顶部 Tab 切换支出/收入已归档分类；
  * - 列表展示已归档分类，支持恢复操作；
  * - 预设分类仅展示，不提供恢复按钮。
+ *
+ * 返回导航层级（由内到外）：
+ * 1. 覆盖层：AlertDialog（恢复确认）— Material 3 组件内置处理
+ * 2. 页面级：子页面 — popBackStack 返回
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

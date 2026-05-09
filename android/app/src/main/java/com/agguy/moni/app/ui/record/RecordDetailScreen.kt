@@ -61,6 +61,11 @@ import java.time.format.DateTimeFormatter
  * - 中部：分类垂直滚动网格（固定高度）
  * - 弹性空白：空间过多时在此处填充
  * - 底部：综合输入面板（固定高度，紧贴底部）
+ *
+ * 返回导航层级（由内到外）：
+ * 1. 覆盖层：ModalBottomSheet（日期选择、时间选择）— Material 3 组件内置处理
+ * 2. 状态模式：备注编辑模式 — BackHandler 退出编辑
+ * 3. 页面级：子页面 — popBackStack 返回
  */
 @Composable
 fun RecordDetailScreen(

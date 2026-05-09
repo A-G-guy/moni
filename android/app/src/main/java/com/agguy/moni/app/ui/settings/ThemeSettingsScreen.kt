@@ -53,6 +53,9 @@ import com.agguy.moni.app.theme.seedColor
  * 外观设置二级页面。
  *
  * 整合配色方案、主题模式两个设置项，页面内直接展示选择器，选择即时生效。
+ *
+ * 返回导航层级（由内到外）：
+ * 1. 页面级：子页面 — popBackStack 返回
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -199,6 +199,13 @@ fun RecordListScreen(
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
+                                IconButton(onClick = onEnterSearchMode) {
+                                    SymbolIcon(
+                                        name = "search",
+                                        contentDescription = stringResource(R.string.search),
+                                        size = 24.dp
+                                    )
+                                }
                                 Box {
                                     IconButton(onClick = { moreMenuExpanded = true }) {
                                         SymbolIcon(
@@ -240,13 +247,6 @@ fun RecordListScreen(
                                             }
                                         )
                                     }
-                                }
-                                IconButton(onClick = onEnterSearchMode) {
-                                    SymbolIcon(
-                                        name = "search",
-                                        contentDescription = stringResource(R.string.search),
-                                        size = 24.dp
-                                    )
                                 }
                             }
                         }

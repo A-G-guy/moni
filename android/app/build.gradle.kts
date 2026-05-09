@@ -96,7 +96,7 @@ plugins {
 
 android {
     namespace = "com.agguy.moni"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = androidNdkVersion
 
     defaultConfig {

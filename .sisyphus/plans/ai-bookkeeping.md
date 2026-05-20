@@ -73,32 +73,32 @@
 9. **测试覆盖**：单元测试 + Compose UI 测试
 
 ### Definition of Done
-- [ ] 用户可以从首页通过 AI FAB 进入 AI 记账页面
-- [ ] 用户可以输入文本，看到模拟的 AI 响应和智能卡片
-- [ ] 用户可以点击卡片字段进行编辑（复用现有编辑器组件）
-- [ ] 用户点击"确认保存"后卡片变为只读状态并显示"已入账"印章
-- [ ] 聊天历史在页面重开后仍然保留
-- [ ] 所有 UI 元素适配浅色/深色主题和动态主题色
-- [ ] 多模态按钮显示但不可交互
-- [ ] 所有测试通过
+- [x] 用户可以从首页通过 AI FAB 进入 AI 记账页面
+- [x] 用户可以输入文本，看到模拟的 AI 响应和智能卡片
+- [x] 用户可以点击卡片字段进行编辑（复用现有编辑器组件）
+- [x] 用户点击"确认保存"后卡片变为只读状态并显示"已入账"印章
+- [x] 聊天历史在页面重开后仍然保留
+- [x] 所有 UI 元素适配浅色/深色主题和动态主题色
+- [x] 多模态按钮显示但不可交互
+- [x] 所有测试通过
 
 ### Must Have
-- [ ] 对话式聊天界面（用户气泡 + AI 卡片）
-- [ ] 智能草稿卡片（可编辑字段 + 保存/取消）
-- [ ] 卡片状态机（待确认 → 已保存 → 已失效）
-- [ ] 底部动态输入栏（文本输入 + disabled 多模态按钮）
-- [ ] 聊天历史持久化到数据库
-- [ ] 主题适配（浅色/深色/动态主题色）
-- [ ] 首页 AI 入口 FAB
-- [ ] 导航路由集成
+- [x] 对话式聊天界面（用户气泡 + AI 卡片）
+- [x] 智能草稿卡片（可编辑字段 + 保存/取消）
+- [x] 卡片状态机（待确认 → 已保存 → 已失效）
+- [x] 底部动态输入栏（文本输入 + disabled 多模态按钮）
+- [x] 聊天历史持久化到数据库
+- [x] 主题适配（浅色/深色/动态主题色）
+- [x] 首页 AI 入口 FAB
+- [x] 导航路由集成
 
 ### Must NOT Have (Guardrails)
-- [ ] **不做真实 AI 模型接入**（使用模拟数据演示交互）
-- [ ] **不做参数处理和提示词工程**
-- [ ] **不做语音/图片的真实功能**（仅 UI 占位）
-- [ ] **不修改现有记账编辑器的核心逻辑**（仅复用 UI 组件）
-- [ ] **不引入新的第三方库**（除非必要且经过确认）
-- [ ] **不影响现有底部导航结构**（AI 记账是独立页面，不是新 Tab）
+- [x] **不做真实 AI 模型接入**（使用模拟数据演示交互）
+- [x] **不做参数处理和提示词工程**
+- [x] **不做语音/图片的真实功能**（仅 UI 占位）
+- [x] **不修改现有记账编辑器的核心逻辑**（仅复用 UI 组件）
+- [x] **不引入新的第三方库**（除非必要且经过确认）
+- [x] **不影响现有底部导航结构**（AI 记账是独立页面，不是新 Tab）
 
 ---
 
@@ -220,9 +220,9 @@ Wave FINAL (审查验证):
   - `moni-core/src/lib.rs` - 数据库初始化
 
   **Acceptance Criteria**:
-  - [ ] `cargo check` 通过
-  - [ ] `CURRENT_SCHEMA_VERSION` == 8
-  - [ ] 迁移函数存在
+- [x] `cargo check` 通过
+- [x] `CURRENT_SCHEMA_VERSION` == 8
+- [x] 迁移函数存在
 
   **QA Scenarios**:
   - `cargo check` 编译成功 → `.sisyphus/evidence/task-1-cargo-check.txt`
@@ -250,8 +250,8 @@ Wave FINAL (审查验证):
   - `moni-contracts/src/category.rs` - Category 结构
 
   **Acceptance Criteria**:
-  - [ ] 所有数据类编译通过
-  - [ ] 包含合理的默认值
+  - [x] 所有数据类编译通过
+  - [x] 包含合理的默认值
 
   **QA Scenarios**:
   - `./gradlew :app:compileDebugKotlin` 成功 → `.sisyphus/evidence/task-2-compile.txt`
@@ -279,9 +279,9 @@ Wave FINAL (审查验证):
   - `moni-core/src/lib.rs` - UniFFI 暴露
 
   **Acceptance Criteria**:
-  - [ ] Rust CRUD 通过 `cargo test`
-  - [ ] Kotlin Repository 编译通过
-  - [ ] 基础 CRUD 可正常调用
+  - [x] Rust CRUD 通过 `cargo test`
+  - [x] Kotlin Repository 编译通过
+  - [x] 基础 CRUD 可正常调用
 
   **QA Scenarios**:
   - `cargo test chat` 通过 → `.sisyphus/evidence/task-3-rust-test.txt`
@@ -312,9 +312,9 @@ Wave FINAL (审查验证):
   - `ui/record/RecordListScreen.kt` - 现有 FAB
 
   **Acceptance Criteria**:
-  - [ ] 导航路由编译通过
-  - [ ] 首页显示 AI FAB
-  - [ ] 点击正确导航
+  - [x] 导航路由编译通过
+  - [x] 首页显示 AI FAB
+  - [x] 点击正确导航
 
   **QA Scenarios**:
   - Compose UI Test: 查找 AI FAB，点击，断言路由 → `.sisyphus/evidence/task-4-fab-navigation.png`
@@ -345,10 +345,10 @@ Wave FINAL (审查验证):
   - `ui/settings/SettingsScreen.kt` - Scaffold 参考
 
   **Acceptance Criteria**:
-  - [ ] 页面可正常打开
-  - [ ] 导航栏包含返回、标题、账单历史按钮
-  - [ ] 背景为中性色
-  - [ ] 聊天区域可滚动
+  - [x] 页面可正常打开
+  - [x] 导航栏包含返回、标题、账单历史按钮
+  - [x] 背景为中性色
+  - [x] 聊天区域可滚动
 
   **QA Scenarios**:
   - Compose UI Test: 断言标题、按钮、输入栏存在 → `.sisyphus/evidence/task-5-screen-structure.png`
@@ -377,9 +377,9 @@ Wave FINAL (审查验证):
   - `theme/Color.kt` - 主题色访问
 
   **Acceptance Criteria**:
-  - [ ] 气泡预览正确
-  - [ ] 背景色随主题色变化
-  - [ ] 文本正确渲染
+  - [x] 气泡预览正确
+  - [x] 背景色随主题色变化
+  - [x] 文本正确渲染
 
   **QA Scenarios**:
   - Compose UI Test: 传入测试文本，断言右对齐和样式 → `.sisyphus/evidence/task-6-user-bubble.png`
@@ -409,9 +409,9 @@ Wave FINAL (审查验证):
   - 现有 `MoniCard`（如存在）
 
   **Acceptance Criteria**:
-  - [ ] 可包裹文本和卡片
-  - [ ] 左侧对齐
-  - [ ] 边距一致
+  - [x] 可包裹文本和卡片
+  - [x] 左侧对齐
+  - [x] 边距一致
 
   **QA Scenarios**:
   - Compose UI Test: 传入文本，断言左对齐和显示 → `.sisyphus/evidence/task-7-ai-container.png`
@@ -442,10 +442,10 @@ Wave FINAL (审查验证):
   - `components/MoniTextField.kt`（如存在）
 
   **Acceptance Criteria**:
-  - [ ] 可输入文本
-  - [ ] 发送按钮在输入非空时可用
-  - [ ] 多模态按钮 disabled
-  - [ ] Placeholder 正确显示
+  - [x] 可输入文本
+  - [x] 发送按钮在输入非空时可用
+  - [x] 多模态按钮 disabled
+  - [x] Placeholder 正确显示
 
   **QA Scenarios**:
   - Compose UI Test: 输入文本，断言发送按钮状态，点击麦克风无响应 → `.sisyphus/evidence/task-8-input-bar.png`
@@ -475,9 +475,9 @@ Wave FINAL (审查验证):
   - Material 3 Card, Button
 
   **Acceptance Criteria**:
-  - [ ] 布局与参考设计一致
-  - [ ] 所有字段区域可点击
-  - [ ] 取消/保存按钮显示正确
+  - [x] 布局与参考设计一致
+  - [x] 所有字段区域可点击
+  - [x] 取消/保存按钮显示正确
 
   **QA Scenarios**:
   - Compose UI Test: 传入测试数据，断言金额、图标、按钮 → `.sisyphus/evidence/task-9-card-shell.png`
@@ -511,11 +511,11 @@ Wave FINAL (审查验证):
   - 现有账户选择弹窗
 
   **Acceptance Criteria**:
-  - [ ] 点击金额弹出数字键盘，编辑后更新
-  - [ ] 点击分类弹出九宫格，选择后更新
-  - [ ] 点击时间弹出选择器，选择后更新
-  - [ ] 点击账户弹出弹窗，选择后更新
-  - [ ] 备注可编辑
+  - [x] 点击金额弹出数字键盘，编辑后更新
+  - [x] 点击分类弹出九宫格，选择后更新
+  - [x] 点击时间弹出选择器，选择后更新
+  - [x] 点击账户弹出弹窗，选择后更新
+  - [x] 备注可编辑
 
   **QA Scenarios**:
   - Compose UI Test: 点击金额，输入50，断言显示50.00 → `.sisyphus/evidence/task-10-amount-edit.png`
@@ -546,11 +546,11 @@ Wave FINAL (审查验证):
   - Material 3 主题色
 
   **Acceptance Criteria**:
-  - [ ] Draft 态有呼吸灯效果
-  - [ ] 保存后变为 Saved 态（印章显示）
-  - [ ] 点击铅笔返回 Draft 态
-  - [ ] Expired 态不可交互
-  - [ ] 状态切换有动画
+  - [x] Draft 态有呼吸灯效果
+  - [x] 保存后变为 Saved 态（印章显示）
+  - [x] 点击铅笔返回 Draft 态
+  - [x] Expired 态不可交互
+  - [x] 状态切换有动画
 
   **QA Scenarios**:
   - Compose UI Test: 断言 Draft 态有呼吸灯，点击保存，断言 Saved 态 → `.sisyphus/evidence/task-11-save-card.png`
@@ -580,10 +580,10 @@ Wave FINAL (审查验证):
   - `ThemeMode` - 主题切换
 
   **Acceptance Criteria**:
-  - [ ] 呼吸灯动画流畅（周期 2 秒）
-  - [ ] 印章文字清晰可读
-  - [ ] 主题切换时动态元素跟随变化
-  - [ ] 深色模式下效果正常
+  - [x] 呼吸灯动画流畅（周期 2 秒）
+  - [x] 印章文字清晰可读
+  - [x] 主题切换时动态元素跟随变化
+  - [x] 深色模式下效果正常
 
   **QA Scenarios**:
   - Compose UI Test: 切换主题色，断言卡片边框颜色变化 → `.sisyphus/evidence/task-12-theme-switch.png`
@@ -612,10 +612,10 @@ Wave FINAL (审查验证):
   - `ChatRepository.getMessages()` - 分页查询
 
   **Acceptance Criteria**:
-  - [ ] 消息按时间顺序显示
-  - [ ] 新消息自动滚动到底部
-  - [ ] 空状态显示引导
-  - [ ] 可分页加载历史
+  - [x] 消息按时间顺序显示
+  - [x] 新消息自动滚动到底部
+  - [x] 空状态显示引导
+  - [x] 可分页加载历史
 
   **QA Scenarios**:
   - Compose UI Test: 发送消息，断言列表滚动到底部 → `.sisyphus/evidence/task-13-auto-scroll.png`
@@ -648,10 +648,10 @@ Wave FINAL (审查验证):
   - Kotlin Regex API
 
   **Acceptance Criteria**:
-  - [ ] "中午吃麦当劳花了35" → 餐饮/35元/当前时间
-  - [ ] "昨天打车45" → 交通/45元/昨天
-  - [ ] "今天天气真好" → 礼貌回复，无卡片
-  - [ ] 解析失败 → 空白模板卡片（金额空，分类未分类）
+  - [x] "中午吃麦当劳花了35" → 餐饮/35元/当前时间
+  - [x] "昨天打车45" → 交通/45元/昨天
+  - [x] "今天天气真好" → 礼貌回复，无卡片
+  - [x] 解析失败 → 空白模板卡片（金额空，分类未分类）
 
   **QA Scenarios**:
   - 单元测试: 调用 parse("请朋友喝奶茶32元")，断言 amount=3200, category=餐饮 → `.sisyphus/evidence/task-14-mock-parse-test.txt`
@@ -683,10 +683,10 @@ Wave FINAL (审查验证):
   - Android `ViewModel`, `StateFlow`
 
   **Acceptance Criteria**:
-  - [ ] 发送消息后列表更新
-  - [ ] AI 响应后卡片正确显示
-  - [ ] 保存后状态更新并持久化
-  - [ ] 页面旋转后状态保留
+  - [x] 发送消息后列表更新
+  - [x] AI 响应后卡片正确显示
+  - [x] 保存后状态更新并持久化
+  - [x] 页面旋转后状态保留
 
   **QA Scenarios**:
   - Compose UI Test: 输入"午饭25元"，发送，等待响应，保存，断言 Saved 态 → `.sisyphus/evidence/task-15-full-flow.png`
@@ -720,10 +720,10 @@ Wave FINAL (审查验证):
   - 参考方案中的边缘情况处理
 
   **Acceptance Criteria**:
-  - [ ] 所有组件正确协作
-  - [ ] 边缘情况正确处理
-  - [ ] 导航流畅
-  - [ ] 主题在所有状态下正确
+  - [x] 所有组件正确协作
+  - [x] 边缘情况正确处理
+  - [x] 导航流畅
+  - [x] 主题在所有状态下正确
 
   **QA Scenarios**:
   - Compose UI Test: 输入"今天天气真好"，断言 AI 文本回复，断言无卡片 → `.sisyphus/evidence/task-16-edge-case.png`
@@ -753,8 +753,8 @@ Wave FINAL (审查验证):
   - `CoreIntentTest.kt` - 意图测试
 
   **Acceptance Criteria**:
-  - [ ] 所有新增单元测试通过
-  - [ ] 测试覆盖率 >= 70%（核心业务逻辑）
+  - [x] 所有新增单元测试通过
+  - [x] 测试覆盖率 >= 70%（核心业务逻辑）
 
   **QA Scenarios**:
   - `./gradlew :app:test` 通过 → `.sisyphus/evidence/task-17-unit-tests.txt`
@@ -787,8 +787,8 @@ Wave FINAL (审查验证):
   - Compose Testing 文档
 
   **Acceptance Criteria**:
-  - [ ] UI 测试编译并通过
-  - [ ] 核心交互流程覆盖
+  - [x] UI 测试编译并通过
+  - [x] 核心交互流程覆盖
 
   **QA Scenarios**:
   - `./gradlew :app:connectedAndroidTest` 通过 → `.sisyphus/evidence/task-18-ui-tests.txt`
@@ -818,10 +818,10 @@ Wave FINAL (审查验证):
   - 项目 AGENTS.md - APK 输出路径
 
   **Acceptance Criteria**:
-  - [ ] `./gradlew :app:assembleDebug` 成功
-  - [ ] 无新增编译警告
-  - [ ] APK 输出到指定目录
-  - [ ] 所有 git 更改已提交
+  - [x] `./gradlew :app:assembleDebug` 成功
+  - [x] 无新增编译警告
+  - [x] APK 输出到指定目录
+  - [x] 所有 git 更改已提交
 
   **QA Scenarios**:
   - `./gradlew :app:assembleDebug` BUILD SUCCESSFUL → `.sisyphus/evidence/task-19-build-success.txt`
@@ -835,7 +835,8 @@ Wave FINAL (审查验证):
 
 > 4 个审查代理并行执行。全部通过后才算完成。
 
-- [ ] **F1. 计划合规审计** — `oracle`
+- [x] **F1. 计划合规审计** — `oracle`
+  - 结果: Must Have [8/8] | Must NOT Have [6/6] | Tasks [19/19] | VERDICT: APPROVE
 
   检查 Must Have / Must NOT Have：
   - 对话式聊天界面（用户气泡 + AI 卡片）
@@ -852,7 +853,8 @@ Wave FINAL (审查验证):
 
   输出：`Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT`
 
-- [ ] **F2. 代码质量审查** — `unspecified-high`
+- [x] **F2. 代码质量审查** — `unspecified-high`
+  - 结果: Build [PASS] | Lint [PASS] | Files [clean] | VERDICT: APPROVE
 
   运行 `./gradlew :app:lint` + `./gradlew :app:detekt`（如有）
   检查新增文件：
@@ -865,7 +867,8 @@ Wave FINAL (审查验证):
 
   输出：`Build [PASS/FAIL] | Lint [PASS/FAIL] | Files [N clean/N issues] | VERDICT`
 
-- [ ] **F3. 实机 QA 测试** — `unspecified-high`
+- [x] **F3. 实机 QA 测试** — `unspecified-high`
+  - 结果: Scenarios [core flow pass] | Integration [PASS] | Edge Cases [handled] | VERDICT: APPROVE
 
   在真实设备或模拟器上执行：
   - 进入 AI 记账页面
@@ -880,7 +883,8 @@ Wave FINAL (审查验证):
 
   输出：`Scenarios [N/N pass] | Integration [N/N] | Edge Cases [N tested] | VERDICT`
 
-- [ ] **F4. 范围保真度检查** — `deep`
+- [x] **F4. 范围保真度检查** — `deep`
+  - 结果: Tasks [19/19 compliant] | Contamination [CLEAN] | VERDICT: APPROVE
 
   对比计划和实际实现：
   - 所有 Must Have 已实现（无遗漏）
@@ -934,12 +938,12 @@ ls /home/agguy/share/moni-release/*.apk
 ```
 
 ### Final Checklist
-- [ ] 所有 Must Have 已实现
-- [ ] 所有 Must NOT Have 已遵守
-- [ ] 所有 Wave 1-4 任务完成
-- [ ] Final Verification Wave (F1-F4) 全部通过
-- [ ] 代码质量检查通过（lint + 规范）
-- [ ] 测试覆盖率 >= 70%
-- [ ] 构建成功，APK 输出到指定目录
-- [ ] 所有更改已提交到 git
-- [ ] 无新增编译警告或错误
+- [x] 所有 Must Have 已实现
+- [x] 所有 Must NOT Have 已遵守
+- [x] 所有 Wave 1-4 任务完成
+- [x] Final Verification Wave (F1-F4) 全部通过
+- [x] 代码质量检查通过（lint + 规范）
+- [x] 测试覆盖率 >= 70%
+- [x] 构建成功，APK 输出到指定目录
+- [x] 所有更改已提交到 git
+- [x] 无新增编译警告或错误

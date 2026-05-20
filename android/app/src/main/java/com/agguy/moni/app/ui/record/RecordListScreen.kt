@@ -92,6 +92,7 @@ fun RecordListScreen(
     onNavigateToRecordDetail: (Long?) -> Unit,
     onNavigateToCategoryList: () -> Unit,
     onNavigateToBudgetList: () -> Unit,
+    onNavigateToAiBookkeeping: () -> Unit,
     onEnterSearchMode: () -> Unit,
     onExitSearchMode: () -> Unit,
     onUpdateSearchKeyword: (String) -> Unit,
@@ -271,16 +272,32 @@ fun RecordListScreen(
         },
         floatingActionButton = {
             if (!appState.isSearchMode) {
-                FloatingActionButton(
-                    onClick = { onNavigateToRecordDetail(null) },
-                    shape = MaterialTheme.shapes.large
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    SymbolIcon(
-                        name = "add",
-                        filled = true,
-                        contentDescription = stringResource(R.string.editor_title_new),
-                        size = 24.dp
-                    )
+                    FloatingActionButton(
+                        onClick = onNavigateToAiBookkeeping,
+                        modifier = Modifier.size(40.dp),
+                        shape = MaterialTheme.shapes.large
+                    ) {
+                        SymbolIcon(
+                            name = "auto_awesome",
+                            contentDescription = "AI 记账",
+                            size = 20.dp
+                        )
+                    }
+                    FloatingActionButton(
+                        onClick = { onNavigateToRecordDetail(null) },
+                        shape = MaterialTheme.shapes.large
+                    ) {
+                        SymbolIcon(
+                            name = "add",
+                            filled = true,
+                            contentDescription = stringResource(R.string.editor_title_new),
+                            size = 24.dp
+                        )
+                    }
                 }
             }
         }

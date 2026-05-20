@@ -369,6 +369,105 @@ impl MoniCore {
             .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
     }
 
+    // === Chat 消息操作 ===
+
+    pub async fn chat_insert(
+        &self,
+        session_id: String,
+        message_type: String,
+        content: String,
+        card_data_json: Option<String>,
+        card_status: Option<String>,
+    ) -> Result<i64, CoreError> {
+        let inner = Arc::clone(&self.inner);
+        self.runtime
+            .spawn_blocking(move || {
+                let inner = inner
+                    .lock()
+                    .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
+                let card_data = card_data_json.as_deref();
+                let status = card_status.as_deref();
+                crate::db::chat_repo::insert(
+                    &inner.conn,
+                    &session_id,
+                    &message_type,
+                    &content,
+                    card_data,
+                    status,
+                )
+                .map_err(|e| CoreError::Database(format!("插入聊天消息失败: {e}")))
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
+    pub async fn chat_get_by_session(
+        &self,
+        session_id: String,
+        limit: i64,
+        offset: i64,
+    ) -> Result<String, CoreError> {
+        let inner = Arc::clone(&self.inner);
+        self.runtime
+            .spawn_blocking(move || {
+                let inner = inner
+                    .lock()
+                    .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
+                let rows = crate::db::chat_repo::get_by_session(&inner.conn, &session_id, limit, offset)
+                    .map_err(|e| CoreError::Database(format!("查询聊天消息失败: {e}")))?;
+                serde_json::to_string(&rows)
+                    .map_err(|e| CoreError::Internal(format!("序列化聊天消息失败: {e}")))
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
+    pub async fn chat_update_status(
+        &self,
+        id: i64,
+        card_status: String,
+    ) -> Result<(), CoreError> {
+        let inner = Arc::clone(&self.inner);
+        self.runtime
+            .spawn_blocking(move || {
+                let inner = inner
+                    .lock()
+                    .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
+                crate::db::chat_repo::update_status(&inner.conn, id, &card_status)
+                    .map_err(|e| CoreError::Database(format!("更新聊天消息状态失败: {e}")))
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
+    pub async fn chat_delete(&self, id: i64) -> Result<(), CoreError> {
+        let inner = Arc::clone(&self.inner);
+        self.runtime
+            .spawn_blocking(move || {
+                let inner = inner
+                    .lock()
+                    .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
+                crate::db::chat_repo::delete_by_id(&inner.conn, id)
+                    .map_err(|e| CoreError::Database(format!("删除聊天消息失败: {e}")))
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
+    pub async fn chat_clear_session(&self, session_id: String) -> Result<(), CoreError> {
+        let inner = Arc::clone(&self.inner);
+        self.runtime
+            .spawn_blocking(move || {
+                let inner = inner
+                    .lock()
+                    .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
+                crate::db::chat_repo::clear_session(&inner.conn, &session_id)
+                    .map_err(|e| CoreError::Database(format!("清空会话消息失败: {e}")))
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
     // === 纯计算函数（不涉及数据库，同步执行） ===
 
     /// 解析表达式并返回计算结果（分）。

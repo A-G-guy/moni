@@ -148,6 +148,7 @@ fun MoniApp() {
                 onResetSearchParams = viewModel::resetSearchParams,
                 backupViewModel = backupViewModel,
                 dbPath = dbPath,
+                rustCore = rustCore,
                 modifier = Modifier.padding(innerPadding)
             )
         }

@@ -33,9 +33,13 @@ import com.agguy.moni.app.ui.dev.DevLogScreen
 import com.agguy.moni.app.ui.dev.DeveloperOptionsScreen
 import com.agguy.moni.app.ui.record.RecordDetailScreen
 import com.agguy.moni.app.ui.record.RecordListScreen
+import com.agguy.moni.app.ui.aibookkeeping.AiBookkeepingScreen
+import com.agguy.moni.app.ui.aibookkeeping.AiBookkeepingViewModel
 import com.agguy.moni.app.ui.settings.SettingsScreen
 import com.agguy.moni.app.ui.stats.StatsScreen
+import com.agguy.moni.app.repository.ChatRepositoryImpl
 import com.agguy.moni.core.CoreIntent
+import com.agguy.moni.core.RustCoreController
 
 /**
  * 底部栏页面的左右顺序索引，用于决定切换时动画方向。
@@ -101,6 +105,7 @@ fun MoniNavHost(
     onNavigateToDataManagement: () -> Unit = {},
     onNavigateToThemeSettings: () -> Unit = {},
     onNavigateToBudgetList: () -> Unit = {},
+    onNavigateToAiBookkeeping: () -> Unit = {},
     onEnterSearchMode: () -> Unit = {},
     onExitSearchMode: () -> Unit = {},
     onUpdateSearchKeyword: (String) -> Unit = {},
@@ -108,6 +113,7 @@ fun MoniNavHost(
     onResetSearchParams: () -> Unit = {},
     backupViewModel: BackupViewModel,
     dbPath: String,
+    rustCore: RustCoreController,
     modifier: Modifier = Modifier
 ) {
     val slideSpec = MaterialTheme.motionScheme.defaultSpatialSpec<IntOffset>()
@@ -148,6 +154,7 @@ fun MoniNavHost(
                 onNavigateToRecordDetail = onNavigateToRecordDetail,
                 onNavigateToCategoryList = onNavigateToCategoryList,
                 onNavigateToBudgetList = onNavigateToBudgetList,
+                onNavigateToAiBookkeeping = onNavigateToAiBookkeeping,
                 onEnterSearchMode = onEnterSearchMode,
                 onExitSearchMode = onExitSearchMode,
                 onUpdateSearchKeyword = onUpdateSearchKeyword,
@@ -241,6 +248,24 @@ fun MoniNavHost(
                 onDispatch = onDispatch,
                 onSelectYearMonth = onSelectYearMonth,
                 onNavigateBack = onNavigateBack
+            )
+        }
+        composable<Screen.AiBookkeeping> {
+            val viewModel = androidx.lifecycle.viewmodel.compose.viewModel<AiBookkeepingViewModel>(
+                factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+                    @Suppress("UNCHECKED_CAST")
+                    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                        return AiBookkeepingViewModel(
+                            chatRepository = ChatRepositoryImpl(),
+                            rustCore = rustCore
+                        ) as T
+                    }
+                }
+            )
+            AiBookkeepingScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToRecordList = { navController.navigate(Screen.RecordList) }
             )
         }
     }

@@ -2,7 +2,7 @@ use rusqlite::Connection;
 
 /// 当前数据库 schema 版本号。
 /// 每次 schema 发生非向后兼容的变更时同步递增。
-pub const CURRENT_SCHEMA_VERSION: u32 = 7;
+pub const CURRENT_SCHEMA_VERSION: u32 = 8;
 
 const SCHEMA_SQL: &str = "
 CREATE TABLE IF NOT EXISTS categories (
@@ -53,6 +53,18 @@ CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL,
+    message_type TEXT NOT NULL CHECK(message_type IN ('user_text', 'ai_card', 'ai_text', 'system')),
+    content TEXT NOT NULL DEFAULT '',
+    card_data_json TEXT NULL,
+    card_status TEXT NULL CHECK(card_status IN ('draft', 'saved', 'expired')),
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_messages_session_created ON chat_messages(session_id, created_at DESC);
 ";
 
 /// 执行数据库 Schema 初始化与幂等迁移。
@@ -72,6 +84,9 @@ pub fn init_schema(conn: &Connection) -> Result<(), rusqlite::Error> {
         }
         if schema_version < 7 {
             init_schema_v7(conn)?;
+        }
+        if schema_version < 8 {
+            init_schema_v8(conn)?;
         }
         conn.execute(
             &format!("PRAGMA user_version = {}", CURRENT_SCHEMA_VERSION),
@@ -279,6 +294,26 @@ fn init_schema_v7(conn: &Connection) -> Result<(), rusqlite::Error> {
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_records_amount ON records(amount_cents)",
         [],
+    )?;
+    Ok(())
+}
+
+/// v8 迁移：
+/// 创建 chat_messages 表，用于存储 AI 对话消息记录。
+fn init_schema_v8(conn: &Connection) -> Result<(), rusqlite::Error> {
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS chat_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id TEXT NOT NULL,
+            message_type TEXT NOT NULL CHECK(message_type IN ('user_text', 'ai_card', 'ai_text', 'system')),
+            content TEXT NOT NULL DEFAULT '',
+            card_data_json TEXT NULL,
+            card_status TEXT NULL CHECK(card_status IN ('draft', 'saved', 'expired')),
+            created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_chat_messages_session_created
+            ON chat_messages(session_id, created_at DESC);",
     )?;
     Ok(())
 }

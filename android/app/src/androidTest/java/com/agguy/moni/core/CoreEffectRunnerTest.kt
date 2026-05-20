@@ -1,24 +1,19 @@
 package com.agguy.moni.core
 
+import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Test
 
-/**
- * `CoreEffectRunner` 单元测试，覆盖 `runEffect` 的全部分支：
- * - `log`：仅打日志（无回调），不应调用任何 onShowSnackbar/onNavigate
- * - `show_snackbar`：解析 payload 中的 `message` 并触发回调
- * - `show_snackbar` payload 异常：回退为原始 payload 字符串作为消息
- * - `navigate`：解析 payload 中的 `screen` 并触发回调
- * - `navigate` payload 异常：传入空字符串
- * - 未知 kind：不应调用任何回调
- */
+/** CoreEffectRunner 仪器测试 — 需 Application Context。 */
 class CoreEffectRunnerTest {
 
+    private fun createRunner() = CoreEffectRunner(ApplicationProvider.getApplicationContext())
+
     @Test
-    fun `log effect does not invoke callbacks`() {
-        val runner = CoreEffectRunner()
+    fun log_effect_does_not_invoke_callbacks() {
+        val runner = createRunner()
         var snackbarMessage: String? = null
         var navigateScreen: String? = null
         runner.onShowSnackbar = { snackbarMessage = it }
@@ -31,8 +26,8 @@ class CoreEffectRunnerTest {
     }
 
     @Test
-    fun `show_snackbar parses message and invokes callback`() {
-        val runner = CoreEffectRunner()
+    fun show_snackbar_parses_message_and_invokes_callback() {
+        val runner = createRunner()
         var captured: String? = null
         runner.onShowSnackbar = { captured = it }
 
@@ -44,20 +39,19 @@ class CoreEffectRunnerTest {
     }
 
     @Test
-    fun `show_snackbar with malformed payload falls back to raw payload`() {
-        val runner = CoreEffectRunner()
+    fun show_snackbar_with_malformed_payload_falls_back_to_raw_payload() {
+        val runner = createRunner()
         var captured: String? = null
         runner.onShowSnackbar = { captured = it }
 
-        // 非 JSON：解析失败，按设计回退为原始 payload
         val raw = "this is not json"
         runner.runEffect(CoreEffect(kind = "show_snackbar", payloadJson = raw))
         assertEquals(raw, captured)
     }
 
     @Test
-    fun `show_snackbar without message field falls back to raw payload`() {
-        val runner = CoreEffectRunner()
+    fun show_snackbar_without_message_field_falls_back_to_raw_payload() {
+        val runner = createRunner()
         var captured: String? = null
         runner.onShowSnackbar = { captured = it }
 
@@ -67,8 +61,8 @@ class CoreEffectRunnerTest {
     }
 
     @Test
-    fun `navigate parses screen and invokes callback`() {
-        val runner = CoreEffectRunner()
+    fun navigate_parses_screen_and_invokes_callback() {
+        val runner = createRunner()
         var captured: String? = null
         runner.onNavigate = { captured = it }
 
@@ -80,8 +74,8 @@ class CoreEffectRunnerTest {
     }
 
     @Test
-    fun `navigate with malformed payload falls back to empty string`() {
-        val runner = CoreEffectRunner()
+    fun navigate_with_malformed_payload_falls_back_to_empty_string() {
+        val runner = createRunner()
         var captured: String? = null
         runner.onNavigate = { captured = it }
 
@@ -91,8 +85,8 @@ class CoreEffectRunnerTest {
     }
 
     @Test
-    fun `unknown effect kind is ignored without invoking callbacks`() {
-        val runner = CoreEffectRunner()
+    fun unknown_effect_kind_is_ignored_without_invoking_callbacks() {
+        val runner = createRunner()
         var snackbarMessage: String? = null
         var navigateScreen: String? = null
         runner.onShowSnackbar = { snackbarMessage = it }
@@ -105,22 +99,19 @@ class CoreEffectRunnerTest {
     }
 
     @Test
-    fun `callbacks can be left null and runEffect should not crash`() {
-        // 验证 lambda 为 null 时使用 ?.invoke 安全调用
-        val runner = CoreEffectRunner()
-        // 不要 setter 任何回调
+    fun callbacks_can_be_left_null_and_runEffect_should_not_crash() {
+        val runner = createRunner()
         runner.runEffect(
             CoreEffect(kind = "show_snackbar", payloadJson = "{\"message\":\"x\"}")
         )
         runner.runEffect(
             CoreEffect(kind = "navigate", payloadJson = "{\"screen\":\"x\"}")
         )
-        // 通过：未抛异常即视为 OK
     }
 
     @Test
-    fun `multiple effects are processed in sequence`() {
-        val runner = CoreEffectRunner()
+    fun multiple_effects_are_processed_in_sequence() {
+        val runner = createRunner()
         val collected = mutableListOf<String>()
         runner.onShowSnackbar = { collected += "snack:$it" }
         runner.onNavigate = { collected += "nav:$it" }
@@ -135,8 +126,8 @@ class CoreEffectRunnerTest {
     }
 
     @Test
-    fun `callback override replaces previous reference`() {
-        val runner = CoreEffectRunner()
+    fun callback_override_replaces_previous_reference() {
+        val runner = createRunner()
         val first: (String) -> Unit = {}
         val second: (String) -> Unit = {}
         runner.onShowSnackbar = first

@@ -115,31 +115,44 @@ fun AiBookkeepingScreen(
             )
         }
     ) { innerPadding ->
-        if (messages.isEmpty()) {
-            EmptyState(modifier = Modifier.padding(innerPadding))
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                state = listState,
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(
-                    items = messages,
-                    key = { it.id }
-                ) { message ->
-                    ChatMessageItem(
-                        message = message,
-                        onSaveCard = viewModel::saveCard,
-                        onCancelCard = viewModel::cancelCard
-                    )
+        when {
+            messages.isEmpty() && isLoading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    LoadingIndicator()
                 }
+            }
+            messages.isEmpty() -> {
+                EmptyState(modifier = Modifier.padding(innerPadding))
+            }
+            else -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    state = listState,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(
+                        items = messages,
+                        key = { it.id }
+                    ) { message ->
+                        ChatMessageItem(
+                            message = message,
+                            onSaveCard = viewModel::saveCard,
+                            onCancelCard = viewModel::cancelCard
+                        )
+                    }
 
-                if (isLoading) {
-                    item {
-                        LoadingIndicator()
+                    if (isLoading) {
+                        item {
+                            LoadingIndicator()
+                        }
                     }
                 }
             }

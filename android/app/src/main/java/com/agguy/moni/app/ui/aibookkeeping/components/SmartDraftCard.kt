@@ -87,13 +87,13 @@ private enum class EditorSheet {
 @Composable
 fun SmartDraftCard(
     cardData: DraftCardData,
+    modifier: Modifier = Modifier,
     cardStatus: CardStatus = CardStatus.DRAFT,
     onCardDataChange: (DraftCardData) -> Unit = {},
     categories: List<CoreCategory> = emptyList(),
     accounts: List<String> = listOf("微信支付", "支付宝", "现金", "银行卡"),
     onSaveClick: () -> Unit = {},
     onCancelClick: () -> Unit = {},
-    modifier: Modifier = Modifier
 ) {
     var currentSheet by remember { mutableStateOf(EditorSheet.NONE) }
     var isNoteEditing by remember { mutableStateOf(false) }

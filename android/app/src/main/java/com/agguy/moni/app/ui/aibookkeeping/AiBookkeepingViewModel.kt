@@ -7,8 +7,8 @@ import com.agguy.moni.app.model.ChatMessage
 import com.agguy.moni.app.model.DraftCardData
 import com.agguy.moni.app.model.MessageType
 import com.agguy.moni.app.repository.ChatRepository
+import com.agguy.moni.app.service.MockAiService
 import com.agguy.moni.core.CoreIntent
-import com.agguy.moni.core.RecordType
 import com.agguy.moni.core.RustCoreController
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
@@ -53,10 +53,6 @@ class AiBookkeepingViewModel(
         _inputText.value = text
     }
 
-    /**
-     * 发送用户消息并触发模拟 AI 响应流程。
-     * 当前使用模拟数据，未来接入真实 AI 解析服务。
-     */
     fun sendMessage() {
         val text = _inputText.value.trim()
         if (text.isBlank() || _isLoading.value) return
@@ -70,33 +66,58 @@ class AiBookkeepingViewModel(
             )
             chatRepository.insert(userMessage)
             _inputText.value = ""
-
             refreshMessages()
-            _isLoading.value = true
 
+            _isLoading.value = true
             delay(500.milliseconds)
 
-            val aiCardMessage = ChatMessage(
-                sessionId = sessionId,
-                messageType = MessageType.AI_CARD,
-                content = "",
-                cardData = DraftCardData(
-                    amountCents = 2500L,
-                    recordType = RecordType.EXPENSE,
-                    note = "模拟记账"
-                ),
-                cardStatus = CardStatus.DRAFT,
-                createdAt = System.currentTimeMillis() / 1000
-            )
-            chatRepository.insert(aiCardMessage)
+            try {
+                val parseResult = MockAiService.parse(text)
 
-            val aiTextMessage = ChatMessage(
-                sessionId = sessionId,
-                messageType = MessageType.AI_TEXT,
-                content = "已为你识别到一笔支出，金额 25.00 元。请确认或修改。",
-                createdAt = System.currentTimeMillis() / 1000
-            )
-            chatRepository.insert(aiTextMessage)
+                if (parseResult.isBookkeeping) {
+                    val cardData = parseResult.cardData
+                        ?: DraftCardData(
+                            amountCents = 0L,
+                            recordType = com.agguy.moni.core.RecordType.EXPENSE,
+                            categoryId = 1L,
+                            note = text
+                        )
+                    val aiCardMessage = ChatMessage(
+                        sessionId = sessionId,
+                        messageType = MessageType.AI_CARD,
+                        content = "",
+                        cardData = cardData,
+                        cardStatus = CardStatus.DRAFT,
+                        createdAt = System.currentTimeMillis() / 1000
+                    )
+                    chatRepository.insert(aiCardMessage)
+
+                    val aiTextMessage = ChatMessage(
+                        sessionId = sessionId,
+                        messageType = MessageType.AI_TEXT,
+                        content = parseResult.replyText,
+                        createdAt = System.currentTimeMillis() / 1000
+                    )
+                    chatRepository.insert(aiTextMessage)
+                } else {
+                    val aiTextMessage = ChatMessage(
+                        sessionId = sessionId,
+                        messageType = MessageType.AI_TEXT,
+                        content = parseResult.replyText,
+                        createdAt = System.currentTimeMillis() / 1000
+                    )
+                    chatRepository.insert(aiTextMessage)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("AiBookkeepingVM", "AI 处理失败", e)
+                val errorMessage = ChatMessage(
+                    sessionId = sessionId,
+                    messageType = MessageType.AI_TEXT,
+                    content = "处理出错，请稍后重试。",
+                    createdAt = System.currentTimeMillis() / 1000
+                )
+                chatRepository.insert(errorMessage)
+            }
 
             refreshMessages()
             _isLoading.value = false

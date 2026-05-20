@@ -486,7 +486,7 @@ Wave FINAL (审查验证):
 
 ### Wave 3: 卡片交互与状态机
 
-- [ ] **10. 卡片内字段编辑集成**
+- [x] **10. 卡片内字段编辑集成**
 
   **What to do**:
   - 复用 `CustomNumPad` 实现金额编辑
@@ -523,7 +523,7 @@ Wave FINAL (审查验证):
 
   **Commit**: `feat(ui): integrate field editors into smart draft card`
 
-- [ ] **11. 卡片状态机实现（Draft / Saved / Expired）**
+- [x] **11. 卡片状态机实现（Draft / Saved / Expired）**
 
   **What to do**:
   - **Draft 态**：卡片边缘呼吸灯光晕（主题色），所有字段可编辑，显示取消/保存按钮
@@ -558,7 +558,7 @@ Wave FINAL (审查验证):
 
   **Commit**: `feat(ui): implement smart draft card state machine`
 
-- [ ] **12. 视觉效果（呼吸灯、印章、主题适配）**
+- [x] **12. 视觉效果（呼吸灯、印章、主题适配）**
 
   **What to do**:
   - **呼吸灯**：`InfiniteTransition` 实现边框颜色周期性变化（主题色 30%→60% 透明度，周期2秒）
@@ -590,7 +590,7 @@ Wave FINAL (审查验证):
 
   **Commit**: `feat(ui): add visual effects and theme adaptation`
 
-- [ ] **13. 聊天历史列表与自动滚动**
+- [x] **13. 聊天历史列表与自动滚动**
 
   **What to do**:
   - 在 `AiBookkeepingScreen` 的 `LazyColumn` 中集成真实消息数据
@@ -622,7 +622,7 @@ Wave FINAL (审查验证):
 
   **Commit**: `feat(ui): integrate chat history list with auto-scroll`
 
-- [ ] **14. 模拟 AI 响应逻辑**
+- [x] **14. 模拟 AI 响应逻辑**
 
   **What to do**:
   - 创建 `MockAiService` - 模拟 AI 解析（仅 UI 演示用）
@@ -660,7 +660,7 @@ Wave FINAL (审查验证):
 
 ### Wave 4: 集成与测试
 
-- [ ] **15. ViewModel 状态管理集成**
+- [x] **15. ViewModel 状态管理集成**
 
   **What to do**:
   - 创建 `AiBookkeepingViewModel`
@@ -693,7 +693,7 @@ Wave FINAL (审查验证):
 
   **Commit**: `feat(vm): add AiBookkeepingViewModel`
 
-- [ ] **16. 页面级集成（导航 + 主题 + 边缘情况）**
+- [x] **16. 页面级集成（导航 + 主题 + 边缘情况）**
 
   **What to do**:
   - 集成所有组件到 `AiBookkeepingScreen`
@@ -730,7 +730,7 @@ Wave FINAL (审查验证):
 
   **Commit**: `feat(integration): integrate all components and edge cases`
 
-- [ ] **17. 单元测试**
+- [x] **17. 单元测试**
 
   **What to do**:
   - 为 `MockAiService` 编写单元测试（各种输入解析）
@@ -761,7 +761,7 @@ Wave FINAL (审查验证):
 
   **Commit**: `test: add unit tests for AI bookkeeping logic`
 
-- [ ] **18. Compose UI 测试**
+- [x] **18. Compose UI 测试**
 
   **What to do**:
   - 编写 Compose UI 测试验证关键交互：
@@ -795,7 +795,7 @@ Wave FINAL (审查验证):
 
   **Commit**: `test: add compose UI tests for AI bookkeeping screen`
 
-- [ ] **19. 构建验证与 APK 打包**
+- [x] **19. 构建验证与 APK 打包**
 
   **What to do**:
   - 运行 `./gradlew :app:assembleDebug`

@@ -278,13 +278,13 @@ fun RecordListScreen(
                 ) {
                     FloatingActionButton(
                         onClick = onNavigateToAiBookkeeping,
-                        modifier = Modifier.size(40.dp),
                         shape = MaterialTheme.shapes.large
                     ) {
                         SymbolIcon(
-                            name = "auto_awesome",
+                            name = "smart_toy",
+                            filled = true,
                             contentDescription = "AI 记账",
-                            size = 20.dp
+                            size = 24.dp
                         )
                     }
                     FloatingActionButton(

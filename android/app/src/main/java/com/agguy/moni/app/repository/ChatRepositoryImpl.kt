@@ -20,7 +20,7 @@ import uniffi.moni_core.MoniCore
  * 通过 UniFFI 直接调用 Rust 内核的数据库操作。
  */
 class ChatRepositoryImpl(
-    private val core: MoniCore = MoniCore(),
+    private val core: MoniCore,
 ) : ChatRepository {
 
     override suspend fun insert(message: ChatMessage): Long {

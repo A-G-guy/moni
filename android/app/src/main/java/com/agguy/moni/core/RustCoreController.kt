@@ -7,7 +7,7 @@ import uniffi.moni_core.MoniCore
 data class CoreMutation(val state: CoreAppState, val effects: List<CoreEffect>)
 
 class RustCoreController {
-    private val core = MoniCore()
+    val core = MoniCore()
 
     suspend fun initialize(): CoreMutation {
         val update = core.initialize()

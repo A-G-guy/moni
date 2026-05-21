@@ -256,7 +256,7 @@ fun MoniNavHost(
                     @Suppress("UNCHECKED_CAST")
                     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                         return AiBookkeepingViewModel(
-                            chatRepository = ChatRepositoryImpl(),
+                            chatRepository = ChatRepositoryImpl(rustCore.core),
                             rustCore = rustCore
                         ) as T
                     }

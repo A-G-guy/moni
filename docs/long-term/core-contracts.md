@@ -85,12 +85,22 @@ recordGroups     List<CoreRecordGroup>   按日分组记录
 categories       List<CoreCategory>      全部分类（含已归档）
 monthlySummaries List<CoreMonthlySummary> 近 N 月收支汇总
 currentMonthBreakdown List<CoreCategoryBreakdown> 当月分类占比
+budgets          List<CoreBudget>        当前月份预算列表
+overviewMetrics  CoreOverviewMetrics?    月度概览指标
 settings         CoreSettings            应用设置（currencySymbol）
 ui               CoreUiState             界面状态
   ├─ activeTab           String          当前标签页
   ├─ selectedRecordId    Long?           当前选中记录
   └─ errorMessage        String?         错误提示文本
 ```
+
+### 4.1 `overviewMetrics` 预算口径
+
+| 字段 | 说明 |
+|------|------|
+| `todayExpense` | 当前查看月份为本月时，表示今日已支出；其他月份为 `null`。 |
+| `dailyAvg` | 已发生支出按已过天数摊销后的日均支出；未来月份为 `null`。 |
+| `dailyRemaining` | 设置月总预算时，表示 `月总预算 / 当月总天数`，作为可与 `todayExpense` 直接比较的稳定日预算线；未设置月总预算时，保留 `月结余 / 剩余天数` 的退化口径。 |
 
 ---
 

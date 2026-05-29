@@ -16,6 +16,8 @@ android/.gradle/
 .kotlin/
 .playwright-cli/
 .claude/
+.pi/
+artifacts/
 
 # 敏感信息与个人配置
 *.env

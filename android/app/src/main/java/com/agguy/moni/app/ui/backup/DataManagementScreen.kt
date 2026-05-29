@@ -62,6 +62,7 @@ import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.ui.settings.ExportDataDialog
 import com.agguy.moni.app.ui.settings.ImportConfirmDialog
 import com.agguy.moni.core.platform.AutoBackupScheduler
+import com.agguy.moni.core.platform.BackupHelper
 import com.agguy.moni.core.platform.DataStoreHelper
 import kotlinx.coroutines.launch
 import java.io.File
@@ -131,7 +132,7 @@ fun DataManagementScreen(
     }
 
     val exportLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("application/zip")
+        ActivityResultContracts.CreateDocument(BackupHelper.BACKUP_MIME_TYPE)
     ) { uri ->
         uri?.let { viewModel.exportToSaf(it) }
     }
@@ -225,7 +226,7 @@ fun DataManagementScreen(
                     title = stringResource(R.string.data_action_card_import_title),
                     subtitle = stringResource(R.string.data_action_card_import_subtitle),
                     modifier = Modifier.weight(1f),
-                    onClick = { importLauncher.launch(arrayOf("application/zip")) }
+                    onClick = { importLauncher.launch(arrayOf(BackupHelper.BACKUP_MIME_TYPE)) }
                 )
             }
 

@@ -85,6 +85,18 @@ class AutoBackupWorker(
             return Result.retry()
         }
 
+        val backupFile = java.io.File(report.zipPath)
+        val encryptedTempFile = java.io.File(ctx.cacheDir, "moni_auto_backup_${java.util.UUID.randomUUID()}.mbak")
+        try {
+            BackupCrypto.encryptFile(backupFile, encryptedTempFile)
+            encryptedTempFile.copyTo(backupFile, overwrite = true)
+        } catch (e: Exception) {
+            LogCollector.e("AutoBackupWorker", "自动备份加密失败", e)
+            return Result.retry()
+        } finally {
+            encryptedTempFile.delete()
+        }
+
         LogCollector.i(
             "AutoBackupWorker",
             "自动备份完成: ${report.zipPath}, " +
@@ -95,7 +107,6 @@ class AutoBackupWorker(
         if (copyToExternal && externalUri != null) {
             try {
                 val uri = android.net.Uri.parse(externalUri)
-                val backupFile = java.io.File(report.zipPath)
                 copyToSafUri(ctx, backupFile, uri)
                 LogCollector.i("AutoBackupWorker", "已复制到外部目录")
             } catch (e: Exception) {
@@ -130,7 +141,7 @@ class AutoBackupWorker(
     private fun copyToSafUri(context: Context, sourceFile: java.io.File, dirUri: android.net.Uri) {
         val docUri = androidx.documentfile.provider.DocumentFile.fromTreeUri(context, dirUri)
             ?: throw IllegalStateException("无法解析 SAF URI")
-        val mimeType = "application/zip"
+        val mimeType = BackupHelper.BACKUP_MIME_TYPE
         val destFile = docUri.createFile(mimeType, sourceFile.name)
             ?: throw IllegalStateException("无法在外部目录创建文件")
         context.contentResolver.openOutputStream(destFile.uri)?.use { out ->

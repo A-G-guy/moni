@@ -13,15 +13,6 @@ enum class RecordType {
 }
 
 @Serializable
-enum class ExportFormat {
-    @SerialName("csv")
-    CSV,
-
-    @SerialName("json")
-    JSON
-}
-
-@Serializable
 enum class BudgetScope {
     @SerialName("this_month")
     THIS_MONTH,
@@ -164,10 +155,6 @@ sealed class CoreIntent {
     @Serializable
     @SerialName("refresh_month_data")
     data class RefreshMonthData(val yearMonth: String) : CoreIntent()
-
-    @Serializable
-    @SerialName("settings_export_data")
-    data class SettingsExportData(val format: ExportFormat) : CoreIntent()
 
     // 预算相关
     @Serializable

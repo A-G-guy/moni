@@ -27,19 +27,6 @@ class CoreIntentTest {
     }
 
     @Test
-    fun `export format serializes correctly`() {
-        val csvIntent = CoreIntent.SettingsExportData(format = ExportFormat.CSV)
-        val csvJson = BridgeJsonEncode.encodeToString(csvIntent)
-        val csvObj = BridgeJson.parseToJsonElement(csvJson).jsonObject
-        assertEquals("csv", csvObj["format"]?.jsonPrimitive?.content)
-
-        val jsonIntent = CoreIntent.SettingsExportData(format = ExportFormat.JSON)
-        val jsonJson = BridgeJsonEncode.encodeToString(jsonIntent)
-        val jsonObj = BridgeJson.parseToJsonElement(jsonJson).jsonObject
-        assertEquals("json", jsonObj["format"]?.jsonPrimitive?.content)
-    }
-
-    @Test
     fun `all intent types have correct discriminator`() {
         val cases = listOf(
             CoreIntent.RecordCreate(
@@ -59,7 +46,6 @@ class CoreIntentTest {
             CoreIntent.StatsMonthlySummary() to "stats_monthly_summary",
             CoreIntent.StatsCategoryBreakdown(yearMonth = "2026-05") to "stats_category_breakdown",
             CoreIntent.SettingsUpdateCurrency(symbol = "$") to "settings_update_currency",
-            CoreIntent.SettingsExportData(format = ExportFormat.CSV) to "settings_export_data",
             CoreIntent.NavigateTo(screen = "records") to "navigate_to",
             CoreIntent.DismissError to "dismiss_error",
         )

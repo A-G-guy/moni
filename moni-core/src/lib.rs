@@ -16,9 +16,12 @@ pub use models::CoreEffect;
 
 #[cfg(target_os = "android")]
 fn init_logging() {
-    android_logger::init_once(
-        android_logger::Config::default().with_max_level(log::LevelFilter::Debug),
-    );
+    let max_level = if cfg!(debug_assertions) {
+        log::LevelFilter::Debug
+    } else {
+        log::LevelFilter::Warn
+    };
+    android_logger::init_once(android_logger::Config::default().with_max_level(max_level));
 }
 
 #[cfg(not(target_os = "android"))]
@@ -177,7 +180,9 @@ impl MoniCore {
                     record_count: manifest.stats.record_count,
                     category_count: manifest.stats.category_count,
                     settings_count: manifest.stats.settings_count,
-                    total_bytes: std::fs::metadata(&in_zip_path).map(|m| m.len()).unwrap_or(0),
+                    total_bytes: std::fs::metadata(&in_zip_path)
+                        .map(|m| m.len())
+                        .unwrap_or(0),
                 })
             })
             .await
@@ -204,7 +209,10 @@ impl MoniCore {
                 let timestamp = chrono::Local::now().format("%Y%m%d_%H%M%S").to_string();
                 let snapshot_path = db_parent.join(format!(".pre_restore_{timestamp}.db"));
 
-                // 先关闭当前连接，确保文件句柄释放
+                // 先显式 checkpoint，避免 WAL 中已提交内容没有进入主数据库文件。
+                let _ = inner.conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);");
+
+                // 再关闭当前连接，确保文件句柄释放。
                 inner.conn = rusqlite::Connection::open_in_memory()
                     .map_err(|e| CoreError::Database(format!("创建内存连接失败: {e}")))?;
 
@@ -227,8 +235,7 @@ impl MoniCore {
 
                 match report {
                     Ok(r) => {
-                        // 恢复成功：重新打开连接、全面刷新状态
-                        let _ = std::fs::remove_file(&snapshot_path);
+                        // 恢复成功：重新打开连接、全面刷新状态。快照必须等状态刷新成功后再删除。
                         inner.conn = crate::db::connection::open_connection(&db_path)
                             .map_err(|e| CoreError::Database(format!("重新打开数据库失败: {e}")))?;
                         crate::db::schema::init_schema(&inner.conn)
@@ -262,6 +269,7 @@ impl MoniCore {
                         inner.state.current_month_breakdown =
                             crate::domain::stats::calculator::calculate_category_breakdown(breakdown_aggregates);
 
+                        let _ = std::fs::remove_file(&snapshot_path);
                         Ok(r)
                     }
                     Err(e) => {
@@ -413,8 +421,9 @@ impl MoniCore {
                 let inner = inner
                     .lock()
                     .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
-                let rows = crate::db::chat_repo::get_by_session(&inner.conn, &session_id, limit, offset)
-                    .map_err(|e| CoreError::Database(format!("查询聊天消息失败: {e}")))?;
+                let rows =
+                    crate::db::chat_repo::get_by_session(&inner.conn, &session_id, limit, offset)
+                        .map_err(|e| CoreError::Database(format!("查询聊天消息失败: {e}")))?;
                 serde_json::to_string(&rows)
                     .map_err(|e| CoreError::Internal(format!("序列化聊天消息失败: {e}")))
             })
@@ -422,11 +431,7 @@ impl MoniCore {
             .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
     }
 
-    pub async fn chat_update_status(
-        &self,
-        id: i64,
-        card_status: String,
-    ) -> Result<(), CoreError> {
+    pub async fn chat_update_status(&self, id: i64, card_status: String) -> Result<(), CoreError> {
         let inner = Arc::clone(&self.inner);
         self.runtime
             .spawn_blocking(move || {

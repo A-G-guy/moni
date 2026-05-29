@@ -114,7 +114,12 @@ android {
 
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+            // 当前阶段按项目约定继续生成 debug 签名的 release 包。
             signingConfig = signingConfigs.getByName("debug")
         }
     }

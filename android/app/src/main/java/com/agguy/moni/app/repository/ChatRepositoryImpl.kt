@@ -5,13 +5,11 @@ import com.agguy.moni.app.model.ChatMessage
 import com.agguy.moni.app.model.DraftCardData
 import com.agguy.moni.app.model.MessageType
 import com.agguy.moni.core.BridgeJson
-import com.agguy.moni.core.RecordType
+import com.agguy.moni.core.BridgeJsonEncode
+import java.util.Locale
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.longOrNull
 import uniffi.moni_core.MoniCore
 
 /**
@@ -25,10 +23,10 @@ class ChatRepositoryImpl(
 
     override suspend fun insert(message: ChatMessage): Long {
         val cardDataJson = message.cardData?.let { encodeDraftCardData(it) }
-        val cardStatus = message.cardStatus?.name
+        val cardStatus = message.cardStatus?.name?.lowercase(Locale.ROOT)
         return core.chatInsert(
             sessionId = message.sessionId,
-            messageType = message.messageType.name,
+            messageType = message.messageType.name.lowercase(Locale.ROOT),
             content = message.content,
             cardDataJson = cardDataJson,
             cardStatus = cardStatus,
@@ -42,7 +40,7 @@ class ChatRepositoryImpl(
     }
 
     override suspend fun updateStatus(id: Long, status: CardStatus) {
-        core.chatUpdateStatus(id, status.name)
+        core.chatUpdateStatus(id, status.name.lowercase(Locale.ROOT))
     }
 
     override suspend fun delete(id: Long) {
@@ -78,14 +76,14 @@ class ChatRepositoryImpl(
 
         private fun parseMessageType(raw: String): MessageType =
             try {
-                MessageType.valueOf(raw)
+                MessageType.valueOf(raw.uppercase(Locale.ROOT))
             } catch (_: IllegalArgumentException) {
                 MessageType.SYSTEM
             }
 
         private fun parseCardStatus(raw: String): CardStatus =
             try {
-                CardStatus.valueOf(raw)
+                CardStatus.valueOf(raw.uppercase(Locale.ROOT))
             } catch (_: IllegalArgumentException) {
                 CardStatus.EXPIRED
             }
@@ -93,28 +91,13 @@ class ChatRepositoryImpl(
 }
 
 /**
- * 将 [DraftCardData] 手动序列化为 JSON 字符串。
- * 由于 [DraftCardData] 未添加 @Serializable，使用手动构造避免引入模型层改动。
+ * 将 [DraftCardData] 序列化为 JSON 字符串。
  */
-private fun encodeDraftCardData(data: DraftCardData): String {
-    val noteEscaped = data.note.replace("\\", "\\\\").replace("\"", "\\\"")
-    return """{"amount_cents":${data.amountCents},"record_type":"${data.recordType.name.lowercase()}","category_id":${data.categoryId},"account_id":${data.accountId},"timestamp":${data.timestamp},"note":"$noteEscaped"}"""
-}
+private fun encodeDraftCardData(data: DraftCardData): String =
+    BridgeJsonEncode.encodeToString(DraftCardData.serializer(), data)
 
 /**
- * 将 JSON 字符串手动反序列化为 [DraftCardData]。
+ * 将 JSON 字符串反序列化为 [DraftCardData]。
  */
-private fun decodeDraftCardData(json: String): DraftCardData {
-    val obj = BridgeJson.parseToJsonElement(json).jsonObject
-    return DraftCardData(
-        amountCents = obj["amount_cents"]?.jsonPrimitive?.longOrNull ?: 0L,
-        recordType = when (obj["record_type"]?.jsonPrimitive?.content) {
-            "income" -> RecordType.INCOME
-            else -> RecordType.EXPENSE
-        },
-        categoryId = obj["category_id"]?.jsonPrimitive?.longOrNull ?: -1L,
-        accountId = obj["account_id"]?.jsonPrimitive?.longOrNull ?: -1L,
-        timestamp = obj["timestamp"]?.jsonPrimitive?.longOrNull ?: 0L,
-        note = obj["note"]?.jsonPrimitive?.content ?: "",
-    )
-}
+private fun decodeDraftCardData(json: String): DraftCardData =
+    BridgeJson.decodeFromString(DraftCardData.serializer(), json)

@@ -9,7 +9,6 @@ import com.agguy.moni.app.model.MessageType
 import com.agguy.moni.app.repository.ChatRepository
 import com.agguy.moni.app.service.MockAiService
 import com.agguy.moni.core.CoreIntent
-import com.agguy.moni.core.RustCoreController
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,11 +20,11 @@ import kotlinx.coroutines.launch
  * AI 记账页面 ViewModel。
  *
  * @param chatRepository 聊天消息数据仓库
- * @param rustCore Rust 核心控制器，用于创建真实记账记录
+ * @param onCreateRecord 创建真实记账记录的统一入口，返回 true 表示创建成功
  */
 class AiBookkeepingViewModel(
     private val chatRepository: ChatRepository,
-    private val rustCore: RustCoreController,
+    private val onCreateRecord: suspend (CoreIntent.RecordCreate) -> Boolean,
 ) : ViewModel() {
 
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
@@ -132,7 +131,7 @@ class AiBookkeepingViewModel(
             val message = _messages.value.find { it.id == messageId }
             val cardData = message?.cardData ?: return@launch
 
-            rustCore.dispatch(
+            val created = onCreateRecord(
                 CoreIntent.RecordCreate(
                     amountCents = cardData.amountCents,
                     recordType = cardData.recordType,
@@ -142,8 +141,10 @@ class AiBookkeepingViewModel(
                 )
             )
 
-            chatRepository.updateStatus(messageId, CardStatus.SAVED)
-            refreshMessages()
+            if (created) {
+                chatRepository.updateStatus(messageId, CardStatus.SAVED)
+                refreshMessages()
+            }
         }
     }
 

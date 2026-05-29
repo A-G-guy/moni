@@ -29,19 +29,25 @@ impl AppCoreRuntime {
             && amt <= 0
         {
             log::warn!("更新记录失败: 金额必须大于0, 收到: {amt}");
-            return Err(CoreError::InvalidInput(MSG_AMOUNT_MUST_BE_POSITIVE.to_string()));
+            return Err(CoreError::InvalidInput(
+                MSG_AMOUNT_MUST_BE_POSITIVE.to_string(),
+            ));
         }
-        if let Some(ref n) = note
-            && n.len() > crate::shared::constants::NOTE_MAX_LEN
-        {
-            log::warn!("更新记录失败: 备注过长, {} 字节", n.len());
-            return Err(CoreError::InvalidInput(format!(
-                "备注长度不能超过 {} 字符",
-                crate::shared::constants::NOTE_MAX_LEN
-            )));
+        if let Some(ref n) = note {
+            let note_char_count = n.chars().count();
+            if note_char_count > crate::shared::constants::NOTE_MAX_CHARS {
+                log::warn!(
+                    "更新记录失败: 备注过长, {note_char_count} 字符, {} 字节",
+                    n.len()
+                );
+                return Err(CoreError::InvalidInput(format!(
+                    "备注长度不能超过 {} 字符",
+                    crate::shared::constants::NOTE_MAX_CHARS
+                )));
+            }
         }
-        let original = record_repo::get_by_id(&self.conn, id)?
-            .ok_or_else(|| CoreError::RecordNotFound(id))?;
+        let original =
+            record_repo::get_by_id(&self.conn, id)?.ok_or_else(|| CoreError::RecordNotFound(id))?;
 
         let new_category = if let Some(cid) = category_id {
             let new_type = record_type.unwrap_or(original.record_type);

@@ -10,6 +10,7 @@ pub struct RecordDto {
     pub amount_cents: i64,
     pub record_type: RecordType,
     pub category_id: i64,
+    pub parent_category_id: Option<i64>,
     pub category_name: String,
     pub note: String,
     pub created_at: i64,
@@ -30,6 +31,7 @@ impl RecordDto {
             amount_cents: record.amount_cents,
             record_type: record.record_type,
             category_id: record.category_id,
+            parent_category_id: record.parent_category_id,
             category_name: cat_name,
             note: record.note.clone(),
             created_at: record.created_at,
@@ -66,7 +68,11 @@ pub fn group_records_by_date(records: &[RecordDto]) -> Vec<RecordDayGroup> {
 
     for record in records {
         let date = chrono::DateTime::from_timestamp(record.created_at, 0)
-            .map(|dt| dt.with_timezone(&chrono::Local).format("%Y-%m-%d").to_string())
+            .map(|dt| {
+                dt.with_timezone(&chrono::Local)
+                    .format("%Y-%m-%d")
+                    .to_string()
+            })
             .unwrap_or_default();
         groups.entry(date).or_default().push(record.clone());
     }

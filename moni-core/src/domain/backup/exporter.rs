@@ -1,16 +1,15 @@
-use std::fs::File;
-use std::io::Write;
 use chrono::{Datelike, Timelike};
 use rusqlite::Connection;
-use zip::write::FileOptions;
+use std::fs::File;
+use std::io::Write;
 use zip::DateTime as ZipDateTime;
+use zip::write::FileOptions;
 
+use crate::db::schema::CURRENT_SCHEMA_VERSION;
 use crate::domain::backup::manifest::{
-    BackupManifest, BackupStats, DeviceInfo, FileFingerprint,
-    compute_manifest_sha256,
+    BackupManifest, BackupStats, DeviceInfo, FileFingerprint, compute_manifest_sha256,
 };
 use crate::domain::backup::readme::generate_readme;
-use crate::db::schema::CURRENT_SCHEMA_VERSION;
 use crate::models::backup::BackupExportReport;
 
 const FORMAT_VERSION: u32 = 1;
@@ -153,10 +152,10 @@ pub fn backup_export(
     if let Some(cb) = on_progress {
         cb("创建数据库副本...", 20);
     }
-    let tmp_dir = std::env::temp_dir().join("moni_backup_tmp");
+    let tmp_dir = std::env::temp_dir().join(format!("moni_backup_{}", uuid::Uuid::new_v4()));
     std::fs::create_dir_all(&tmp_dir)
         .map_err(|e| crate::core::error::CoreError::BackupIo(format!("创建临时目录失败: {e}")))?;
-    let tmp_db = tmp_dir.join(format!("moni.{}.db", uuid::Uuid::new_v4()));
+    let tmp_db = tmp_dir.join("moni.db");
     dump_db_to_temp(conn, tmp_db.to_str().unwrap_or("moni_tmp.db"))?;
 
     // 2. 创建 ZIP 并写入各条目
@@ -176,7 +175,11 @@ pub fn backup_export(
 
     // settings/preferences.json
     let settings_bytes = settings_json.as_bytes();
-    files.push(write_zip_entry(&mut zip, "settings/preferences.json", settings_bytes)?);
+    files.push(write_zip_entry(
+        &mut zip,
+        "settings/preferences.json",
+        settings_bytes,
+    )?);
 
     // README.md
     let readme = generate_readme(
@@ -208,15 +211,17 @@ pub fn backup_export(
     if let Some(cb) = on_progress {
         cb("完成...", 90);
     }
-    let total_bytes = zip.finish()
+    let total_bytes = zip
+        .finish()
         .map_err(|e| crate::core::error::CoreError::BackupZipError(e.to_string()))?
         .metadata()
         .map(|m| m.len())
         .unwrap_or(0);
 
-    // 5. 清理临时文件与目录（使用 remove_dir_all 确保彻底清理）
-    let _ = std::fs::remove_file(&tmp_db);
-    let _ = std::fs::remove_dir_all(&tmp_dir);
+    // 5. 清理本次导出的专属临时目录。
+    if let Err(e) = std::fs::remove_dir_all(&tmp_dir) {
+        log::warn!("清理备份临时目录失败: {}: {e}", tmp_dir.display());
+    }
     if let Some(cb) = on_progress {
         cb("完成", 100);
     }

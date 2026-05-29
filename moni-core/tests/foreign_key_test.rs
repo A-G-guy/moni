@@ -46,8 +46,8 @@ fn test_note_length_limit() {
             .await
             .expect("填充预设分类失败");
 
-        // 超长备注应被拒绝（返回的 CoreUpdate 中 error_message 非空）
-        let long_note = "a".repeat(2001);
+        // 超长备注应按字符数拒绝（返回的 CoreUpdate 中 error_message 非空）
+        let long_note = "测".repeat(2001);
         let result = core
             .dispatch(
                 format!(
@@ -68,8 +68,8 @@ fn test_note_length_limit() {
             .await
             .expect("清除错误失败");
 
-        // 边界值：刚好 2000 字节应通过
-        let max_note = "a".repeat(2000);
+        // 边界值：刚好 2000 个中文字符应通过。
+        let max_note = "测".repeat(2000);
         let result = core
             .dispatch(
                 format!(
@@ -82,7 +82,7 @@ fn test_note_length_limit() {
         let state: serde_json::Value = serde_json::from_str(&result.state_json).expect("状态解析失败");
         assert!(
             state["ui"]["errorMessage"].is_null(),
-            "刚好 2000 字节的备注应被接受"
+            "刚好 2000 个中文字符的备注应被接受"
         );
     });
 }

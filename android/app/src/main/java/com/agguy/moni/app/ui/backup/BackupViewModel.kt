@@ -1,7 +1,6 @@
 package com.agguy.moni.app.ui.backup
 
 import android.app.Application
-import android.content.Context
 import android.net.Uri
 import android.os.Build
 import androidx.lifecycle.AndroidViewModel
@@ -9,14 +8,15 @@ import androidx.lifecycle.viewModelScope
 import com.agguy.moni.BuildConfig
 import com.agguy.moni.core.RustCoreController
 import com.agguy.moni.core.platform.AppRestarter
+import com.agguy.moni.core.platform.BackupCrypto
 import com.agguy.moni.core.platform.BackupHelper
 import com.agguy.moni.core.platform.DataStoreHelper
+import java.io.File
+import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.io.File
-import java.util.UUID
 
 /**
  * 备份操作状态。
@@ -67,59 +67,56 @@ class BackupViewModel(
     fun exportToInternal() {
         viewModelScope.launch {
             _operationState.value = BackupOperationState.Running("Preparing...", 0)
+            val plainFile = cacheFile("moni_export_plain", ".zip")
             try {
                 val outFile = BackupHelper.generateBackupFile(getApplication<Application>())
                 val settingsJson = DataStoreHelper.snapshotJson(getApplication<Application>())
                 val report = rustCore.backupExport(
-                    outZipPath = outFile.absolutePath,
+                    outZipPath = plainFile.absolutePath,
                     settingsJson = settingsJson,
                     appVersionName = BuildConfig.VERSION_NAME,
                     appVersionCode = BuildConfig.VERSION_CODE.toLong(),
                     deviceManufacturer = Build.MANUFACTURER,
                     deviceModel = Build.MODEL,
                     androidSdk = Build.VERSION.SDK_INT,
-                    progress = object : uniffi.moni_core.BackupProgressListener {
-                        override fun onStage(stage: String, percent: Int) {
-                            _operationState.value = BackupOperationState.Running(stage, percent)
-                        }
-                    },
+                    progress = progressListener(),
                 )
+                BackupCrypto.encryptFile(plainFile, outFile)
                 refreshBackupList()
                 _operationState.value = BackupOperationState.Success(
                     "Backup complete: ${report.recordCount} records, ${report.categoryCount} categories"
                 )
             } catch (e: Exception) {
                 _operationState.value = BackupOperationState.Error("Backup failed: ${e.message}")
+            } finally {
+                plainFile.delete()
             }
         }
     }
 
     /**
-     * 导出到 SAF URI（先将备份生成到缓存，再复制到 SAF）。
+     * 导出到 SAF URI（先生成明文缓存，再写入加密备份）。
      */
     fun exportToSaf(uri: Uri) {
         viewModelScope.launch {
             _operationState.value = BackupOperationState.Running("Preparing...", 0)
-            val cacheFile = File(getApplication<Application>().cacheDir, "moni_export_${UUID.randomUUID()}.zip")
+            val plainFile = cacheFile("moni_export_plain", ".zip")
+            val encryptedFile = cacheFile("moni_export", ".mbak")
             try {
                 val settingsJson = DataStoreHelper.snapshotJson(getApplication<Application>())
                 rustCore.backupExport(
-                    outZipPath = cacheFile.absolutePath,
+                    outZipPath = plainFile.absolutePath,
                     settingsJson = settingsJson,
                     appVersionName = BuildConfig.VERSION_NAME,
                     appVersionCode = BuildConfig.VERSION_CODE.toLong(),
                     deviceManufacturer = Build.MANUFACTURER,
                     deviceModel = Build.MODEL,
                     androidSdk = Build.VERSION.SDK_INT,
-                    progress = object : uniffi.moni_core.BackupProgressListener {
-                        override fun onStage(stage: String, percent: Int) {
-                            _operationState.value = BackupOperationState.Running(stage, percent)
-                        }
-                    },
+                    progress = progressListener(),
                 )
-                // 复制到 SAF URI
+                BackupCrypto.encryptFile(plainFile, encryptedFile)
                 getApplication<Application>().contentResolver.openOutputStream(uri)?.use { out ->
-                    cacheFile.inputStream().use { inp ->
+                    encryptedFile.inputStream().use { inp ->
                         inp.copyTo(out)
                     }
                 }
@@ -127,45 +124,45 @@ class BackupViewModel(
             } catch (e: Exception) {
                 _operationState.value = BackupOperationState.Error("Export failed: ${e.message}")
             } finally {
-                if (cacheFile.exists()) cacheFile.delete()
+                plainFile.delete()
+                encryptedFile.delete()
             }
         }
     }
 
     /**
-     * 从 SAF URI 导入（先将内容复制到缓存，再调用 Rust 恢复）。
+     * 从 SAF URI 导入（先复制加密文件，再解密到缓存后调用 Rust 恢复）。
      */
     fun importFromSaf(uri: Uri, dbPath: String) {
         viewModelScope.launch {
             _operationState.value = BackupOperationState.Running("Preparing...", 0)
-            val cacheFile = File(getApplication<Application>().cacheDir, "moni_import_${UUID.randomUUID()}.zip")
+            val encryptedFile = cacheFile("moni_import", ".mbak")
+            val plainFile = cacheFile("moni_import_plain", ".zip")
             try {
                 getApplication<Application>().contentResolver.openInputStream(uri)?.use { inp ->
-                    cacheFile.outputStream().use { out ->
+                    encryptedFile.outputStream().use { out ->
                         inp.copyTo(out)
                     }
                 }
+                BackupCrypto.decryptFile(encryptedFile, plainFile)
                 val report = rustCore.backupRestore(
-                    inZipPath = cacheFile.absolutePath,
+                    inZipPath = plainFile.absolutePath,
                     dbPath = dbPath,
-                    progress = object : uniffi.moni_core.BackupProgressListener {
-                        override fun onStage(stage: String, percent: Int) {
-                            _operationState.value = BackupOperationState.Running(stage, percent)
-                        }
-                    },
+                    progress = progressListener(),
                 )
-                // 恢复 DataStore 设置
                 DataStoreHelper.restoreFromJson(getApplication<Application>(), report.settingsJson)
                 _operationState.value = BackupOperationState.Success(
                     "Restore complete: ${report.restoredRecordCount} records, ${report.restoredCategoryCount} categories"
                 )
-                // 延迟重启，让 Snackbar 有机会显示
+                encryptedFile.delete()
+                plainFile.delete()
                 kotlinx.coroutines.delay(800)
                 AppRestarter.restartApp(getApplication<Application>())
             } catch (e: Exception) {
                 _operationState.value = BackupOperationState.Error("Restore failed: ${e.message}")
             } finally {
-                if (cacheFile.exists()) cacheFile.delete()
+                encryptedFile.delete()
+                plainFile.delete()
             }
         }
     }
@@ -176,24 +173,25 @@ class BackupViewModel(
     fun restoreFromInternal(file: File, dbPath: String) {
         viewModelScope.launch {
             _operationState.value = BackupOperationState.Running("Preparing...", 0)
+            val plainFile = cacheFile("moni_restore_plain", ".zip")
             try {
+                BackupCrypto.decryptFile(file, plainFile)
                 val report = rustCore.backupRestore(
-                    inZipPath = file.absolutePath,
+                    inZipPath = plainFile.absolutePath,
                     dbPath = dbPath,
-                    progress = object : uniffi.moni_core.BackupProgressListener {
-                        override fun onStage(stage: String, percent: Int) {
-                            _operationState.value = BackupOperationState.Running(stage, percent)
-                        }
-                    },
+                    progress = progressListener(),
                 )
                 DataStoreHelper.restoreFromJson(getApplication<Application>(), report.settingsJson)
                 _operationState.value = BackupOperationState.Success(
                     "Restore complete: ${report.restoredRecordCount} records, ${report.restoredCategoryCount} categories"
                 )
+                plainFile.delete()
                 kotlinx.coroutines.delay(800)
                 AppRestarter.restartApp(getApplication<Application>())
             } catch (e: Exception) {
                 _operationState.value = BackupOperationState.Error("Restore failed: ${e.message}")
+            } finally {
+                plainFile.delete()
             }
         }
     }
@@ -203,29 +201,36 @@ class BackupViewModel(
      */
     fun inspectBackup(file: File) {
         viewModelScope.launch {
+            val plainFile = cacheFile("moni_inspect_plain", ".zip")
             try {
-                _inspectResult.value = rustCore.backupInspect(file.absolutePath)
+                BackupCrypto.decryptFile(file, plainFile)
+                _inspectResult.value = rustCore.backupInspect(plainFile.absolutePath)
             } catch (e: Exception) {
                 _inspectResult.value = null
+            } finally {
+                plainFile.delete()
             }
         }
     }
 
     fun inspectBackupFromUri(uri: Uri) {
         viewModelScope.launch {
-            val cacheFile = File(getApplication<Application>().cacheDir, "moni_inspect_${UUID.randomUUID()}.zip")
+            val encryptedFile = cacheFile("moni_inspect", ".mbak")
+            val plainFile = cacheFile("moni_inspect_plain", ".zip")
             try {
                 getApplication<Application>().contentResolver.openInputStream(uri)?.use { inp ->
-                    cacheFile.outputStream().use { out ->
+                    encryptedFile.outputStream().use { out ->
                         inp.copyTo(out)
                     }
                 }
-                _inspectResult.value = rustCore.backupInspect(cacheFile.absolutePath)
+                BackupCrypto.decryptFile(encryptedFile, plainFile)
+                _inspectResult.value = rustCore.backupInspect(plainFile.absolutePath)
             } catch (e: Exception) {
                 _inspectResult.value = null
                 _operationState.value = BackupOperationState.Error("Cannot read backup file: ${e.message}")
             } finally {
-                cacheFile.delete()
+                encryptedFile.delete()
+                plainFile.delete()
             }
         }
     }
@@ -246,4 +251,14 @@ class BackupViewModel(
     fun resetState() {
         _operationState.value = BackupOperationState.Idle
     }
+
+    private fun progressListener(): uniffi.moni_core.BackupProgressListener =
+        object : uniffi.moni_core.BackupProgressListener {
+            override fun onStage(stage: String, percent: Int) {
+                _operationState.value = BackupOperationState.Running(stage, percent)
+            }
+        }
+
+    private fun cacheFile(prefix: String, suffix: String): File =
+        File(getApplication<Application>().cacheDir, "${prefix}_${UUID.randomUUID()}$suffix")
 }

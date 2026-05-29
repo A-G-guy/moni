@@ -142,6 +142,7 @@ fun MoniApp() {
                 onNavigateToThemeSettings = viewModel::navigateToThemeSettings,
                 onNavigateToBudgetList = viewModel::navigateToBudgetList,
                 onNavigateToAiBookkeeping = viewModel::navigateToAiBookkeeping,
+                onCreateAiRecord = viewModel::createRecordFromAi,
                 onEnterSearchMode = viewModel::enterSearchMode,
                 onExitSearchMode = viewModel::exitSearchMode,
                 onUpdateSearchKeyword = viewModel::updateSearchKeyword,

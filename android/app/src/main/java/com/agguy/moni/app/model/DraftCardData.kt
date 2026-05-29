@@ -1,6 +1,8 @@
 package com.agguy.moni.app.model
 
 import com.agguy.moni.core.RecordType
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * AI 生成的待确认记账卡片数据。
@@ -15,11 +17,12 @@ import com.agguy.moni.core.RecordType
  * @property timestamp 时间戳（秒），0 表示未指定
  * @property note 备注
  */
+@Serializable
 data class DraftCardData(
-    val amountCents: Long = 0L,
-    val recordType: RecordType = RecordType.EXPENSE,
-    val categoryId: Long = -1L,
-    val accountId: Long = -1L,
+    @SerialName("amount_cents") val amountCents: Long = 0L,
+    @SerialName("record_type") val recordType: RecordType = RecordType.EXPENSE,
+    @SerialName("category_id") val categoryId: Long = -1L,
+    @SerialName("account_id") val accountId: Long = -1L,
     val timestamp: Long = 0L,
     val note: String = ""
 )

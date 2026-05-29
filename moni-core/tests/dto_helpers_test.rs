@@ -1,10 +1,10 @@
 use moni_contracts::category::Category;
 use moni_contracts::record::{Record, RecordType};
 
+use moni_core::dto::category_dto::category_list_to_dto;
 use moni_core::dto::{
     CategoryDto, RecordDayGroup, RecordDto, group_records_by_date, record_list_to_dto,
 };
-use moni_core::dto::category_dto::category_list_to_dto;
 
 fn sample_category(id: i64, name: &str) -> Category {
     Category {
@@ -122,11 +122,17 @@ fn test_group_records_by_date_handles_empty() {
 #[test]
 fn test_record_dto_serde_camel_case() {
     let cats = vec![CategoryDto::from_category(&sample_category(1, "餐饮"))];
-    let records = vec![sample_record(10, 1, 1000, RecordType::Expense, 100)];
-    let dto: RecordDto = record_list_to_dto(&records, &cats).into_iter().next().unwrap();
+    let mut record = sample_record(10, 1, 1000, RecordType::Expense, 100);
+    record.parent_category_id = Some(7);
+    let records = vec![record];
+    let dto: RecordDto = record_list_to_dto(&records, &cats)
+        .into_iter()
+        .next()
+        .unwrap();
     let json = serde_json::to_value(&dto).unwrap();
     assert_eq!(json["amountCents"], 1000);
     assert_eq!(json["categoryId"], 1);
+    assert_eq!(json["parentCategoryId"], 7);
     assert_eq!(json["categoryName"], "餐饮");
     assert_eq!(json["createdAt"], 100);
 }

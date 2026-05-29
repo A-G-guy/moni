@@ -246,54 +246,13 @@ class AppViewModel(
                 val mutation = rustCore.dispatch(intent)
                 applyMutation(mutation)
 
-                // 记录变更后自动刷新当前月份数据及月度汇总
-                if (intent is CoreIntent.RecordCreate ||
-                    intent is CoreIntent.RecordDelete ||
-                    intent is CoreIntent.RecordUpdate
+                // 记录变更成功后自动刷新当前月份数据及月度汇总。
+                if ((intent is CoreIntent.RecordCreate ||
+                        intent is CoreIntent.RecordDelete ||
+                        intent is CoreIntent.RecordUpdate) &&
+                    !hasMutationError(mutation)
                 ) {
-                    if (_uiState.value.isSearchMode) {
-                        // 搜索模式下刷新搜索结果
-                        runCatching {
-                            rustCore.dispatch(CoreIntent.StatsMonthlySummary(months = 36))
-                        }.onSuccess(::applyMutation).onFailure { e ->
-                            LogCollector.e("AppViewModel", "刷新月度统计失败", e)
-                        }
-                        runCatching {
-                            val keyword = _uiState.value.searchKeyword
-                            val params = _searchParams.value
-                            rustCore.dispatch(
-                                CoreIntent.RecordSearch(
-                                    keyword = keyword.takeIf { it.isNotBlank() },
-                                    recordType = params.recordType,
-                                    categoryIds = params.categoryIds,
-                                    amountMin = params.amountMin,
-                                    amountMax = params.amountMax,
-                                    dateStart = params.dateStart,
-                                    dateEnd = params.dateEnd,
-                                    sortBy = params.sortBy,
-                                    sortOrder = params.sortOrder
-                                )
-                            )
-                        }.onSuccess(::applyMutation).onFailure { e ->
-                            LogCollector.e("AppViewModel", "刷新搜索结果失败", e)
-                        }
-                    } else {
-                        val yearMonth = _selectedYearMonth.value
-                        if (yearMonth.isNotEmpty()) {
-                            // 先刷新月度汇总，确保 RefreshMonthData 中的 StatsOverviewMetrics
-                            // 在 Rust 端计算时使用的是最新的 monthly_summaries
-                            runCatching {
-                                rustCore.dispatch(CoreIntent.StatsMonthlySummary(months = 36))
-                            }.onSuccess(::applyMutation).onFailure { e ->
-                                LogCollector.e("AppViewModel", "刷新月度统计失败", e)
-                            }
-                            runCatching {
-                                rustCore.dispatch(CoreIntent.RefreshMonthData(yearMonth = yearMonth))
-                            }.onSuccess(::applyMutation).onFailure { e ->
-                                LogCollector.e("AppViewModel", "刷新月份数据失败", e)
-                            }
-                        }
-                    }
+                    refreshAfterRecordMutation()
                 }
             } catch (e: Exception) {
                 LogCollector.e("AppViewModel", "Dispatch 失败: ${intent::class.simpleName}", e)
@@ -306,6 +265,79 @@ class AppViewModel(
             }
         }
     }
+
+    suspend fun createRecordFromAi(intent: CoreIntent.RecordCreate): Boolean {
+        LogCollector.i("AppViewModel", "AI 记账创建记录")
+        return try {
+            val mutation = rustCore.dispatch(intent)
+            applyMutation(mutation)
+            if (hasMutationError(mutation)) {
+                false
+            } else {
+                refreshAfterRecordMutation()
+                true
+            }
+        } catch (e: Exception) {
+            LogCollector.e("AppViewModel", "AI 记账创建记录失败", e)
+            _uiState.value = _uiState.value.copy(
+                errorMessage = getApplication<Application>().getString(
+                    R.string.error_operation_failed,
+                    e.message ?: ""
+                )
+            )
+            false
+        }
+    }
+
+    private suspend fun refreshAfterRecordMutation() {
+        if (_uiState.value.isSearchMode) {
+            // 搜索模式下刷新搜索结果。
+            runCatching {
+                rustCore.dispatch(CoreIntent.StatsMonthlySummary(months = 36))
+            }.onSuccess(::applyMutation).onFailure { e ->
+                LogCollector.e("AppViewModel", "刷新月度统计失败", e)
+            }
+            runCatching {
+                val keyword = _uiState.value.searchKeyword
+                val params = _searchParams.value
+                rustCore.dispatch(
+                    CoreIntent.RecordSearch(
+                        keyword = keyword.takeIf { it.isNotBlank() },
+                        recordType = params.recordType,
+                        categoryIds = params.categoryIds,
+                        amountMin = params.amountMin,
+                        amountMax = params.amountMax,
+                        dateStart = params.dateStart,
+                        dateEnd = params.dateEnd,
+                        sortBy = params.sortBy,
+                        sortOrder = params.sortOrder
+                    )
+                )
+            }.onSuccess(::applyMutation).onFailure { e ->
+                LogCollector.e("AppViewModel", "刷新搜索结果失败", e)
+            }
+            return
+        }
+
+        val yearMonth = _selectedYearMonth.value
+        if (yearMonth.isEmpty()) return
+
+        // 先刷新月度汇总，确保 RefreshMonthData 中的 StatsOverviewMetrics
+        // 在 Rust 端计算时使用的是最新的 monthly_summaries。
+        runCatching {
+            rustCore.dispatch(CoreIntent.StatsMonthlySummary(months = 36))
+        }.onSuccess(::applyMutation).onFailure { e ->
+            LogCollector.e("AppViewModel", "刷新月度统计失败", e)
+        }
+        runCatching {
+            rustCore.dispatch(CoreIntent.RefreshMonthData(yearMonth = yearMonth))
+        }.onSuccess(::applyMutation).onFailure { e ->
+            LogCollector.e("AppViewModel", "刷新月份数据失败", e)
+        }
+    }
+
+    private fun hasMutationError(mutation: com.agguy.moni.core.CoreMutation): Boolean =
+        (mutation.state.ui.errorMessage != null || mutation.state.ui.errorKey != null) && mutation.effects.isEmpty()
 
     fun clearAllData() {
         viewModelScope.launch {

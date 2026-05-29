@@ -83,6 +83,7 @@ class CoreAppStateTest {
             amountCents = 12_345L,
             recordType = "expense",
             categoryId = 9L,
+            parentCategoryId = 3L,
             categoryName = "餐饮",
             note = "工作餐",
             createdAt = 1_700_000_000L
@@ -94,6 +95,7 @@ class CoreAppStateTest {
         assertEquals(original, decoded)
         assertEquals(12_345L, decoded.amountCents)
         assertEquals("expense", decoded.recordType)
+        assertEquals(3L, decoded.parentCategoryId)
         assertEquals("工作餐", decoded.note)
     }
 

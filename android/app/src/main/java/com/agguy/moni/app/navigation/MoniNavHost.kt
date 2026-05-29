@@ -106,6 +106,7 @@ fun MoniNavHost(
     onNavigateToThemeSettings: () -> Unit = {},
     onNavigateToBudgetList: () -> Unit = {},
     onNavigateToAiBookkeeping: () -> Unit = {},
+    onCreateAiRecord: suspend (CoreIntent.RecordCreate) -> Boolean = { false },
     onEnterSearchMode: () -> Unit = {},
     onExitSearchMode: () -> Unit = {},
     onUpdateSearchKeyword: (String) -> Unit = {},
@@ -257,7 +258,7 @@ fun MoniNavHost(
                     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                         return AiBookkeepingViewModel(
                             chatRepository = ChatRepositoryImpl(rustCore.core),
-                            rustCore = rustCore
+                            onCreateRecord = onCreateAiRecord
                         ) as T
                     }
                 }

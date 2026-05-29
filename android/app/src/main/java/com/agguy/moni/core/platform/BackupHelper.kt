@@ -17,6 +17,7 @@ object BackupHelper {
     private const val BACKUP_DIR = "backups"
     private const val BACKUP_PREFIX = "Moni_Backup_"
     private const val BACKUP_SUFFIX = ".zip"
+    const val BACKUP_MIME_TYPE = "application/octet-stream"
 
     /**
      * 获取应用内备份目录，不存在则自动创建。
@@ -70,7 +71,7 @@ object BackupHelper {
             file
         )
         val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "application/zip"
+            type = BACKUP_MIME_TYPE
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }

@@ -64,8 +64,8 @@ fn test_overview_metrics_current_month() {
     assert_eq!(metrics.remaining_days, 16);
     assert!(metrics.total_budget.is_some());
     assert_eq!(metrics.total_budget.as_ref().unwrap().amount_cents, 30000);
-    // 有总预算时，日均剩余作为今日支出的稳定对照线：30000 / 31 = 967
-    assert_eq!(metrics.daily_remaining, Some(967));
+    // 有总预算时，日均剩余 = (30000 - 昨日及以前支出 3000) / 含今天剩余 17 天 = 1588
+    assert_eq!(metrics.daily_remaining, Some(1588));
 }
 
 #[test]
@@ -127,45 +127,45 @@ fn test_overview_metrics_current_month_no_records_today() {
 }
 
 #[test]
-fn test_daily_remaining_with_budget_is_stable_daily_cap() {
+fn test_daily_remaining_with_budget_ignores_today_spending() {
     let budgets = vec![total_budget(30000, 0)];
-    let low_spend_summary = vec![moni_contracts::stats::MonthlySummary {
+    let before_today_summary = vec![moni_contracts::stats::MonthlySummary {
         year_month: "2024-03".to_string(),
         income_cents: 0,
         expense_cents: 1000,
         balance_cents: -1000,
     }];
-    let high_spend_summary = vec![moni_contracts::stats::MonthlySummary {
+    let with_today_summary = vec![moni_contracts::stats::MonthlySummary {
         year_month: "2024-03".to_string(),
         income_cents: 0,
-        expense_cents: 12000,
-        balance_cents: -12000,
+        expense_cents: 2200,
+        balance_cents: -2200,
     }];
-    let high_spend_groups = vec![moni_core::dto::RecordDayGroup {
+    let today_groups = vec![moni_core::dto::RecordDayGroup {
         date: "2024-03-15".to_string(),
         income_cents: 0,
         expense_cents: 1200,
         records: vec![],
     }];
 
-    let low_spend_metrics = calculator::calculate_overview_metrics(
+    let before_today_metrics = calculator::calculate_overview_metrics(
         "2024-03",
         &[],
-        &low_spend_summary,
+        &before_today_summary,
         &budgets,
         "2024-03-15",
     );
-    let high_spend_metrics = calculator::calculate_overview_metrics(
+    let with_today_metrics = calculator::calculate_overview_metrics(
         "2024-03",
-        &high_spend_groups,
-        &high_spend_summary,
+        &today_groups,
+        &with_today_summary,
         &budgets,
         "2024-03-15",
     );
 
-    assert_eq!(low_spend_metrics.daily_remaining, Some(967));
-    assert_eq!(high_spend_metrics.daily_remaining, Some(967));
-    assert_eq!(high_spend_metrics.today_expense, Some(1200));
+    assert_eq!(before_today_metrics.daily_remaining, Some(1705));
+    assert_eq!(with_today_metrics.daily_remaining, Some(1705));
+    assert_eq!(with_today_metrics.today_expense, Some(1200));
 }
 
 #[test]

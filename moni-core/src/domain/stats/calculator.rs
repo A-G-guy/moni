@@ -47,8 +47,12 @@ pub fn calculate_overview_metrics(
     let month_income = summary.map(|s| s.income_cents).unwrap_or(0);
     let month_balance = summary.map(|s| s.balance_cents).unwrap_or(0);
 
+    let is_current_month = sel_year == today_year && sel_month == today_month;
+    let is_future_month =
+        sel_year > today_year || (sel_year == today_year && sel_month > today_month);
+
     // 今日支出（仅当前月有效；今日无记录时视为 0）
-    let today_expense = if sel_year == today_year && sel_month == today_month {
+    let today_expense = if is_current_month {
         let today_str = today_date.format("%Y-%m-%d").to_string();
         Some(
             record_groups
@@ -62,8 +66,7 @@ pub fn calculate_overview_metrics(
     };
 
     // 日均支出（未来月不显示）
-    let daily_avg = if sel_year > today_year || (sel_year == today_year && sel_month > today_month)
-    {
+    let daily_avg = if is_future_month {
         None
     } else {
         Some(month_expense / elapsed_days.max(1) as i64)
@@ -72,9 +75,18 @@ pub fn calculate_overview_metrics(
     // 总预算
     let total_budget = budgets.iter().find(|b| b.category_id.is_none()).cloned();
 
-    // 日均剩余：有总预算时作为今日支出的稳定对照线，否则保留"月结余 / 剩余天数"口径。
+    // 日均剩余：当前月有总预算时，作为今日支出的日初对照线；否则保留原剩余天数口径。
     let daily_remaining = if let Some(ref budget) = total_budget {
-        Some(budget.amount_cents / total_days as i64)
+        if is_current_month {
+            let today_expense_cents = today_expense.unwrap_or(0);
+            let expense_before_today = (month_expense - today_expense_cents).max(0);
+            let days_from_today = total_days.saturating_sub(today_day) + 1;
+            Some((budget.amount_cents - expense_before_today) / days_from_today as i64)
+        } else if is_future_month {
+            Some(budget.amount_cents / total_days as i64)
+        } else {
+            None
+        }
     } else if remaining_days > 0 {
         Some(month_balance / remaining_days as i64)
     } else {

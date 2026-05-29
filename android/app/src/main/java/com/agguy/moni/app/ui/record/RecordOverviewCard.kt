@@ -231,15 +231,10 @@ private fun BudgetProgressSection(
             } else {
                 stringResource(R.string.budget_remaining_format, "$currencySymbol${formatAmount(budget.remainingCents)}")
             }
-            val remainingColor = when (budget.status) {
-                "overrun" -> MaterialTheme.colorScheme.expenseRed
-                "critical" -> Color(0xFFFFA726)
-                else -> MaterialTheme.colorScheme.onSurface
-            }
             Text(
                 text = remainingText,
                 style = MaterialTheme.typography.bodySmall,
-                color = remainingColor,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium
             )
             Text(

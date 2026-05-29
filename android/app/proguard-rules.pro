@@ -4,6 +4,11 @@
 -keep class com.sun.jna.** { *; }
 -keep class com.agguy.moni.core.** { *; }
 
+# WorkManager 内部 Room 数据库会通过反射创建 *_Impl；R8 若移除无参构造会导致启动期 InitializationProvider 闪退。
+-keep class androidx.work.impl.WorkDatabase_Impl { *; }
+-keep class androidx.work.impl.WorkDatabase_Impl$* { *; }
+-keep class androidx.work.impl.model.*_Impl { *; }
+
 # kotlinx.serialization 生成的 serializer 通过静态字段/方法访问，保留模型序列化入口。
 -keepclassmembers class **$$serializer { *; }
 -keepclassmembers class **$Companion { *; }

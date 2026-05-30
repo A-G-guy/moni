@@ -140,6 +140,7 @@ fun MoniApp() {
                 onClearAllData = viewModel::clearAllData,
                 onNavigateToDataManagement = viewModel::navigateToDataManagement,
                 onNavigateToThemeSettings = viewModel::navigateToThemeSettings,
+                onNavigateToAiSettings = viewModel::navigateToAiSettings,
                 onNavigateToBudgetList = viewModel::navigateToBudgetList,
                 onNavigateToAiBookkeeping = viewModel::navigateToAiBookkeeping,
                 onCreateAiRecord = viewModel::createRecordFromAi,

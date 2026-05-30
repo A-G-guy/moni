@@ -104,8 +104,8 @@ fn test_list_by_year_month_december() {
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
         let category_id = state["categories"][0]["id"].as_i64().unwrap();
 
-        // 2025-12-31 23:59:00 UTC = 1767225540
-        let dec_31 = 1767225540i64;
+        // 2025-12-31 12:00:00 UTC = 1767182400（避免本地时区跨到次年一月）
+        let dec_31 = 1767182400i64;
         let intent = format!(
             r#"{{"type":"record_create","amount_cents":200,"record_type":"expense","category_id":{category_id},"note":"年末记录","timestamp":{dec_31}}}"#
         );

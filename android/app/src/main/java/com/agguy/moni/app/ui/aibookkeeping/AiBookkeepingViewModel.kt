@@ -6,8 +6,8 @@ import com.agguy.moni.app.model.CardStatus
 import com.agguy.moni.app.model.ChatMessage
 import com.agguy.moni.app.model.DraftCardData
 import com.agguy.moni.app.model.MessageType
+import com.agguy.moni.app.repository.AiRepository
 import com.agguy.moni.app.repository.ChatRepository
-import com.agguy.moni.app.service.MockAiService
 import com.agguy.moni.core.CoreIntent
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
  */
 class AiBookkeepingViewModel(
     private val chatRepository: ChatRepository,
+    private val aiRepository: AiRepository,
     private val onCreateRecord: suspend (CoreIntent.RecordCreate) -> Boolean,
 ) : ViewModel() {
 
@@ -71,7 +72,7 @@ class AiBookkeepingViewModel(
             delay(500.milliseconds)
 
             try {
-                val parseResult = MockAiService.parse(text)
+                val parseResult = aiRepository.parseBookkeeping(text)
 
                 if (parseResult.isBookkeeping) {
                     val cardData = parseResult.cardData
@@ -112,7 +113,7 @@ class AiBookkeepingViewModel(
                 val errorMessage = ChatMessage(
                     sessionId = sessionId,
                     messageType = MessageType.AI_TEXT,
-                    content = "处理出错，请稍后重试。",
+                    content = buildAiErrorMessage(e),
                     createdAt = System.currentTimeMillis() / 1000
                 )
                 chatRepository.insert(errorMessage)
@@ -144,6 +145,16 @@ class AiBookkeepingViewModel(
             if (created) {
                 chatRepository.updateStatus(messageId, CardStatus.SAVED)
                 refreshMessages()
+            } else {
+                chatRepository.insert(
+                    ChatMessage(
+                        sessionId = sessionId,
+                        messageType = MessageType.AI_TEXT,
+                        content = "入账失败，请检查分类是否可用后重试。",
+                        createdAt = System.currentTimeMillis() / 1000
+                    )
+                )
+                refreshMessages()
             }
         }
     }
@@ -160,5 +171,15 @@ class AiBookkeepingViewModel(
 
     private suspend fun refreshMessages() {
         _messages.value = chatRepository.getBySession(sessionId)
+    }
+
+    private fun buildAiErrorMessage(error: Exception): String {
+        val message = error.message.orEmpty()
+        return when {
+            message.contains("未配置默认 AI provider") -> "请先在 设置 > AI 设置 中配置默认 AI 预设。"
+            message.contains("认证失败") -> "AI Provider 认证失败，请检查 API Key。"
+            message.contains("限流") -> "AI Provider 请求被限流，请稍后重试。"
+            else -> "AI 处理出错，请稍后重试。"
+        }
     }
 }

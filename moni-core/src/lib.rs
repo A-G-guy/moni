@@ -5,6 +5,7 @@ use crate::core::error::CoreError;
 use crate::models::effects::CoreUpdate;
 use crate::models::state::AppState;
 
+pub mod ai;
 pub mod core;
 pub mod db;
 pub mod domain;
@@ -468,6 +469,133 @@ impl MoniCore {
                     .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
                 crate::db::chat_repo::clear_session(&inner.conn, &session_id)
                     .map_err(|e| CoreError::Database(format!("清空会话消息失败: {e}")))
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
+    // === AI Provider 与记账解析 ===
+
+    pub async fn ai_preset_list(&self) -> Result<String, CoreError> {
+        let inner = Arc::clone(&self.inner);
+        self.runtime
+            .spawn_blocking(move || {
+                let inner = inner
+                    .lock()
+                    .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
+                let presets = crate::ai::preset_repo::list(&inner.conn).map_err(CoreError::from)?;
+                let items = presets
+                    .iter()
+                    .map(crate::ai::domain::ProviderPreset::to_list_item)
+                    .collect::<Vec<_>>();
+                serde_json::to_string(&items)
+                    .map_err(|e| CoreError::Internal(format!("序列化 AI 预设失败: {e}")))
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
+    pub async fn ai_preset_save(&self, preset_json: String) -> Result<i64, CoreError> {
+        let inner = Arc::clone(&self.inner);
+        self.runtime
+            .spawn_blocking(move || {
+                let request = serde_json::from_str::<crate::ai::domain::ProviderPresetSaveRequest>(
+                    &preset_json,
+                )
+                .map_err(|e| CoreError::InvalidInput(format!("AI 预设解析失败: {e}")))?;
+                let inner = inner
+                    .lock()
+                    .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
+                crate::ai::preset_repo::save(&inner.conn, request).map_err(CoreError::from)
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
+    pub async fn ai_preset_delete(&self, id: i64) -> Result<(), CoreError> {
+        let inner = Arc::clone(&self.inner);
+        self.runtime
+            .spawn_blocking(move || {
+                let inner = inner
+                    .lock()
+                    .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
+                crate::ai::preset_repo::delete(&inner.conn, id).map_err(CoreError::from)
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
+    pub async fn ai_preset_set_default(&self, id: i64) -> Result<(), CoreError> {
+        let inner = Arc::clone(&self.inner);
+        self.runtime
+            .spawn_blocking(move || {
+                let inner = inner
+                    .lock()
+                    .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
+                crate::ai::preset_repo::set_default(&inner.conn, id).map_err(CoreError::from)
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
+    pub async fn ai_preset_test_connection(&self, id: i64) -> Result<String, CoreError> {
+        let inner = Arc::clone(&self.inner);
+        self.runtime
+            .spawn_blocking(move || {
+                let preset = {
+                    let inner = inner
+                        .lock()
+                        .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
+                    crate::ai::preset_repo::get(&inner.conn, id)
+                        .map_err(CoreError::from)?
+                        .ok_or_else(|| CoreError::InvalidInput(format!("AI 预设不存在: id={id}")))?
+                };
+                let http_client = crate::ai::http::DefaultHttpClient;
+                let result = crate::ai::service::parse_with_client(
+                    &http_client,
+                    &preset,
+                    "测试：午餐花了 1 元",
+                    "1 餐饮 expense",
+                )
+                .map_err(CoreError::from)?;
+                serde_json::to_string(&serde_json::json!({
+                    "ok": true,
+                    "is_bookkeeping": result.is_bookkeeping,
+                    "reply_text": result.reply_text
+                }))
+                .map_err(|e| CoreError::Internal(format!("序列化 AI 连接测试结果失败: {e}")))
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
+    pub async fn ai_bookkeeping_parse(&self, input: String) -> Result<String, CoreError> {
+        let inner = Arc::clone(&self.inner);
+        self.runtime
+            .spawn_blocking(move || {
+                let (preset, category_context) = {
+                    let inner = inner
+                        .lock()
+                        .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
+                    let preset = crate::ai::preset_repo::get_default(&inner.conn)
+                        .map_err(CoreError::from)?
+                        .ok_or_else(|| {
+                            CoreError::InvalidInput("未配置默认 AI provider".to_string())
+                        })?;
+                    let category_context = crate::ai::service::build_category_context(&inner.conn)
+                        .map_err(CoreError::from)?;
+                    (preset, category_context)
+                };
+                let http_client = crate::ai::http::DefaultHttpClient;
+                let result = crate::ai::service::parse_with_client(
+                    &http_client,
+                    &preset,
+                    &input,
+                    &category_context,
+                )
+                .map_err(CoreError::from)?;
+                serde_json::to_string(&result)
+                    .map_err(|e| CoreError::Internal(format!("序列化 AI 记账结果失败: {e}")))
             })
             .await
             .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?

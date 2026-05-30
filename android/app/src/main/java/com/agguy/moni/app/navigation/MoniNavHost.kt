@@ -33,11 +33,14 @@ import com.agguy.moni.app.ui.dev.DevLogScreen
 import com.agguy.moni.app.ui.dev.DeveloperOptionsScreen
 import com.agguy.moni.app.ui.record.RecordDetailScreen
 import com.agguy.moni.app.ui.record.RecordListScreen
+import com.agguy.moni.app.repository.AiRepository
+import com.agguy.moni.app.repository.ChatRepositoryImpl
 import com.agguy.moni.app.ui.aibookkeeping.AiBookkeepingScreen
 import com.agguy.moni.app.ui.aibookkeeping.AiBookkeepingViewModel
+import com.agguy.moni.app.ui.settings.AiSettingsScreen
+import com.agguy.moni.app.ui.settings.AiSettingsViewModel
 import com.agguy.moni.app.ui.settings.SettingsScreen
 import com.agguy.moni.app.ui.stats.StatsScreen
-import com.agguy.moni.app.repository.ChatRepositoryImpl
 import com.agguy.moni.core.CoreIntent
 import com.agguy.moni.core.RustCoreController
 
@@ -104,6 +107,7 @@ fun MoniNavHost(
     onClearAllData: () -> Unit = {},
     onNavigateToDataManagement: () -> Unit = {},
     onNavigateToThemeSettings: () -> Unit = {},
+    onNavigateToAiSettings: () -> Unit = {},
     onNavigateToBudgetList: () -> Unit = {},
     onNavigateToAiBookkeeping: () -> Unit = {},
     onCreateAiRecord: suspend (CoreIntent.RecordCreate) -> Boolean = { false },
@@ -205,6 +209,7 @@ fun MoniNavHost(
                 language = language,
                 onDispatch = onDispatch,
                 onNavigateToThemeSettings = onNavigateToThemeSettings,
+                onNavigateToAiSettings = onNavigateToAiSettings,
                 onNavigateToDeveloperOptions = onNavigateToDeveloperOptions,
                 onNavigateToDataManagement = onNavigateToDataManagement,
                 onUpdateLanguage = onUpdateLanguage,
@@ -242,6 +247,22 @@ fun MoniNavHost(
                 onNavigateBack = onNavigateBack
             )
         }
+        composable<Screen.AiSettings> {
+            val viewModel = androidx.lifecycle.viewmodel.compose.viewModel<AiSettingsViewModel>(
+                factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+                    @Suppress("UNCHECKED_CAST")
+                    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                        return AiSettingsViewModel(
+                            repository = AiRepository(rustCore.core)
+                        ) as T
+                    }
+                }
+            )
+            AiSettingsScreen(
+                viewModel = viewModel,
+                onNavigateBack = onNavigateBack
+            )
+        }
         composable<Screen.BudgetList> {
             com.agguy.moni.app.ui.budget.BudgetListScreen(
                 appState = appState,
@@ -258,6 +279,7 @@ fun MoniNavHost(
                     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                         return AiBookkeepingViewModel(
                             chatRepository = ChatRepositoryImpl(rustCore.core),
+                            aiRepository = AiRepository(rustCore.core),
                             onCreateRecord = onCreateAiRecord
                         ) as T
                     }

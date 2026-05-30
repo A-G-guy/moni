@@ -52,6 +52,7 @@ fun SettingsScreen(
     language: AppLocaleManager.AppLanguage,
     onDispatch: (CoreIntent) -> Unit,
     onNavigateToThemeSettings: () -> Unit = {},
+    onNavigateToAiSettings: () -> Unit = {},
     onNavigateToDeveloperOptions: () -> Unit = {},
     onNavigateToDataManagement: () -> Unit = {},
     onUpdateLanguage: (AppLocaleManager.AppLanguage) -> Unit = {},
@@ -118,6 +119,13 @@ fun SettingsScreen(
                 title = stringResource(R.string.settings_currency),
                 subtitle = stringResource(R.string.settings_currency_current, appState.currencySymbol),
                 onClick = { showCurrencyDialog = true }
+            )
+
+            SettingsItem(
+                iconName = "smart_toy",
+                title = "AI 设置",
+                subtitle = "配置 OpenAI 兼容接口、Gemini 与自定义模型预设",
+                onClick = onNavigateToAiSettings
             )
 
             SettingsItem(

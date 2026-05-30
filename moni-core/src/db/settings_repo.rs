@@ -2,11 +2,9 @@ use rusqlite::{Connection, OptionalExtension};
 
 /// 查询单个设置项。
 pub fn get(conn: &Connection, key: &str) -> Result<Option<String>, rusqlite::Error> {
-    conn.query_row(
-        "SELECT value FROM settings WHERE key = ?1",
-        [key],
-        |row| row.get::<_, String>(0),
-    )
+    conn.query_row("SELECT value FROM settings WHERE key = ?1", [key], |row| {
+        row.get::<_, String>(0)
+    })
     .optional()
 }
 
@@ -20,10 +18,17 @@ pub fn set(conn: &Connection, key: &str, value: &str) -> Result<usize, rusqlite:
 }
 
 /// 加载所有设置项。
-pub fn load_all(conn: &Connection) -> Result<std::collections::HashMap<String, String>, rusqlite::Error> {
+pub fn load_all(
+    conn: &Connection,
+) -> Result<std::collections::HashMap<String, String>, rusqlite::Error> {
     let mut stmt = conn.prepare("SELECT key, value FROM settings")?;
     let rows = stmt.query_map([], |row| {
         Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
     })?;
     rows.collect()
+}
+
+/// 删除单个设置项。
+pub fn delete(conn: &Connection, key: &str) -> Result<usize, rusqlite::Error> {
+    conn.execute("DELETE FROM settings WHERE key = ?1", [key])
 }

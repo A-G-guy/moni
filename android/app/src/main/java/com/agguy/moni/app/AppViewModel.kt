@@ -521,6 +521,10 @@ class AppViewModel(
         _navController?.navigate(Screen.ThemeSettings)
     }
 
+    fun navigateToAiSettings() {
+        _navController?.navigate(Screen.AiSettings)
+    }
+
     fun navigateToAiBookkeeping() {
         _navController?.navigate(Screen.AiBookkeeping)
     }

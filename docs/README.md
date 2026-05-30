@@ -18,6 +18,7 @@
 | [icon-library.md](./long-term/icon-library.md) | 图标库扩展指南：Material Symbols Rounded 集成、命名规范、分组结构、新增流程 |
 | [backup-guide.md](./long-term/backup-guide.md) | 全量无损备份/恢复开发规范：ZIP 格式、双版本管理、完整性校验、安全方法、测试要求 |
 | [testing-guide.md](./long-term/testing-guide.md) | 测试策略与指南：测试目录结构、映射规则、核心逻辑覆盖要求 |
+| [ai-provider-api.md](./long-term/ai-provider-api.md) | AI Provider 预设、OpenAI/Gemini API 格式、记账 JSON Output 与安全边界 |
 
 ## 短期文档（沟通备忘）
 

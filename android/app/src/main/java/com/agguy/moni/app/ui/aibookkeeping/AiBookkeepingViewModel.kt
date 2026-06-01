@@ -260,7 +260,7 @@ class AiBookkeepingViewModel(
 
     private fun buildAiErrorMessage(error: Exception): String {
         val message = error.message.orEmpty()
-        return when {
+        val friendlyMessage = when {
             message.contains("未配置默认 AI provider") -> "请先在 设置 > AI 设置 中配置默认 AI 预设。"
             message.contains("API key 为空") || message.contains("API Key") -> "请检查默认 AI 预设的 API Key。"
             message.contains("不支持图片识别") -> "当前默认 AI 预设不支持识图，请在 AI 设置中手动开启或移除图片。"
@@ -268,7 +268,24 @@ class AiBookkeepingViewModel(
             message.contains("认证失败") -> "AI Provider 认证失败，请检查 API Key。"
             message.contains("限流") -> "AI Provider 请求被限流，请稍后重试。"
             message.contains("响应 JSON") || message.contains("记账结构") -> "AI 返回内容不符合结构化 JSON 要求，请重试或更换模型。"
-            else -> "AI 处理出错，请稍后重试。"
+            else -> "AI 处理出错，请查看下面的详细信息。"
         }
+        return "$friendlyMessage\n\n详情：${buildSanitizedErrorDetail(error)}"
     }
+
+    private fun buildSanitizedErrorDetail(error: Throwable): String {
+        val chain = generateSequence(error) { it.cause }
+            .map { throwable ->
+                val type = throwable::class.java.simpleName
+                val message = throwable.message.orEmpty().ifBlank { "无错误消息" }
+                "$type: $message"
+            }
+            .joinToString(separator = "\ncaused by: ")
+        return redactSensitiveText(chain).take(1200)
+    }
+
+    private fun redactSensitiveText(text: String): String = text
+        .replace(Regex("(?i)(authorization\\s*[:=]\\s*bearer\\s+)[^\\s,}]+"), "$1[REDACTED]")
+        .replace(Regex("(?i)(x-goog-api-key\\s*[:=]\\s*)[^\\s,}]+"), "$1[REDACTED]")
+        .replace(Regex("sk-[A-Za-z0-9_-]{12,}"), "sk-[REDACTED]")
 }

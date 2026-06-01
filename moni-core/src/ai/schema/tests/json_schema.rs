@@ -11,4 +11,8 @@ fn builds_openai_schema_with_strict_wrapper() {
 fn builds_gemini_schema_object() {
     let value = gemini_response_schema();
     assert_eq!(value["type"], "object");
+    assert_eq!(
+        value["properties"]["clarification_question"]["type"],
+        "string"
+    );
 }

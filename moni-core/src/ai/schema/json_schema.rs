@@ -14,7 +14,14 @@ pub fn openai_response_format() -> Value {
 
 /// Gemini generateContent 的 responseSchema。
 pub fn gemini_response_schema() -> Value {
-    bookkeeping_schema(false)
+    let mut schema = bookkeeping_schema(false);
+    // Gemini responseSchema 的 `type` 是单值枚举，不接受 JSON Schema 的
+    // `type: ["string", "null"]` 联合类型；用空字符串表达“无需澄清”。
+    schema["properties"]["clarification_question"] = json!({
+        "type": "string",
+        "description": "需要澄清时的问题；无需澄清时为空字符串"
+    });
+    schema
 }
 
 fn bookkeeping_schema(openai_strict: bool) -> Value {

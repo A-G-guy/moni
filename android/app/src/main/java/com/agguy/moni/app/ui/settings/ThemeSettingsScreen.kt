@@ -39,6 +39,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import com.agguy.moni.R
+import com.agguy.moni.app.NumPadSettings
 import com.agguy.moni.app.RecordItemDisplaySettings
 import com.agguy.moni.app.ThemeSettings
 import com.agguy.moni.app.components.SettingsToggleItem
@@ -62,11 +63,13 @@ import com.agguy.moni.app.theme.seedColor
 fun ThemeSettingsScreen(
     themeSettings: ThemeSettings,
     recordItemDisplaySettings: RecordItemDisplaySettings,
+    numPadSettings: NumPadSettings = NumPadSettings(),
     onUpdateThemeMode: (ThemeMode) -> Unit,
     onUpdatePresetColorScheme: (PresetColorScheme) -> Unit,
     onUpdateRecordShowIcon: (Boolean) -> Unit,
     onUpdateRecordShowFullCategory: (Boolean) -> Unit,
     onUpdateRecordNotePriority: (Boolean) -> Unit,
+    onUpdateNumPadSwapTopAndBottomRows: (Boolean) -> Unit = {},
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -147,6 +150,18 @@ fun ThemeSettingsScreen(
                 subtitle = stringResource(R.string.theme_note_priority_subtitle),
                 checked = recordItemDisplaySettings.notePriority,
                 onCheckedChange = onUpdateRecordNotePriority
+            )
+
+            HorizontalDivider()
+
+            // === 小键盘 ===
+            SectionTitle(stringResource(R.string.theme_numpad_settings))
+            SettingsToggleItem(
+                iconName = "numbers",
+                title = stringResource(R.string.theme_numpad_swap_top_bottom),
+                subtitle = stringResource(R.string.theme_numpad_swap_top_bottom_subtitle),
+                checked = numPadSettings.swapTopAndBottomRows,
+                onCheckedChange = onUpdateNumPadSwapTopAndBottomRows
             )
 
             Spacer(modifier = Modifier.height(16.dp))

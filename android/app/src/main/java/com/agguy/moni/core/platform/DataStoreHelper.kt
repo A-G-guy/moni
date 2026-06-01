@@ -50,6 +50,9 @@ object DataStoreHelper {
     // 语言设置键
     private val APP_LANGUAGE_KEY = stringPreferencesKey("app_language")
 
+    // 小键盘数字键布局设置键
+    private val NUMPAD_SWAP_TOP_BOTTOM_ROWS_KEY = booleanPreferencesKey("numpad_swap_top_bottom_rows")
+
     /**
      * 获取货币符号流。
      */
@@ -307,6 +310,26 @@ object DataStoreHelper {
 
     // endregion
 
+    // region 小键盘数字键布局设置
+
+    /**
+     * 获取小键盘数字键交换顶部与第三行状态流（默认 false）。
+     */
+    fun numpadSwapTopBottomRowsFlow(context: Context): Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[NUMPAD_SWAP_TOP_BOTTOM_ROWS_KEY] ?: false
+    }
+
+    /**
+     * 保存小键盘数字键交换顶部与第三行设置。
+     */
+    suspend fun saveNumpadSwapTopBottomRows(context: Context, swap: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[NUMPAD_SWAP_TOP_BOTTOM_ROWS_KEY] = swap
+        }
+    }
+
+    // endregion
+
     /**
      * 清空所有设置数据。
      */
@@ -362,6 +385,9 @@ object DataStoreHelper {
                 ),
                 "app_language" to kotlinx.serialization.json.JsonPrimitive(
                     preferences[APP_LANGUAGE_KEY] ?: "system"
+                ),
+                "numpad_swap_top_bottom_rows" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[NUMPAD_SWAP_TOP_BOTTOM_ROWS_KEY] ?: false
                 ),
             )
         ).toString()
@@ -431,6 +457,11 @@ object DataStoreHelper {
             }
             obj["app_language"]?.jsonPrimitive?.content?.let {
                 preferences[APP_LANGUAGE_KEY] = it
+            }
+
+            // 小键盘数字键布局设置（旧备份可能不含此字段，缺失时保留当前值）
+            obj["numpad_swap_top_bottom_rows"]?.jsonPrimitive?.booleanOrNull?.let {
+                preferences[NUMPAD_SWAP_TOP_BOTTOM_ROWS_KEY] = it
             }
         }
     }

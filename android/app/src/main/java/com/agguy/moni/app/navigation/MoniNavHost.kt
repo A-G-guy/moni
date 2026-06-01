@@ -19,6 +19,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.agguy.moni.app.AppState
+import com.agguy.moni.app.NumPadSettings
 import com.agguy.moni.app.RecordItemDisplaySettings
 import com.agguy.moni.app.SearchParams
 import com.agguy.moni.app.ThemeSettings
@@ -86,6 +87,7 @@ fun MoniNavHost(
     appState: AppState,
     themeSettings: ThemeSettings,
     recordItemDisplaySettings: RecordItemDisplaySettings,
+    numPadSettings: NumPadSettings = NumPadSettings(),
     selectedYearMonth: String,
     language: AppLocaleManager.AppLanguage = AppLocaleManager.AppLanguage.SYSTEM,
     onDispatch: (CoreIntent) -> Unit,
@@ -101,6 +103,7 @@ fun MoniNavHost(
     onUpdateRecordShowIcon: (Boolean) -> Unit = {},
     onUpdateRecordShowFullCategory: (Boolean) -> Unit = {},
     onUpdateRecordNotePriority: (Boolean) -> Unit = {},
+    onUpdateNumPadSwapTopAndBottomRows: (Boolean) -> Unit = {},
     onUpdateLanguage: (AppLocaleManager.AppLanguage) -> Unit = {},
     onNavigateToDeveloperOptions: () -> Unit = {},
     onNavigateToDevLog: () -> Unit = {},
@@ -175,7 +178,8 @@ fun MoniNavHost(
                 onDispatch = onDispatch,
                 onNavigateBack = onNavigateBack,
                 onCheckBudget = onCheckBudget,
-                onClearBudgetCheck = onClearBudgetCheck
+                onClearBudgetCheck = onClearBudgetCheck,
+                numPadSettings = numPadSettings
             )
         }
         composable<Screen.CategoryList> {
@@ -239,11 +243,13 @@ fun MoniNavHost(
             com.agguy.moni.app.ui.settings.ThemeSettingsScreen(
                 themeSettings = themeSettings,
                 recordItemDisplaySettings = recordItemDisplaySettings,
+                numPadSettings = numPadSettings,
                 onUpdateThemeMode = onUpdateThemeMode,
                 onUpdatePresetColorScheme = onUpdatePresetColorScheme,
                 onUpdateRecordShowIcon = onUpdateRecordShowIcon,
                 onUpdateRecordShowFullCategory = onUpdateRecordShowFullCategory,
                 onUpdateRecordNotePriority = onUpdateRecordNotePriority,
+                onUpdateNumPadSwapTopAndBottomRows = onUpdateNumPadSwapTopAndBottomRows,
                 onNavigateBack = onNavigateBack
             )
         }
@@ -287,6 +293,7 @@ fun MoniNavHost(
             )
             AiBookkeepingScreen(
                 viewModel = viewModel,
+                numPadSettings = numPadSettings,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToRecordList = { navController.navigate(Screen.RecordList) }
             )

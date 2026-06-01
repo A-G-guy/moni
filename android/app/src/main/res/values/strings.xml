@@ -57,6 +57,11 @@
     <string name="theme_note_priority">备注优先</string>
     <string name="theme_note_priority_subtitle">备注和分类名称的显示位置互换</string>
 
+    <!-- 小键盘设置 -->
+    <string name="theme_numpad_settings">小键盘</string>
+    <string name="theme_numpad_swap_top_bottom">交换数字键位置</string>
+    <string name="theme_numpad_swap_top_bottom_subtitle">将 789 和 123 互换位置</string>
+
     <!-- 配色方案 -->
     <string name="color_scheme_default">默认</string>
     <string name="color_scheme_dynamic">动态颜色</string>

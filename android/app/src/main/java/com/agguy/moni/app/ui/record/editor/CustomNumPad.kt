@@ -35,6 +35,8 @@ import com.agguy.moni.core.RecordType
  * 4×4 自定义多功能数字键盘。
  *
  * 数字与运算符完美融合，彻底替代系统数字键盘。
+ *
+ * @param swapTopAndBottomRows 是否交换顶部（789）与第三行（123）数字位置。
  */
 @Composable
 fun CustomNumPad(
@@ -47,6 +49,7 @@ fun CustomNumPad(
     onBackspace: () -> Unit,
     onCalculate: () -> Unit,
     onSave: () -> Unit,
+    swapTopAndBottomRows: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val hasPendingOp = ExpressionEvaluator.hasPendingOperation(amountExpression)
@@ -65,15 +68,19 @@ fun CustomNumPad(
     var plusOp by remember { mutableStateOf("+") }
     var minusOp by remember { mutableStateOf("-") }
 
+    // 根据 swapTopAndBottomRows 决定顶部数字行与第三行数字行
+    val topRowDigits = if (swapTopAndBottomRows) listOf("1", "2", "3") else listOf("7", "8", "9")
+    val bottomRowDigits = if (swapTopAndBottomRows) listOf("7", "8", "9") else listOf("1", "2", "3")
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        // 第一行: 7 8 9 +/×
+        // 第一行: 顶部数字行 +/×
         KeyRow {
-            NumKey("7") { onDigitClick("7") }
-            NumKey("8") { onDigitClick("8") }
-            NumKey("9") { onDigitClick("9") }
+            topRowDigits.forEach { digit ->
+                NumKey(digit) { onDigitClick(digit) }
+            }
             OpKey(plusOp) {
                 onOperatorClick(plusOp)
                 plusOp = if (plusOp == "+") "×" else "+"
@@ -105,9 +112,9 @@ fun CustomNumPad(
                     modifier = Modifier.fillMaxWidth().weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    NumKey("1") { onDigitClick("1") }
-                    NumKey("2") { onDigitClick("2") }
-                    NumKey("3") { onDigitClick("3") }
+                    bottomRowDigits.forEach { digit ->
+                        NumKey(digit) { onDigitClick(digit) }
+                    }
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth().weight(1f),

@@ -55,6 +55,9 @@ class AppViewModel(
     private val _recordItemDisplaySettings = MutableStateFlow(RecordItemDisplaySettings())
     val recordItemDisplaySettings: StateFlow<RecordItemDisplaySettings> = _recordItemDisplaySettings.asStateFlow()
 
+    private val _numPadSettings = MutableStateFlow(NumPadSettings())
+    val numPadSettings: StateFlow<NumPadSettings> = _numPadSettings.asStateFlow()
+
     private val _selectedYearMonth = MutableStateFlow("")
     val selectedYearMonth: StateFlow<String> = _selectedYearMonth.asStateFlow()
 
@@ -129,6 +132,7 @@ class AppViewModel(
                 syncThemeSettingsFromDataStore()
                 syncRecordItemDisplaySettingsFromDataStore()
                 syncLanguageFromDataStore()
+                syncNumPadSettingsFromDataStore()
             } catch (e: Exception) {
                 val app = getApplication<Application>()
                 val errDetail = "${e.javaClass.simpleName}: ${e.message?.take(100)}"
@@ -390,6 +394,18 @@ class AppViewModel(
     private suspend fun syncLanguageFromDataStore() {
         val code = DataStoreHelper.languageFlow(getApplication()).first()
         _language.value = AppLocaleManager.AppLanguage.fromCode(code)
+    }
+
+    private suspend fun syncNumPadSettingsFromDataStore() {
+        val swapTopAndBottomRows = DataStoreHelper.numpadSwapTopBottomRowsFlow(getApplication()).first()
+        _numPadSettings.value = NumPadSettings(swapTopAndBottomRows)
+    }
+
+    fun updateNumPadSwapTopAndBottomRows(swap: Boolean) {
+        viewModelScope.launch {
+            DataStoreHelper.saveNumpadSwapTopBottomRows(getApplication(), swap)
+            _numPadSettings.value = _numPadSettings.value.copy(swapTopAndBottomRows = swap)
+        }
     }
 
     fun updateThemeMode(mode: ThemeMode) {

@@ -57,6 +57,11 @@
     <string name="theme_note_priority">Note Priority</string>
     <string name="theme_note_priority_subtitle">Swap the display position of note and category name</string>
 
+    <!-- Numpad Settings -->
+    <string name="theme_numpad_settings">Numpad</string>
+    <string name="theme_numpad_swap_top_bottom">Swap Digit Keys</string>
+    <string name="theme_numpad_swap_top_bottom_subtitle">Swap positions of 789 and 123 rows</string>
+
     <!-- Color Schemes -->
     <string name="color_scheme_default">Default</string>
     <string name="color_scheme_dynamic">Dynamic Color</string>

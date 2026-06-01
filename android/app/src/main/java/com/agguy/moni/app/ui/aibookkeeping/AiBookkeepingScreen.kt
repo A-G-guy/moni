@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.agguy.moni.app.NumPadSettings
 import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.model.ChatMessage
 import com.agguy.moni.app.model.DraftCardData
@@ -59,6 +60,7 @@ fun AiBookkeepingScreen(
     viewModel: AiBookkeepingViewModel,
     onNavigateBack: () -> Unit,
     onNavigateToRecordList: () -> Unit,
+    numPadSettings: NumPadSettings = NumPadSettings(),
     modifier: Modifier = Modifier
 ) {
     val messages by viewModel.messages.collectAsState()
@@ -145,7 +147,8 @@ fun AiBookkeepingScreen(
                         ChatMessageItem(
                             message = message,
                             onSaveCard = viewModel::saveCard,
-                            onCancelCard = viewModel::cancelCard
+                            onCancelCard = viewModel::cancelCard,
+                            numPadSettings = numPadSettings
                         )
                     }
 
@@ -204,6 +207,7 @@ private fun ChatMessageItem(
     message: ChatMessage,
     onSaveCard: (Long) -> Unit,
     onCancelCard: (Long) -> Unit,
+    numPadSettings: NumPadSettings = NumPadSettings(),
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -228,7 +232,8 @@ private fun ChatMessageItem(
                             cardStatus = message.cardStatus
                                 ?: com.agguy.moni.app.model.CardStatus.DRAFT,
                             onSaveClick = { onSaveCard(message.id) },
-                            onCancelClick = { onCancelCard(message.id) }
+                            onCancelClick = { onCancelCard(message.id) },
+                            numPadSettings = numPadSettings
                         )
                     } else {
                         Text(

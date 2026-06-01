@@ -60,6 +60,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.agguy.moni.app.NumPadSettings
 import com.agguy.moni.app.components.AutoResizeText
 import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.model.CardStatus
@@ -90,6 +91,7 @@ fun SmartDraftCard(
     modifier: Modifier = Modifier,
     cardStatus: CardStatus = CardStatus.DRAFT,
     onCardDataChange: (DraftCardData) -> Unit = {},
+    numPadSettings: NumPadSettings = NumPadSettings(),
     categories: List<CoreCategory> = emptyList(),
     accounts: List<String> = listOf("微信支付", "支付宝", "现金", "银行卡"),
     onSaveClick: () -> Unit = {},
@@ -251,7 +253,8 @@ fun SmartDraftCard(
                 onCardDataChange(cardData.copy(amountCents = amountEditorState.confirmedAmountCents))
                 currentSheet = EditorSheet.NONE
             },
-            onDismiss = { currentSheet = EditorSheet.NONE }
+            onDismiss = { currentSheet = EditorSheet.NONE },
+            swapTopAndBottomRows = numPadSettings.swapTopAndBottomRows
         )
     }
 
@@ -546,7 +549,8 @@ private fun SavedStamp(modifier: Modifier = Modifier) {
 private fun AmountEditorSheet(
     editorState: RecordEditorState,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    swapTopAndBottomRows: Boolean = false
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -578,6 +582,7 @@ private fun AmountEditorSheet(
                 onBackspace = { editorState.backspace() },
                 onCalculate = { editorState.calculate() },
                 onSave = onConfirm,
+                swapTopAndBottomRows = swapTopAndBottomRows,
                 modifier = Modifier.fillMaxWidth()
             )
 

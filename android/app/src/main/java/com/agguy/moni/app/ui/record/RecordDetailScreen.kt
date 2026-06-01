@@ -35,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.agguy.moni.R
 import com.agguy.moni.app.AppState
+import com.agguy.moni.app.NumPadSettings
 import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
 import com.agguy.moni.app.ui.record.editor.CategoryGridPager
@@ -75,6 +76,7 @@ fun RecordDetailScreen(
     onNavigateBack: () -> Unit,
     onCheckBudget: (Long, Long) -> Unit = { _, _ -> },
     onClearBudgetCheck: () -> Unit = {},
+    numPadSettings: NumPadSettings = NumPadSettings(),
     modifier: Modifier = Modifier
 ) {
     val existingRecord = remember(recordId, appState.records) {
@@ -217,6 +219,7 @@ fun RecordDetailScreen(
                 onOperatorClick = { state.appendOperator(it) },
                 onBackspace = { state.backspace() },
                 onCalculate = { state.calculate() },
+                numPadSettings = numPadSettings,
                 onSave = {
                     if (isSaveEnabled) {
                         if (isEditMode) {

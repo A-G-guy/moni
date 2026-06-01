@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.agguy.moni.R
+import com.agguy.moni.app.NumPadSettings
 import com.agguy.moni.app.components.AutoResizeText
 import com.agguy.moni.app.icons.SymbolIcon
 import com.agguy.moni.app.theme.expenseRed
@@ -84,6 +85,7 @@ fun RecordEditorPanel(
     onBackspace: () -> Unit,
     onCalculate: () -> Unit,
     onSave: () -> Unit,
+    numPadSettings: NumPadSettings = NumPadSettings(),
     modifier: Modifier = Modifier
 ) {
     // 监听输入法可见性，收起时自动恢复小键盘
@@ -147,6 +149,7 @@ fun RecordEditorPanel(
                     onBackspace = onBackspace,
                     onCalculate = onCalculate,
                     onSave = onSave,
+                    swapTopAndBottomRows = numPadSettings.swapTopAndBottomRows,
                     modifier = Modifier.fillMaxSize()
                 )
             }

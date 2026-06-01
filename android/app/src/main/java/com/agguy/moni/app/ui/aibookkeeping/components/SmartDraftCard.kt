@@ -174,6 +174,7 @@ fun SmartDraftCard(
         animationSpec = tween(300),
         label = "stampAlpha"
     )
+    val canSave = cardData.categoryId > 0
 
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -220,6 +221,14 @@ fun SmartDraftCard(
                     }
                 )
 
+                if (!canSave && cardStatus == CardStatus.DRAFT) {
+                    Text(
+                        text = "请选择分类后再入账",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 AnimatedVisibility(
@@ -230,6 +239,7 @@ fun SmartDraftCard(
                         shrinkVertically(animationSpec = tween(300))
                 ) {
                     ActionRow(
+                        canSave = canSave,
                         onCancelClick = onCancelClick,
                         onSaveClick = onSaveClick
                     )
@@ -496,6 +506,7 @@ private fun InfoRowItem(
 
 @Composable
 private fun ActionRow(
+    canSave: Boolean,
     onCancelClick: () -> Unit,
     onSaveClick: () -> Unit
 ) {
@@ -514,9 +525,10 @@ private fun ActionRow(
         }
 
         Button(
-            onClick = onSaveClick
+            onClick = onSaveClick,
+            enabled = canSave
         ) {
-            Text(text = "确认保存")
+            Text(text = if (canSave) "确认保存" else "先选分类")
         }
     }
 }

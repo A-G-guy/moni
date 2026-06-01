@@ -54,7 +54,7 @@ fn validate_output(output: BookkeepingModelOutput) -> Result<AiBookkeepingParseR
     let card_data = DraftCardDataOutput {
         amount_cents,
         record_type,
-        category_id: output.category_id.unwrap_or(1),
+        category_id: output.category_id.unwrap_or(-1),
         account_id: output.account_id.unwrap_or(-1),
         timestamp: output.timestamp.unwrap_or(0).max(0),
         note: output.note.unwrap_or_default(),
@@ -108,33 +108,5 @@ fn default_confidence() -> f64 {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::parse_bookkeeping_output;
-
-    #[test]
-    fn parses_valid_bookkeeping_json() {
-        let result = parse_bookkeeping_output(
-            r#"{"is_bookkeeping":true,"reply_text":"ok","amount_cents":3500,"record_type":"expense","category_id":1,"confidence":0.9}"#,
-        )
-        .expect("parse");
-        assert!(result.is_bookkeeping);
-        assert_eq!(result.card_data.expect("card").amount_cents, 3500);
-    }
-
-    #[test]
-    fn rejects_invalid_amount() {
-        let error = parse_bookkeeping_output(
-            r#"{"is_bookkeeping":true,"amount_cents":0,"record_type":"expense"}"#,
-        )
-        .expect_err("invalid");
-        assert!(error.to_string().contains("金额"));
-    }
-
-    #[test]
-    fn parses_non_bookkeeping_json() {
-        let result = parse_bookkeeping_output(r#"{"is_bookkeeping":false,"reply_text":"你好"}"#)
-            .expect("parse");
-        assert!(!result.is_bookkeeping);
-        assert!(result.card_data.is_none());
-    }
-}
+#[path = "tests/bookkeeping_output.rs"]
+mod tests;

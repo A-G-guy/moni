@@ -298,6 +298,7 @@ fun MoniNavHost(
             )
             AiBookkeepingScreen(
                 viewModel = viewModel,
+                categories = appState.categories,
                 numPadSettings = numPadSettings,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToRecordList = { navController.navigate(Screen.RecordList) }

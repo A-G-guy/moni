@@ -446,6 +446,24 @@ impl MoniCore {
             .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
     }
 
+    pub async fn chat_update_card_data(
+        &self,
+        id: i64,
+        card_data_json: String,
+    ) -> Result<(), CoreError> {
+        let inner = Arc::clone(&self.inner);
+        self.runtime
+            .spawn_blocking(move || {
+                let inner = inner
+                    .lock()
+                    .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
+                crate::db::chat_repo::update_card_data(&inner.conn, id, &card_data_json)
+                    .map_err(|e| CoreError::Database(format!("更新聊天卡片数据失败: {e}")))
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
     pub async fn chat_delete(&self, id: i64) -> Result<(), CoreError> {
         let inner = Arc::clone(&self.inner);
         self.runtime
@@ -551,11 +569,11 @@ impl MoniCore {
                         .ok_or_else(|| CoreError::InvalidInput(format!("AI 预设不存在: id={id}")))?
                 };
                 let http_client = crate::ai::http::DefaultHttpClient;
-                let result = crate::ai::service::parse_with_client(
+                let result = crate::ai::service::parse_request_with_client(
                     &http_client,
                     &preset,
-                    "测试：午餐花了 1 元",
-                    "1 餐饮 expense",
+                    crate::ai::domain::AiBookkeepingParseRequest::text_only("测试：午餐花了 1 元"),
+                    "- 一级分类 id=1 type=expense name=餐饮 description= parent_id=null",
                 )
                 .map_err(CoreError::from)?;
                 serde_json::to_string(&serde_json::json!({
@@ -570,9 +588,25 @@ impl MoniCore {
     }
 
     pub async fn ai_bookkeeping_parse(&self, input: String) -> Result<String, CoreError> {
+        let request = crate::ai::domain::AiBookkeepingParseRequest::text_only(input);
+        self.ai_bookkeeping_parse_request(
+            serde_json::to_string(&request)
+                .map_err(|e| CoreError::Internal(format!("序列化 AI 记账请求失败: {e}")))?,
+        )
+        .await
+    }
+
+    pub async fn ai_bookkeeping_parse_request(
+        &self,
+        request_json: String,
+    ) -> Result<String, CoreError> {
         let inner = Arc::clone(&self.inner);
         self.runtime
             .spawn_blocking(move || {
+                let request: crate::ai::domain::AiBookkeepingParseRequest =
+                    serde_json::from_str(&request_json).map_err(|e| {
+                        CoreError::InvalidInput(format!("AI 记账请求解析失败: {e}"))
+                    })?;
                 let (preset, category_context) = {
                     let inner = inner
                         .lock()
@@ -587,10 +621,10 @@ impl MoniCore {
                     (preset, category_context)
                 };
                 let http_client = crate::ai::http::DefaultHttpClient;
-                let result = crate::ai::service::parse_with_client(
+                let result = crate::ai::service::parse_request_with_client(
                     &http_client,
                     &preset,
-                    &input,
+                    request,
                     &category_context,
                 )
                 .map_err(CoreError::from)?;

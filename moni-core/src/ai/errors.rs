@@ -9,6 +9,8 @@ pub enum AiError {
     PresetNotFound(i64),
     #[error("AI provider 预设无效: {0}")]
     InvalidPreset(String),
+    #[error("AI 记账输入无效: {0}")]
+    InvalidInput(String),
     #[error("预设中 API key 为空")]
     MissingApiKey,
     #[error("网络错误: {0}")]
@@ -23,13 +25,24 @@ pub enum AiError {
     Parse(String),
     #[error("模型返回不符合记账结构: {0}")]
     InvalidOutput(String),
+    #[error("当前 AI 预设不支持图片识别")]
+    VisionUnsupported,
+    #[error("图片输入无效: {0}")]
+    InvalidImageInput(String),
     #[error("模型拒绝处理: {0}")]
     Refusal(String),
 }
 
 impl From<AiError> for CoreError {
     fn from(error: AiError) -> Self {
-        CoreError::Internal(format!("AI 处理失败: {error}"))
+        match error {
+            AiError::NoDefaultPreset
+            | AiError::MissingApiKey
+            | AiError::InvalidInput(_)
+            | AiError::VisionUnsupported
+            | AiError::InvalidImageInput(_) => CoreError::InvalidInput(error.to_string()),
+            other => CoreError::Internal(format!("AI 处理失败: {other}")),
+        }
     }
 }
 

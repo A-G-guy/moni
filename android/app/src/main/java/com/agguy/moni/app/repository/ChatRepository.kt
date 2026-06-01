@@ -2,6 +2,7 @@ package com.agguy.moni.app.repository
 
 import com.agguy.moni.app.model.CardStatus
 import com.agguy.moni.app.model.ChatMessage
+import com.agguy.moni.app.model.DraftCardData
 
 /**
  * AI 记账聊天消息数据仓库接口。
@@ -15,6 +16,9 @@ interface ChatRepository {
 
     /** 更新消息卡片状态。 */
     suspend fun updateStatus(id: Long, status: CardStatus)
+
+    /** 更新消息卡片数据。 */
+    suspend fun updateCardData(id: Long, cardData: DraftCardData)
 
     /** 删除单条消息。 */
     suspend fun delete(id: Long)

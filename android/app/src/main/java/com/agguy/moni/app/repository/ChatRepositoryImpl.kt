@@ -43,6 +43,10 @@ class ChatRepositoryImpl(
         core.chatUpdateStatus(id, status.name.lowercase(Locale.ROOT))
     }
 
+    override suspend fun updateCardData(id: Long, cardData: DraftCardData) {
+        core.chatUpdateCardData(id, encodeDraftCardData(cardData))
+    }
+
     override suspend fun delete(id: Long) {
         core.chatDelete(id)
     }

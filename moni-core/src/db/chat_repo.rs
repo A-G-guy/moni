@@ -54,19 +54,34 @@ pub fn get_by_session(
     let mut stmt = conn.prepare(
         "SELECT * FROM chat_messages WHERE session_id = ?1 ORDER BY created_at DESC LIMIT ?2 OFFSET ?3"
     )?;
-    let rows = stmt.query_map(rusqlite::params![session_id, limit, offset], map_chat_message)?;
+    let rows = stmt.query_map(
+        rusqlite::params![session_id, limit, offset],
+        map_chat_message,
+    )?;
     rows.collect()
 }
 
 /// 更新消息卡片状态。
-pub fn update_status(
-    conn: &Connection,
-    id: i64,
-    card_status: &str,
-) -> Result<(), rusqlite::Error> {
+pub fn update_status(conn: &Connection, id: i64, card_status: &str) -> Result<(), rusqlite::Error> {
     let affected = conn.execute(
         "UPDATE chat_messages SET card_status = ?2 WHERE id = ?1",
         (id, card_status),
+    )?;
+    if affected == 0 {
+        return Err(rusqlite::Error::QueryReturnedNoRows);
+    }
+    Ok(())
+}
+
+/// 更新消息卡片数据。
+pub fn update_card_data(
+    conn: &Connection,
+    id: i64,
+    card_data_json: &str,
+) -> Result<(), rusqlite::Error> {
+    let affected = conn.execute(
+        "UPDATE chat_messages SET card_data_json = ?2 WHERE id = ?1",
+        (id, card_data_json),
     )?;
     if affected == 0 {
         return Err(rusqlite::Error::QueryReturnedNoRows);
@@ -93,44 +108,5 @@ pub fn clear_session(conn: &Connection, session_id: &str) -> Result<(), rusqlite
 }
 
 #[cfg(test)]
-mod tests {
-    use rusqlite::Connection;
-
-    use super::{clear_session, delete_by_id, get_by_session, insert, update_status};
-    use crate::db::schema;
-
-    #[test]
-    fn chat_crud_roundtrip() {
-        let conn = Connection::open_in_memory().expect("db");
-        schema::init_schema(&conn).expect("schema");
-
-        let user_id = insert(&conn, "s1", "user_text", "午餐 35", None, None).expect("insert user");
-        let card_id = insert(
-            &conn,
-            "s1",
-            "ai_card",
-            "",
-            Some(r#"{"amount_cents":3500}"#),
-            Some("draft"),
-        )
-        .expect("insert card");
-
-        let rows = get_by_session(&conn, "s1", 10, 0).expect("list");
-        assert_eq!(rows.len(), 2);
-        assert!(rows.iter().any(|row| row.id == user_id));
-        let card = rows.iter().find(|row| row.id == card_id).expect("card");
-        assert_eq!(card.card_status.as_deref(), Some("draft"));
-        assert_eq!(card.card_data_json.as_deref(), Some(r#"{"amount_cents":3500}"#));
-
-        update_status(&conn, card_id, "saved").expect("update");
-        let rows = get_by_session(&conn, "s1", 10, 0).expect("list after update");
-        let card = rows.iter().find(|row| row.id == card_id).expect("card");
-        assert_eq!(card.card_status.as_deref(), Some("saved"));
-
-        delete_by_id(&conn, user_id).expect("delete");
-        assert_eq!(get_by_session(&conn, "s1", 10, 0).expect("list").len(), 1);
-
-        clear_session(&conn, "s1").expect("clear");
-        assert!(get_by_session(&conn, "s1", 10, 0).expect("list").is_empty());
-    }
-}
+#[path = "tests/chat_repo.rs"]
+mod tests;

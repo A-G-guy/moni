@@ -1,5 +1,7 @@
 package com.agguy.moni.app.repository
 
+import com.agguy.moni.app.model.AiBookkeepingParseRequest
+import com.agguy.moni.app.model.AiBookkeepingParseRequestDto
 import com.agguy.moni.app.model.AiBookkeepingParseResult
 import com.agguy.moni.app.model.AiBookkeepingParseResultDto
 import com.agguy.moni.app.model.AiProviderPreset
@@ -39,8 +41,17 @@ class AiRepository(
 
     suspend fun testConnection(id: Long): String = core.aiPresetTestConnection(id)
 
-    suspend fun parseBookkeeping(input: String): AiBookkeepingParseResult {
-        val json = core.aiBookkeepingParse(input)
+    suspend fun getDefaultPreset(): AiProviderPreset? = listPresets().firstOrNull { it.isDefault }
+
+    suspend fun parseBookkeeping(input: String): AiBookkeepingParseResult =
+        parseBookkeeping(AiBookkeepingParseRequest(text = input))
+
+    suspend fun parseBookkeeping(request: AiBookkeepingParseRequest): AiBookkeepingParseResult {
+        val requestJson = BridgeJsonEncode.encodeToString(
+            AiBookkeepingParseRequestDto.serializer(),
+            request.toDto(),
+        )
+        val json = core.aiBookkeepingParseRequest(requestJson)
         return BridgeJson.decodeFromString(AiBookkeepingParseResultDto.serializer(), json).toModel()
     }
 }

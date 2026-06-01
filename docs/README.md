@@ -20,6 +20,14 @@
 | [testing-guide.md](./long-term/testing-guide.md) | 测试策略与指南：测试目录结构、映射规则、核心逻辑覆盖要求 |
 | [ai-provider-api.md](./long-term/ai-provider-api.md) | AI Provider 预设、OpenAI/Gemini API 格式、记账 JSON Output 与安全边界 |
 
+## AI 文档
+
+| 文档 | 说明 |
+|------|------|
+| [prompt-guide.md](./ai/prompt-guide.md) | AI 记账提示词、单轮边界、分类与备注规则、结构化输出策略 |
+| [image-input-protocol.md](./ai/image-input-protocol.md) | 图片输入、多图 payload、OpenAI/Gemini 多模态请求协议 |
+| [category-fallback-strategy.md](./ai/category-fallback-strategy.md) | 一级/二级分类上下文与未分类草稿处理策略 |
+
 ## 短期文档（沟通备忘）
 
 | 文档 | 说明 |

@@ -96,6 +96,41 @@ impl ProviderPreset {
     }
 }
 
+/// AI 记账单轮解析请求。
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct AiBookkeepingParseRequest {
+    #[serde(default)]
+    pub text: String,
+    #[serde(default)]
+    pub images: Vec<AiBookkeepingImageInput>,
+}
+
+impl AiBookkeepingParseRequest {
+    pub fn text_only(text: impl Into<String>) -> Self {
+        Self {
+            text: text.into(),
+            images: Vec::new(),
+        }
+    }
+
+    pub fn normalized_text(&self) -> String {
+        let trimmed = self.text.trim();
+        if trimmed.is_empty() && !self.images.is_empty() {
+            return "请根据图片识别记账信息。".to_string();
+        }
+        trimmed.to_string()
+    }
+}
+
+/// Android 端传入 Rust Core 的图片输入。
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct AiBookkeepingImageInput {
+    pub mime_type: String,
+    pub base64_data: String,
+    #[serde(default)]
+    pub original_size_bytes: Option<i64>,
+}
+
 /// Rust 返回给 Kotlin AI 记账页的解析结果。
 #[derive(Clone, Debug, Serialize)]
 pub struct AiBookkeepingParseResult {
@@ -139,13 +174,5 @@ fn mask_api_key(api_key: &str) -> String {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::mask_api_key;
-
-    #[test]
-    fn masks_short_and_long_keys() {
-        assert_eq!(mask_api_key(""), "");
-        assert_eq!(mask_api_key("abc"), "••••");
-        assert_eq!(mask_api_key("sk-1234567890"), "sk-1••••7890");
-    }
-}
+#[path = "tests/domain.rs"]
+mod tests;

@@ -1,6 +1,6 @@
 use serde_json::{Value, json};
 
-use crate::ai::domain::ProviderPreset;
+use crate::ai::domain::{AiBookkeepingImageInput, AiBookkeepingParseRequest, ProviderPreset};
 use crate::ai::errors::AiError;
 use crate::ai::http::{HttpClient, HttpRequest};
 use crate::ai::providers::{
@@ -17,11 +17,11 @@ impl ProviderAdapter for OpenAiChatAdapter {
         &self,
         http_client: &dyn HttpClient,
         preset: &ProviderPreset,
-        input: &str,
+        request: &AiBookkeepingParseRequest,
         category_context: &str,
     ) -> Result<crate::ai::domain::AiBookkeepingParseResult, AiError> {
         let url = chat_completions_url(&preset.base_url);
-        let body = build_request_body(preset, input, category_context, true);
+        let body = build_request_body(preset, request, category_context, true);
         let response = http_client.post_json(&HttpRequest {
             url,
             headers: vec![
@@ -32,7 +32,7 @@ impl ProviderAdapter for OpenAiChatAdapter {
                 ("Content-Type".to_string(), "application/json".to_string()),
             ],
             body,
-            timeout_seconds: 45,
+            timeout_seconds: 60,
             redaction_secret: preset.api_key.clone(),
         })?;
         if !(200..300).contains(&response.status) {
@@ -45,7 +45,7 @@ impl ProviderAdapter for OpenAiChatAdapter {
 
 fn build_request_body(
     preset: &ProviderPreset,
-    input: &str,
+    request: &AiBookkeepingParseRequest,
     category_context: &str,
     structured: bool,
 ) -> Value {
@@ -53,7 +53,7 @@ fn build_request_body(
         "model": preset.model,
         "messages": [
             { "role": "system", "content": base_prompt(category_context) },
-            { "role": "user", "content": input }
+            { "role": "user", "content": build_user_content(request) }
         ],
         "temperature": 0.2
     });
@@ -66,6 +66,28 @@ fn build_request_body(
         body["reasoning"] = reasoning;
     }
     body
+}
+
+fn build_user_content(request: &AiBookkeepingParseRequest) -> Value {
+    if request.images.is_empty() {
+        return json!(request.normalized_text());
+    }
+
+    let mut parts = vec![json!({
+        "type": "text",
+        "text": request.normalized_text()
+    })];
+    parts.extend(request.images.iter().map(openai_image_part));
+    json!(parts)
+}
+
+fn openai_image_part(image: &AiBookkeepingImageInput) -> Value {
+    json!({
+        "type": "image_url",
+        "image_url": {
+            "url": format!("data:{};base64,{}", image.mime_type.trim(), image.base64_data)
+        }
+    })
 }
 
 fn extract_content(body: &str) -> Result<String, AiError> {
@@ -85,7 +107,7 @@ fn extract_content(body: &str) -> Result<String, AiError> {
         .ok_or_else(|| AiError::Parse("OpenAI 响应缺少 choices[0].message.content".to_string()))
 }
 
-fn chat_completions_url(base_url: &str) -> String {
+pub(crate) fn chat_completions_url(base_url: &str) -> String {
     let trimmed = base_url.trim().trim_end_matches('/');
     if trimmed.ends_with("/chat/completions") {
         return trimmed.to_string();
@@ -94,80 +116,5 @@ fn chat_completions_url(base_url: &str) -> String {
 }
 
 #[cfg(test)]
-mod tests {
-    use std::sync::Mutex;
-
-    use serde_json::json;
-
-    use super::{OpenAiChatAdapter, chat_completions_url};
-    use crate::ai::domain::{ApiFormat, ProviderPreset, ThinkingLevel};
-    use crate::ai::errors::AiError;
-    use crate::ai::http::{HttpClient, HttpRequest, HttpResponse};
-    use crate::ai::providers::ProviderAdapter;
-
-    #[derive(Debug)]
-    struct FakeHttpClient {
-        request_body: Mutex<Option<serde_json::Value>>,
-    }
-
-    impl HttpClient for FakeHttpClient {
-        fn post_json(&self, request: &HttpRequest) -> Result<HttpResponse, AiError> {
-            *self.request_body.lock().expect("lock") = Some(request.body.clone());
-            Ok(HttpResponse {
-                status: 200,
-                body: json!({
-                    "choices": [{
-                        "message": {
-                            "content": "{\"is_bookkeeping\":true,\"reply_text\":\"ok\",\"amount_cents\":1200,\"record_type\":\"expense\",\"category_id\":1,\"account_id\":null,\"timestamp\":null,\"note\":\"午餐\",\"confidence\":0.9,\"clarification_question\":null}"
-                        }
-                    }]
-                })
-                .to_string(),
-            })
-        }
-    }
-
-    #[test]
-    fn appends_chat_completions_path() {
-        assert_eq!(
-            chat_completions_url("https://api.openai.com/v1"),
-            "https://api.openai.com/v1/chat/completions"
-        );
-    }
-
-    #[test]
-    fn parses_success_response() {
-        let http = FakeHttpClient {
-            request_body: Mutex::new(None),
-        };
-        let preset = preset();
-        let result = OpenAiChatAdapter
-            .parse_bookkeeping(&http, &preset, "午餐 12 元", "1 餐饮 expense")
-            .expect("parse");
-        assert!(result.is_bookkeeping);
-        assert_eq!(result.card_data.expect("card").amount_cents, 1200);
-        let body = http
-            .request_body
-            .lock()
-            .expect("lock")
-            .clone()
-            .expect("body");
-        assert_eq!(body["response_format"]["type"], "json_schema");
-    }
-
-    fn preset() -> ProviderPreset {
-        ProviderPreset {
-            id: 1,
-            name: "OpenAI".to_string(),
-            api_format: ApiFormat::OpenAiChatCompletions,
-            base_url: "https://api.openai.com/v1".to_string(),
-            api_key: "key".to_string(),
-            model: "gpt-4o-mini".to_string(),
-            thinking_level: ThinkingLevel::Off,
-            supports_vision: false,
-            is_default: true,
-            created_at: 0,
-            updated_at: 0,
-        }
-    }
-}
+#[path = "tests/openai_chat.rs"]
+mod tests;

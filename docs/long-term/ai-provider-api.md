@@ -13,7 +13,7 @@ Moni 的 AI 记账请求与响应处理统一放在 Rust Core 中实现，Kotlin
 - API Key：保存与请求时使用；列表只返回脱敏 key
 - 模型名
 - 思考程度：`off/low/medium/high`，由各 adapter 做 best-effort 映射
-- 是否支持读图：首版文本记账暂不使用，为后续多模态预留
+- 是否支持读图：由用户手动设置；AI 记账页据此显示图片入口，Rust Core 也会据此决定是否允许带图片请求
 
 ## API 格式
 
@@ -41,6 +41,8 @@ Moni 的 AI 记账请求与响应处理统一放在 Rust Core 中实现，Kotlin
 
 响应从 `choices[0].message.content` 读取结构化 JSON。首版不使用 legacy `/v1/completions`，也不实现 OpenAI Responses API。
 
+带图片时，用户消息 `content` 改为多 part 数组，包含文本 part 与一个或多个 `image_url` data URI part；同时必须继续携带 `response_format.type=json_schema`，不能退化为纯文本解析。
+
 ### Gemini generateContent
 
 目标路径为 `{base_url}/models/{model}:generateContent`。请求核心字段：
@@ -62,6 +64,8 @@ Moni 的 AI 记账请求与响应处理统一放在 Rust Core 中实现，Kotlin
 ```
 
 响应从 `candidates[0].content.parts[].text` 读取结构化 JSON。
+
+带图片时，用户消息 `parts` 包含文本 part 与一个或多个 `inline_data { mime_type, data }` part；同时必须继续携带 `generationConfig.responseMimeType=application/json` 与 `responseSchema`，不能退化为纯文本解析。
 
 ## 记账输出结构
 
@@ -87,6 +91,9 @@ Moni 的 AI 记账请求与响应处理统一放在 Rust Core 中实现，Kotlin
 - `amount_cents` 必须大于 0 才能生成卡片。
 - `record_type` 仅允许 `expense` 或 `income`。
 - 不确定的 `category_id/account_id/timestamp` 分别使用 `-1/-1/0`。
+- `category_id=-1` 只能进入草稿态，用户必须手动选择分类后才能入账。
+- 分类选择遵循二级优先：能确定二级分类时返回二级分类 id；无法确定二级或该一级无二级时返回一级分类 id；完全未知时返回 `-1`。
+- 备注 `note` 优先提取文字或图片票据中的具体商户、商品、餐品或场景，例如“小微家盖饭”。
 - 非记账内容必须返回 `is_bookkeeping=false`，不得生成卡片。
 - 模型返回非法 JSON、缺字段或类型错误时，Rust 返回可理解错误，Kotlin 不生成草稿卡片。
 
@@ -100,3 +107,10 @@ Moni 的 AI 记账请求与响应处理统一放在 Rust Core 中实现，Kotlin
 - HTTP 错误 body 会截断并进行密钥脱敏。
 - 未配置默认预设时，AI 记账页提示用户去 AI 设置页配置。
 - 首版不支持 streaming。
+- 图片可能包含发票、订单截图等隐私信息；图片 base64 不得写入日志。
+
+## 关联文档
+
+- [AI 记账提示词与结构化输出策略](../ai/prompt-guide.md)
+- [AI 记账图片输入协议](../ai/image-input-protocol.md)
+- [AI 记账分类回退策略](../ai/category-fallback-strategy.md)

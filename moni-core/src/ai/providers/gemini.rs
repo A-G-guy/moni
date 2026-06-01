@@ -1,6 +1,6 @@
 use serde_json::{Value, json};
 
-use crate::ai::domain::ProviderPreset;
+use crate::ai::domain::{AiBookkeepingImageInput, AiBookkeepingParseRequest, ProviderPreset};
 use crate::ai::errors::AiError;
 use crate::ai::http::{HttpClient, HttpRequest};
 use crate::ai::providers::{
@@ -17,11 +17,11 @@ impl ProviderAdapter for GeminiAdapter {
         &self,
         http_client: &dyn HttpClient,
         preset: &ProviderPreset,
-        input: &str,
+        request: &AiBookkeepingParseRequest,
         category_context: &str,
     ) -> Result<crate::ai::domain::AiBookkeepingParseResult, AiError> {
         let url = generate_content_url(&preset.base_url, &preset.model);
-        let body = build_request_body(preset, input, category_context);
+        let body = build_request_body(preset, request, category_context);
         let response = http_client.post_json(&HttpRequest {
             url,
             headers: vec![
@@ -29,7 +29,7 @@ impl ProviderAdapter for GeminiAdapter {
                 ("Content-Type".to_string(), "application/json".to_string()),
             ],
             body,
-            timeout_seconds: 45,
+            timeout_seconds: 60,
             redaction_secret: preset.api_key.clone(),
         })?;
         if !(200..300).contains(&response.status) {
@@ -40,7 +40,11 @@ impl ProviderAdapter for GeminiAdapter {
     }
 }
 
-fn build_request_body(preset: &ProviderPreset, input: &str, category_context: &str) -> Value {
+fn build_request_body(
+    preset: &ProviderPreset,
+    request: &AiBookkeepingParseRequest,
+    category_context: &str,
+) -> Value {
     let mut generation_config = json!({
         "temperature": 0.2,
         "responseMimeType": "application/json",
@@ -56,9 +60,24 @@ fn build_request_body(preset: &ProviderPreset, input: &str, category_context: &s
         },
         "contents": [{
             "role": "user",
-            "parts": [{ "text": input }]
+            "parts": build_user_parts(request)
         }],
         "generationConfig": generation_config
+    })
+}
+
+fn build_user_parts(request: &AiBookkeepingParseRequest) -> Value {
+    let mut parts = vec![json!({ "text": request.normalized_text() })];
+    parts.extend(request.images.iter().map(gemini_image_part));
+    json!(parts)
+}
+
+fn gemini_image_part(image: &AiBookkeepingImageInput) -> Value {
+    json!({
+        "inline_data": {
+            "mime_type": image.mime_type.trim(),
+            "data": image.base64_data
+        }
     })
 }
 
@@ -80,7 +99,7 @@ fn extract_text(body: &str) -> Result<String, AiError> {
         })
 }
 
-fn generate_content_url(base_url: &str, model: &str) -> String {
+pub(crate) fn generate_content_url(base_url: &str, model: &str) -> String {
     let trimmed = base_url.trim().trim_end_matches('/');
     if trimmed.ends_with(":generateContent") {
         return trimmed.to_string();
@@ -94,69 +113,5 @@ fn generate_content_url(base_url: &str, model: &str) -> String {
 }
 
 #[cfg(test)]
-mod tests {
-    use serde_json::json;
-
-    use super::{GeminiAdapter, generate_content_url};
-    use crate::ai::domain::{ApiFormat, ProviderPreset, ThinkingLevel};
-    use crate::ai::errors::AiError;
-    use crate::ai::http::{HttpClient, HttpRequest, HttpResponse};
-    use crate::ai::providers::ProviderAdapter;
-
-    #[derive(Debug)]
-    struct FakeHttpClient;
-
-    impl HttpClient for FakeHttpClient {
-        fn post_json(&self, _request: &HttpRequest) -> Result<HttpResponse, AiError> {
-            Ok(HttpResponse {
-                status: 200,
-                body: json!({
-                    "candidates": [{
-                        "content": {
-                            "parts": [{
-                                "text": "{\"is_bookkeeping\":true,\"reply_text\":\"ok\",\"amount_cents\":3500,\"record_type\":\"expense\",\"category_id\":1,\"account_id\":null,\"timestamp\":null,\"note\":\"午餐\",\"confidence\":0.9,\"clarification_question\":null}"
-                            }]
-                        }
-                    }]
-                })
-                .to_string(),
-            })
-        }
-    }
-
-    #[test]
-    fn builds_generate_content_url() {
-        assert_eq!(
-            generate_content_url(
-                "https://generativelanguage.googleapis.com/v1beta",
-                "gemini-2.5-flash"
-            ),
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
-        );
-    }
-
-    #[test]
-    fn parses_success_response() {
-        let result = GeminiAdapter
-            .parse_bookkeeping(&FakeHttpClient, &preset(), "午餐 35", "1 餐饮 expense")
-            .expect("parse");
-        assert!(result.is_bookkeeping);
-        assert_eq!(result.card_data.expect("card").amount_cents, 3500);
-    }
-
-    fn preset() -> ProviderPreset {
-        ProviderPreset {
-            id: 1,
-            name: "Gemini".to_string(),
-            api_format: ApiFormat::GeminiGenerateContent,
-            base_url: "https://generativelanguage.googleapis.com/v1beta".to_string(),
-            api_key: "key".to_string(),
-            model: "gemini-2.5-flash".to_string(),
-            thinking_level: ThinkingLevel::Off,
-            supports_vision: false,
-            is_default: true,
-            created_at: 0,
-            updated_at: 0,
-        }
-    }
-}
+#[path = "tests/gemini.rs"]
+mod tests;

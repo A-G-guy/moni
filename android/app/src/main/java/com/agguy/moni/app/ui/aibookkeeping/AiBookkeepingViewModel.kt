@@ -2,6 +2,7 @@ package com.agguy.moni.app.ui.aibookkeeping
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.agguy.moni.app.model.AiBookkeepingParseRequest
 import com.agguy.moni.app.model.CardStatus
 import com.agguy.moni.app.model.ChatMessage
 import com.agguy.moni.app.model.DraftCardData
@@ -34,6 +35,12 @@ class AiBookkeepingViewModel(
     private val _inputText = MutableStateFlow("")
     val inputText: StateFlow<String> = _inputText.asStateFlow()
 
+    private val _selectedImages = MutableStateFlow<List<AiSelectedImage>>(emptyList())
+    val selectedImages: StateFlow<List<AiSelectedImage>> = _selectedImages.asStateFlow()
+
+    private val _supportsVision = MutableStateFlow(false)
+    val supportsVision: StateFlow<Boolean> = _supportsVision.asStateFlow()
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
@@ -41,6 +48,7 @@ class AiBookkeepingViewModel(
 
     init {
         loadMessages()
+        loadDefaultPresetCapability()
     }
 
     fun loadMessages() {
@@ -53,33 +61,58 @@ class AiBookkeepingViewModel(
         _inputText.value = text
     }
 
+    fun addImages(images: List<AiSelectedImage>) {
+        if (!_supportsVision.value || images.isEmpty()) return
+        _selectedImages.value = (_selectedImages.value + images).distinctBy { it.uri }
+    }
+
+    fun removeImage(image: AiSelectedImage) {
+        _selectedImages.value = _selectedImages.value.filterNot { it.uri == image.uri }
+    }
+
+    fun clearImages() {
+        _selectedImages.value = emptyList()
+    }
+
     fun sendMessage() {
         val text = _inputText.value.trim()
-        if (text.isBlank() || _isLoading.value) return
+        val images = _selectedImages.value
+        if ((text.isBlank() && images.isEmpty()) || _isLoading.value) return
+        if (images.isNotEmpty() && !_supportsVision.value) {
+            insertAiText("当前默认 AI 预设未开启识图能力，请在 AI 设置中手动开启后再发送图片。")
+            return
+        }
 
         viewModelScope.launch {
+            val userContent = buildUserMessageContent(text, images.size)
             val userMessage = ChatMessage(
                 sessionId = sessionId,
                 messageType = MessageType.USER_TEXT,
-                content = text,
+                content = userContent,
                 createdAt = System.currentTimeMillis() / 1000
             )
             chatRepository.insert(userMessage)
             _inputText.value = ""
+            _selectedImages.value = emptyList()
             refreshMessages()
 
             _isLoading.value = true
-            delay(500.milliseconds)
+            delay(300.milliseconds)
 
             try {
-                val parseResult = aiRepository.parseBookkeeping(text)
+                val parseResult = aiRepository.parseBookkeeping(
+                    AiBookkeepingParseRequest(
+                        text = text,
+                        images = images.map { it.toInput() },
+                    )
+                )
 
                 if (parseResult.isBookkeeping) {
                     val cardData = parseResult.cardData
                         ?: DraftCardData(
                             amountCents = 0L,
                             recordType = com.agguy.moni.core.RecordType.EXPENSE,
-                            categoryId = 1L,
+                            categoryId = -1L,
                             note = text
                         )
                     val aiCardMessage = ChatMessage(
@@ -117,10 +150,17 @@ class AiBookkeepingViewModel(
                     createdAt = System.currentTimeMillis() / 1000
                 )
                 chatRepository.insert(errorMessage)
+            } finally {
+                refreshMessages()
+                _isLoading.value = false
             }
+        }
+    }
 
+    fun updateCardData(messageId: Long, cardData: DraftCardData) {
+        viewModelScope.launch {
+            chatRepository.updateCardData(messageId, cardData)
             refreshMessages()
-            _isLoading.value = false
         }
     }
 
@@ -131,12 +171,24 @@ class AiBookkeepingViewModel(
         viewModelScope.launch {
             val message = _messages.value.find { it.id == messageId }
             val cardData = message?.cardData ?: return@launch
+            if (cardData.categoryId <= 0) {
+                chatRepository.insert(
+                    ChatMessage(
+                        sessionId = sessionId,
+                        messageType = MessageType.AI_TEXT,
+                        content = "请先为这张卡片选择分类，再确认入账。",
+                        createdAt = System.currentTimeMillis() / 1000
+                    )
+                )
+                refreshMessages()
+                return@launch
+            }
 
             val created = onCreateRecord(
                 CoreIntent.RecordCreate(
                     amountCents = cardData.amountCents,
                     recordType = cardData.recordType,
-                    categoryId = if (cardData.categoryId > 0) cardData.categoryId else 1L,
+                    categoryId = cardData.categoryId,
                     note = cardData.note,
                     timestamp = if (cardData.timestamp > 0) cardData.timestamp else null
                 )
@@ -169,16 +221,53 @@ class AiBookkeepingViewModel(
         }
     }
 
+    private fun loadDefaultPresetCapability() {
+        viewModelScope.launch {
+            runCatching { aiRepository.getDefaultPreset() }
+                .onSuccess { preset -> _supportsVision.value = preset?.supportsVision == true }
+                .onFailure { error ->
+                    android.util.Log.w("AiBookkeepingVM", "读取默认 AI 预设失败", error)
+                    _supportsVision.value = false
+                }
+        }
+    }
+
+    private fun insertAiText(content: String) {
+        viewModelScope.launch {
+            chatRepository.insert(
+                ChatMessage(
+                    sessionId = sessionId,
+                    messageType = MessageType.AI_TEXT,
+                    content = content,
+                    createdAt = System.currentTimeMillis() / 1000
+                )
+            )
+            refreshMessages()
+        }
+    }
+
     private suspend fun refreshMessages() {
         _messages.value = chatRepository.getBySession(sessionId)
+    }
+
+    private fun buildUserMessageContent(text: String, imageCount: Int): String {
+        val parts = buildList {
+            if (text.isNotBlank()) add(text)
+            if (imageCount > 0) add("已附加 $imageCount 张图片")
+        }
+        return parts.joinToString(separator = "\n")
     }
 
     private fun buildAiErrorMessage(error: Exception): String {
         val message = error.message.orEmpty()
         return when {
             message.contains("未配置默认 AI provider") -> "请先在 设置 > AI 设置 中配置默认 AI 预设。"
+            message.contains("API key 为空") || message.contains("API Key") -> "请检查默认 AI 预设的 API Key。"
+            message.contains("不支持图片识别") -> "当前默认 AI 预设不支持识图，请在 AI 设置中手动开启或移除图片。"
+            message.contains("图片输入无效") -> "图片不符合要求，请减少数量或重新选择图片。"
             message.contains("认证失败") -> "AI Provider 认证失败，请检查 API Key。"
             message.contains("限流") -> "AI Provider 请求被限流，请稍后重试。"
+            message.contains("响应 JSON") || message.contains("记账结构") -> "AI 返回内容不符合结构化 JSON 要求，请重试或更换模型。"
             else -> "AI 处理出错，请稍后重试。"
         }
     }

@@ -273,20 +273,17 @@ fn test_category_aggregates_cross_category() {
         let cat_a = expense_cats[0]["id"].as_i64().unwrap();
         let cat_b = expense_cats[1]["id"].as_i64().unwrap();
 
-        // 2026-05-15 = 1778966400
-        let may_15 = 1778966400i64;
-
         let intent = format!(
-            r#"{{"type":"record_create","amount_cents":6000,"record_type":"expense","category_id":{cat_a},"note":"分类A","timestamp":{may_15}}}"#
+            r#"{{"type":"record_create","amount_cents":6000,"record_type":"expense","category_id":{cat_a},"note":"分类A"}}"#
         );
         core.dispatch(intent).await.unwrap();
 
         let intent = format!(
-            r#"{{"type":"record_create","amount_cents":4000,"record_type":"expense","category_id":{cat_b},"note":"分类B","timestamp":{may_15}}}"#
+            r#"{{"type":"record_create","amount_cents":4000,"record_type":"expense","category_id":{cat_b},"note":"分类B"}}"#
         );
         core.dispatch(intent).await.unwrap();
 
-        let year_month = chrono::Utc::now().format("%Y-%m").to_string();
+        let year_month = chrono::Local::now().format("%Y-%m").to_string();
         let intent = format!(
             r#"{{"type":"stats_category_breakdown","year_month":"{year_month}","aggregate_by_parent":false}}"#
         );
@@ -317,14 +314,12 @@ fn test_category_aggregates_single_category() {
             .as_i64()
             .unwrap();
 
-        let may_15 = 1778966400i64;
-
         let intent = format!(
-            r#"{{"type":"record_create","amount_cents":5000,"record_type":"expense","category_id":{expense_cat},"note":"单分类","timestamp":{may_15}}}"#
+            r#"{{"type":"record_create","amount_cents":5000,"record_type":"expense","category_id":{expense_cat},"note":"单分类"}}"#
         );
         core.dispatch(intent).await.unwrap();
 
-        let year_month = chrono::Utc::now().format("%Y-%m").to_string();
+        let year_month = chrono::Local::now().format("%Y-%m").to_string();
         let intent = format!(
             r#"{{"type":"stats_category_breakdown","year_month":"{year_month}","aggregate_by_parent":false}}"#
         );
@@ -365,21 +360,19 @@ fn test_category_aggregates_by_parent_merge() {
 
         let child_id = child_cat["id"].as_i64().unwrap();
 
-        let may_15 = 1778966400i64;
-
         // 父分类记录
         let intent = format!(
-            r#"{{"type":"record_create","amount_cents":5000,"record_type":"expense","category_id":{parent_id},"note":"父分类记录","timestamp":{may_15}}}"#
+            r#"{{"type":"record_create","amount_cents":5000,"record_type":"expense","category_id":{parent_id},"note":"父分类记录"}}"#
         );
         core.dispatch(intent).await.unwrap();
 
         // 子分类记录
         let intent = format!(
-            r#"{{"type":"record_create","amount_cents":3000,"record_type":"expense","category_id":{child_id},"note":"子分类记录","timestamp":{may_15}}}"#
+            r#"{{"type":"record_create","amount_cents":3000,"record_type":"expense","category_id":{child_id},"note":"子分类记录"}}"#
         );
         core.dispatch(intent).await.unwrap();
 
-        let year_month = chrono::Utc::now().format("%Y-%m").to_string();
+        let year_month = chrono::Local::now().format("%Y-%m").to_string();
         let intent = format!(
             r#"{{"type":"stats_category_breakdown","year_month":"{year_month}","aggregate_by_parent":true}}"#
         );

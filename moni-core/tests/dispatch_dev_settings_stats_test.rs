@@ -263,7 +263,7 @@ fn test_stats_category_breakdown_aggregate_by_parent_empty() {
     let rt = tokio::runtime::Runtime::new().expect("测试 Runtime 创建失败");
 
     rt.block_on(async {
-        let year_month = chrono::Utc::now().format("%Y-%m").to_string();
+        let year_month = chrono::Local::now().format("%Y-%m").to_string();
         let result = core
             .dispatch(
                 serde_json::to_string(&CoreIntent::StatsCategoryBreakdown {
@@ -309,7 +309,7 @@ fn test_stats_category_breakdown_with_records_aggregate_by_parent() {
         let child_id = child["id"].as_i64().unwrap();
 
         let now = chrono::Utc::now().timestamp();
-        let year_month = chrono::Utc::now().format("%Y-%m").to_string();
+        let year_month = chrono::Local::now().format("%Y-%m").to_string();
 
         // 父分类 200，子分类 50
         core.dispatch(

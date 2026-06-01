@@ -89,7 +89,7 @@ fn test_stats_with_records() {
         assert_eq!(current["balanceCents"], -1000);
 
         // 查询分类占比（当前月）
-        let year_month = chrono::Utc::now().format("%Y-%m").to_string();
+        let year_month = chrono::Local::now().format("%Y-%m").to_string();
         let intent = format!(
             r#"{{"type":"stats_category_breakdown","year_month":"{year_month}","aggregate_by_parent":false}}"#
         );

@@ -141,23 +141,37 @@ fn test_daily_remaining_with_budget_ignores_today_spending() {
         expense_cents: 2200,
         balance_cents: -2200,
     }];
-    let today_groups = vec![moni_core::dto::RecordDayGroup {
-        date: "2024-03-15".to_string(),
+    let before_today_groups = vec![moni_core::dto::RecordDayGroup {
+        date: "2024-03-14".to_string(),
         income_cents: 0,
-        expense_cents: 1200,
+        expense_cents: 1000,
         records: vec![],
     }];
+    let with_today_groups = vec![
+        moni_core::dto::RecordDayGroup {
+            date: "2024-03-15".to_string(),
+            income_cents: 0,
+            expense_cents: 1200,
+            records: vec![],
+        },
+        moni_core::dto::RecordDayGroup {
+            date: "2024-03-14".to_string(),
+            income_cents: 0,
+            expense_cents: 1000,
+            records: vec![],
+        },
+    ];
 
     let before_today_metrics = calculator::calculate_overview_metrics(
         "2024-03",
-        &[],
+        &before_today_groups,
         &before_today_summary,
         &budgets,
         "2024-03-15",
     );
     let with_today_metrics = calculator::calculate_overview_metrics(
         "2024-03",
-        &today_groups,
+        &with_today_groups,
         &with_today_summary,
         &budgets,
         "2024-03-15",
@@ -170,6 +184,13 @@ fn test_daily_remaining_with_budget_ignores_today_spending() {
 
 #[test]
 fn test_daily_remaining_with_budget_is_available_on_last_day() {
+    let groups = vec![moni_core::dto::RecordDayGroup {
+        date: "2024-03-30".to_string(),
+        income_cents: 0,
+        expense_cents: 30000,
+        records: vec![],
+    }];
+
     let budgets = vec![total_budget(31000, 30000)];
     let summaries = vec![moni_contracts::stats::MonthlySummary {
         year_month: "2024-03".to_string(),
@@ -178,8 +199,13 @@ fn test_daily_remaining_with_budget_is_available_on_last_day() {
         balance_cents: -30000,
     }];
 
-    let metrics =
-        calculator::calculate_overview_metrics("2024-03", &[], &summaries, &budgets, "2024-03-31");
+    let metrics = calculator::calculate_overview_metrics(
+        "2024-03",
+        &groups,
+        &summaries,
+        &budgets,
+        "2024-03-31",
+    );
 
     assert_eq!(metrics.remaining_days, 0);
     assert_eq!(metrics.daily_remaining, Some(1000));
@@ -224,4 +250,48 @@ fn test_overview_metrics_non_leap_year_february() {
     assert_eq!(metrics.total_days, 28); // 非闰年
     assert_eq!(metrics.elapsed_days, 15);
     assert_eq!(metrics.remaining_days, 13);
+}
+
+#[test]
+fn test_screenshot_scenario_daily_remaining_excludes_future_expenses() {
+    // 用户截图场景：2026-06-01，预算 300000 分，
+    // 今日支出 42506 分，未来 2026-06-02 支出 12850 分，月总支出 55356 分，
+    // 期望 daily_remaining == Some(10000)（¥100.00）。
+    // 旧逻辑错误地把未来支出扣除了，导致 daily_remaining = 9571。
+    let budgets = vec![total_budget(300000, 55356)];
+    let summaries = vec![moni_contracts::stats::MonthlySummary {
+        year_month: "2026-06".to_string(),
+        income_cents: 0,
+        expense_cents: 55356,
+        balance_cents: -55356,
+    }];
+    let groups = vec![
+        moni_core::dto::RecordDayGroup {
+            date: "2026-06-01".to_string(),
+            income_cents: 0,
+            expense_cents: 42506,
+            records: vec![],
+        },
+        moni_core::dto::RecordDayGroup {
+            date: "2026-06-02".to_string(),
+            income_cents: 0,
+            expense_cents: 12850,
+            records: vec![],
+        },
+    ];
+
+    let metrics = calculator::calculate_overview_metrics(
+        "2026-06",
+        &groups,
+        &summaries,
+        &budgets,
+        "2026-06-01",
+    );
+
+    assert_eq!(metrics.daily_remaining, Some(10000));
+    assert_eq!(metrics.today_expense, Some(42506));
+    assert_eq!(metrics.month_expense, 55356);
+    assert_eq!(metrics.total_days, 30);
+    assert_eq!(metrics.elapsed_days, 1);
+    assert_eq!(metrics.remaining_days, 29);
 }

@@ -75,11 +75,12 @@ pub fn calculate_overview_metrics(
     // 总预算
     let total_budget = budgets.iter().find(|b| b.category_id.is_none()).cloned();
 
+    // 累加日期严格早于指定日期的支出（`%Y-%m-%d` 字典序比较）。
+    let expense_before_today = expense_before_date(record_groups, today);
+
     // 日均剩余：当前月有总预算时，作为今日支出的日初对照线；否则保留原剩余天数口径。
     let daily_remaining = if let Some(ref budget) = total_budget {
         if is_current_month {
-            let today_expense_cents = today_expense.unwrap_or(0);
-            let expense_before_today = (month_expense - today_expense_cents).max(0);
             let days_from_today = total_days.saturating_sub(today_day) + 1;
             Some((budget.amount_cents - expense_before_today) / days_from_today as i64)
         } else if is_future_month {
@@ -105,6 +106,15 @@ pub fn calculate_overview_metrics(
         total_days: total_days as i32,
         remaining_days,
     }
+}
+
+/// 累加日期严格早于指定日期的支出（`%Y-%m-%d` 字典序比较）。
+fn expense_before_date(record_groups: &[RecordDayGroup], today: &str) -> AmountCents {
+    record_groups
+        .iter()
+        .filter(|g| g.date.as_str() < today)
+        .map(|g| g.expense_cents)
+        .sum()
 }
 
 /// 计算月度收支汇总。

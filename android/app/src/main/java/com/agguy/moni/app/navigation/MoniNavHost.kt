@@ -88,6 +88,7 @@ fun MoniNavHost(
     themeSettings: ThemeSettings,
     recordItemDisplaySettings: RecordItemDisplaySettings,
     numPadSettings: NumPadSettings = NumPadSettings(),
+    aiBookkeepingEnabled: Boolean = true,
     selectedYearMonth: String,
     language: AppLocaleManager.AppLanguage = AppLocaleManager.AppLanguage.SYSTEM,
     onDispatch: (CoreIntent) -> Unit,
@@ -104,6 +105,7 @@ fun MoniNavHost(
     onUpdateRecordShowFullCategory: (Boolean) -> Unit = {},
     onUpdateRecordNotePriority: (Boolean) -> Unit = {},
     onUpdateNumPadSwapTopAndBottomRows: (Boolean) -> Unit = {},
+    onUpdateAiBookkeepingEnabled: (Boolean) -> Unit = {},
     onUpdateLanguage: (AppLocaleManager.AppLanguage) -> Unit = {},
     onNavigateToDeveloperOptions: () -> Unit = {},
     onNavigateToDevLog: () -> Unit = {},
@@ -163,6 +165,7 @@ fun MoniNavHost(
                 onNavigateToCategoryList = onNavigateToCategoryList,
                 onNavigateToBudgetList = onNavigateToBudgetList,
                 onNavigateToAiBookkeeping = onNavigateToAiBookkeeping,
+                aiBookkeepingEnabled = aiBookkeepingEnabled,
                 onEnterSearchMode = onEnterSearchMode,
                 onExitSearchMode = onExitSearchMode,
                 onUpdateSearchKeyword = onUpdateSearchKeyword,
@@ -266,6 +269,8 @@ fun MoniNavHost(
             )
             AiSettingsScreen(
                 viewModel = viewModel,
+                aiBookkeepingEnabled = aiBookkeepingEnabled,
+                onAiBookkeepingEnabledChange = onUpdateAiBookkeepingEnabled,
                 onNavigateBack = onNavigateBack
             )
         }

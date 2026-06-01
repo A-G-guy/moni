@@ -93,6 +93,7 @@ fun RecordListScreen(
     onNavigateToCategoryList: () -> Unit,
     onNavigateToBudgetList: () -> Unit,
     onNavigateToAiBookkeeping: () -> Unit,
+    aiBookkeepingEnabled: Boolean = true,
     onEnterSearchMode: () -> Unit,
     onExitSearchMode: () -> Unit,
     onUpdateSearchKeyword: (String) -> Unit,
@@ -276,16 +277,18 @@ fun RecordListScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    FloatingActionButton(
-                        onClick = onNavigateToAiBookkeeping,
-                        shape = MaterialTheme.shapes.large
-                    ) {
-                        SymbolIcon(
-                            name = "smart_toy",
-                            filled = true,
-                            contentDescription = "AI 记账",
-                            size = 24.dp
-                        )
+                    if (aiBookkeepingEnabled) {
+                        FloatingActionButton(
+                            onClick = onNavigateToAiBookkeeping,
+                            shape = MaterialTheme.shapes.large
+                        ) {
+                            SymbolIcon(
+                                name = "smart_toy",
+                                filled = true,
+                                contentDescription = "AI 记账",
+                                size = 24.dp
+                            )
+                        }
                     }
                     FloatingActionButton(
                         onClick = { onNavigateToRecordDetail(null) },

@@ -58,6 +58,9 @@ class AppViewModel(
     private val _numPadSettings = MutableStateFlow(NumPadSettings())
     val numPadSettings: StateFlow<NumPadSettings> = _numPadSettings.asStateFlow()
 
+    private val _aiBookkeepingEnabled = MutableStateFlow(true)
+    val aiBookkeepingEnabled: StateFlow<Boolean> = _aiBookkeepingEnabled.asStateFlow()
+
     private val _selectedYearMonth = MutableStateFlow("")
     val selectedYearMonth: StateFlow<String> = _selectedYearMonth.asStateFlow()
 
@@ -133,6 +136,7 @@ class AppViewModel(
                 syncRecordItemDisplaySettingsFromDataStore()
                 syncLanguageFromDataStore()
                 syncNumPadSettingsFromDataStore()
+                syncAiBookkeepingEnabledFromDataStore()
             } catch (e: Exception) {
                 val app = getApplication<Application>()
                 val errDetail = "${e.javaClass.simpleName}: ${e.message?.take(100)}"
@@ -408,6 +412,17 @@ class AppViewModel(
         }
     }
 
+    private suspend fun syncAiBookkeepingEnabledFromDataStore() {
+        _aiBookkeepingEnabled.value = DataStoreHelper.aiBookkeepingEnabledFlow(getApplication()).first()
+    }
+
+    fun updateAiBookkeepingEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            DataStoreHelper.saveAiBookkeepingEnabled(getApplication(), enabled)
+            _aiBookkeepingEnabled.value = enabled
+        }
+    }
+
     fun updateThemeMode(mode: ThemeMode) {
         viewModelScope.launch {
             DataStoreHelper.saveThemeMode(getApplication(), mode)
@@ -542,6 +557,10 @@ class AppViewModel(
     }
 
     fun navigateToAiBookkeeping() {
+        if (!_aiBookkeepingEnabled.value) {
+            LogCollector.i("AppViewModel", "AI 记账已关闭，忽略导航请求")
+            return
+        }
         _navController?.navigate(Screen.AiBookkeeping)
     }
 

@@ -53,6 +53,9 @@ object DataStoreHelper {
     // 小键盘数字键布局设置键
     private val NUMPAD_SWAP_TOP_BOTTOM_ROWS_KEY = booleanPreferencesKey("numpad_swap_top_bottom_rows")
 
+    // AI 记账总开关键
+    private val AI_BOOKKEEPING_ENABLED_KEY = booleanPreferencesKey("ai_bookkeeping_enabled")
+
     /**
      * 获取货币符号流。
      */
@@ -330,6 +333,26 @@ object DataStoreHelper {
 
     // endregion
 
+    // region AI 记账总开关
+
+    /**
+     * 获取 AI 记账启用状态流（默认 true）。
+     */
+    fun aiBookkeepingEnabledFlow(context: Context): Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[AI_BOOKKEEPING_ENABLED_KEY] ?: true
+    }
+
+    /**
+     * 保存 AI 记账启用状态。
+     */
+    suspend fun saveAiBookkeepingEnabled(context: Context, enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[AI_BOOKKEEPING_ENABLED_KEY] = enabled
+        }
+    }
+
+    // endregion
+
     /**
      * 清空所有设置数据。
      */
@@ -388,6 +411,9 @@ object DataStoreHelper {
                 ),
                 "numpad_swap_top_bottom_rows" to kotlinx.serialization.json.JsonPrimitive(
                     preferences[NUMPAD_SWAP_TOP_BOTTOM_ROWS_KEY] ?: false
+                ),
+                "ai_bookkeeping_enabled" to kotlinx.serialization.json.JsonPrimitive(
+                    preferences[AI_BOOKKEEPING_ENABLED_KEY] ?: true
                 ),
             )
         ).toString()
@@ -462,6 +488,10 @@ object DataStoreHelper {
             // 小键盘数字键布局设置（旧备份可能不含此字段，缺失时保留当前值）
             obj["numpad_swap_top_bottom_rows"]?.jsonPrimitive?.booleanOrNull?.let {
                 preferences[NUMPAD_SWAP_TOP_BOTTOM_ROWS_KEY] = it
+            }
+            // AI 记账总开关（旧备份可能不含此字段，缺失时保留当前值）
+            obj["ai_bookkeeping_enabled"]?.jsonPrimitive?.booleanOrNull?.let {
+                preferences[AI_BOOKKEEPING_ENABLED_KEY] = it
             }
         }
     }

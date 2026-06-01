@@ -43,6 +43,8 @@ import com.agguy.moni.app.model.AiThinkingLevel
 @Composable
 fun AiSettingsScreen(
     viewModel: AiSettingsViewModel,
+    aiBookkeepingEnabled: Boolean,
+    onAiBookkeepingEnabledChange: (Boolean) -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -83,6 +85,10 @@ fun AiSettingsScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            AiBookkeepingSwitchCard(
+                enabled = aiBookkeepingEnabled,
+                onEnabledChange = onAiBookkeepingEnabledChange,
+            )
             uiState.message?.let { message ->
                 Text(
                     text = message,
@@ -115,6 +121,37 @@ fun AiSettingsScreen(
             onDismiss = viewModel::dismissEditor,
             onSave = viewModel::saveEditing,
         )
+    }
+}
+
+@Composable
+private fun AiBookkeepingSwitchCard(
+    enabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+) {
+    MoniCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text("启用 AI 记账", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "关闭后隐藏账单页右下角 AI 入口，不影响 Provider 预设配置的保存。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(
+                checked = enabled,
+                onCheckedChange = onEnabledChange,
+            )
+        }
     }
 }
 

@@ -122,7 +122,7 @@ fun SettingsScreen(
             )
 
             SettingsItem(
-                iconName = "smart_toy",
+                iconName = "auto_awesome",
                 title = "AI 设置",
                 subtitle = "配置 OpenAI 兼容接口、Gemini 与自定义模型预设",
                 onClick = onNavigateToAiSettings

@@ -216,7 +216,7 @@ pub fn seed_presets(conn: &Connection) -> Result<(), rusqlite::Error> {
     // 二级分类示例
     let children = [
         ("早餐", RecordType::Expense, "bakery_dining", 101, Some(parent_ids[0])),
-        ("外卖", RecordType::Expense, "delivery_dining", 102, Some(parent_ids[0])),
+        ("外卖", RecordType::Expense, "takeout_dining", 102, Some(parent_ids[0])),
         ("地铁", RecordType::Expense, "subway", 103, Some(parent_ids[1])),
         ("打车", RecordType::Expense, "local_taxi", 104, Some(parent_ids[1])),
         ("网购", RecordType::Expense, "shopping_cart", 105, Some(parent_ids[2])),

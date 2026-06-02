@@ -50,7 +50,7 @@ fun DynamicInputBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // 左侧：添加图片按钮（灰度置灰，点击提示即将上线）
+        // 左侧：图片入口暂未开放，先使用贴合语义的图片添加图标提示能力边界。
         IconButton(
             onClick = {
                 Toast.makeText(context, "即将上线", Toast.LENGTH_SHORT).show()
@@ -58,7 +58,7 @@ fun DynamicInputBar(
             modifier = Modifier.alpha(0.38f)
         ) {
             SymbolIcon(
-                name = "add",
+                name = "add_photo_alternate",
                 contentDescription = "添加图片",
                 size = 24.dp
             )

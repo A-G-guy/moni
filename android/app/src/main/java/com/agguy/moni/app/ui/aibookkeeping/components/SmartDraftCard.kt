@@ -316,7 +316,7 @@ private fun HeaderRow(
 
     val selectedCategory = categories.find { it.id == cardData.categoryId }
     val categoryName = selectedCategory?.name ?: "未分类"
-    val categoryIcon = selectedCategory?.iconName ?: "help_outline"
+    val categoryIcon = selectedCategory?.iconName ?: "help"
 
     Row(
         modifier = Modifier.fillMaxWidth(),

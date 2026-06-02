@@ -20,6 +20,7 @@ object SymbolGroups {
     val 饮食 = listOf(
         SymbolIconInfo("restaurant", 0xE56C, "餐厅"),
         SymbolIconInfo("local_dining", 0xE561, "用餐"),
+        SymbolIconInfo("takeout_dining", 0xEA74, "外卖"),
         SymbolIconInfo("local_cafe", 0xEB44, "咖啡馆"),
         SymbolIconInfo("local_bar", 0xE540, "酒吧"),
         SymbolIconInfo("coffee", 0xEFEF, "咖啡"),
@@ -37,7 +38,6 @@ object SymbolGroups {
         SymbolIconInfo("ramen_dining", 0xEA64, "拉面"),
         SymbolIconInfo("tapas", 0xF1E9, "小吃"),
         SymbolIconInfo("egg", 0xEACC, "鸡蛋"),
-        SymbolIconInfo("egg_alt", 0xEAC8, "鸡蛋"),
         SymbolIconInfo("grocery", 0xEF97, "杂货"),
         SymbolIconInfo("kebab_dining", 0xE842, "烤肉"),
         SymbolIconInfo("outdoor_grill", 0xEA47, "烧烤"),
@@ -91,31 +91,64 @@ object SymbolGroups {
         SymbolIconInfo("shopping_cart", 0xE8CC, "购物车"),
         SymbolIconInfo("storefront", 0xEA12, "店铺"),
         SymbolIconInfo("local_mall", 0xE54C, "商场"),
-        SymbolIconInfo("redeem", 0xE8F6, "兑换"),
+        SymbolIconInfo("store", 0xE8D1, "商店"),
         SymbolIconInfo("sell", 0xF05B, "出售"),
+        SymbolIconInfo("redeem", 0xE8F6, "礼品"),
+        SymbolIconInfo("barcode_scanner", 0xE70C, "条码扫描"),
+        SymbolIconInfo("qr_code", 0xEF6B, "二维码"),
+        SymbolIconInfo("qr_code_scanner", 0xF206, "扫码"),
+        SymbolIconInfo("shoppingmode", 0xEFB7, "购物模式"),
+        SymbolIconInfo("subscriptions", 0xE064, "订阅"),
+    )
+
+    /** 收入与财务 */
+    val 收入财务 = listOf(
         SymbolIconInfo("payments", 0xEF63, "支付"),
-        SymbolIconInfo("credit_card", 0xE8A1, "信用卡"),
-        SymbolIconInfo("account_balance", 0xE84F, "账户余额"),
-        SymbolIconInfo("account_balance_wallet", 0xE850, "钱包余额"),
-        SymbolIconInfo("wallet", 0xF8FF, "钱包"),
-        SymbolIconInfo("savings", 0xE2EB, "储蓄"),
         SymbolIconInfo("paid", 0xF041, "已付"),
-        SymbolIconInfo("money", 0xE57D, "钱币"),
         SymbolIconInfo("attach_money", 0xE227, "货币"),
+        SymbolIconInfo("money", 0xE57D, "钱币"),
+        SymbolIconInfo("currency_yuan", 0xEAF9, "人民币"),
+        SymbolIconInfo("currency_exchange", 0xEB70, "货币兑换"),
+        SymbolIconInfo("savings", 0xE2EB, "储蓄"),
+        SymbolIconInfo("account_balance", 0xE84F, "银行账户"),
+        SymbolIconInfo("account_balance_wallet", 0xE850, "账户钱包"),
+        SymbolIconInfo("wallet", 0xF8FF, "钱包"),
+        SymbolIconInfo("credit_card", 0xE8A1, "信用卡"),
+        SymbolIconInfo("credit_score", 0xEFF1, "信用管理"),
+        SymbolIconInfo("account_tree", 0xE97A, "账户树"),
+        SymbolIconInfo("manage_accounts", 0xF02E, "账户管理"),
+        SymbolIconInfo("request_quote", 0xF1B6, "报价请求"),
+        SymbolIconInfo("receipt", 0xE8B0, "收据"),
+        SymbolIconInfo("receipt_long", 0xEF6E, "长收据"),
         SymbolIconInfo("price_check", 0xF04B, "价格核对"),
         SymbolIconInfo("price_change", 0xF04A, "价格变动"),
-        SymbolIconInfo("receipt_long", 0xEF6E, "长收据"),
-        SymbolIconInfo("receipt", 0xE8B0, "收据"),
-        SymbolIconInfo("barcode_scanner", 0xE70C, "条码扫描"),
-        SymbolIconInfo("shoppingmode", 0xEFB7, "购物模式"),
-        SymbolIconInfo("store", 0xE8D1, "商店"),
+        SymbolIconInfo("analytics", 0xEF3E, "数据分析"),
+        SymbolIconInfo("bar_chart", 0xE26B, "柱状图"),
+        SymbolIconInfo("show_chart", 0xE6E1, "折线图"),
+        SymbolIconInfo("trending_up", 0xE8E5, "上升趋势"),
+        SymbolIconInfo("fact_check", 0xF0C5, "对账核查"),
+        SymbolIconInfo("verified", 0xEF76, "已验证"),
+    )
+
+    /** AI 智能 */
+    val AI智能 = listOf(
+        SymbolIconInfo("auto_awesome", 0xE65F, "AI 自动"),
+        SymbolIconInfo("robot", 0xF882, "机器人"),
+        SymbolIconInfo("smart_toy", 0xF06C, "智能助手"),
+        SymbolIconInfo("neurology", 0xE10E, "神经网络"),
+        SymbolIconInfo("model_training", 0xF0CF, "模型训练"),
+        SymbolIconInfo("insights", 0xF092, "智能洞察"),
+        SymbolIconInfo("automation", 0xF421, "自动化"),
+        SymbolIconInfo("magic_button", 0xF136, "魔法按钮"),
     )
 
     /** 家居生活 */
     val 家居生活 = listOf(
         SymbolIconInfo("home", 0xE9B2, "首页"),
+        SymbolIconInfo("house", 0xEA44, "房屋"),
         SymbolIconInfo("chair", 0xEFED, "椅子"),
         SymbolIconInfo("bed", 0xEFDF, "床"),
+        SymbolIconInfo("kitchen", 0xEB47, "厨房"),
         SymbolIconInfo("cleaning_services", 0xF0FF, "清洁服务"),
         SymbolIconInfo("local_laundry_service", 0xE54A, "洗衣服务"),
         SymbolIconInfo("lightbulb", 0xE90F, "灯泡"),
@@ -126,12 +159,12 @@ object SymbolGroups {
         SymbolIconInfo("dry_cleaning", 0xEA58, "干洗"),
         SymbolIconInfo("garage", 0xF011, "车库"),
         SymbolIconInfo("grass", 0xF205, "草坪"),
-        SymbolIconInfo("house", 0xEA44, "房屋"),
         SymbolIconInfo("houseboat", 0xE584, "船屋"),
         SymbolIconInfo("meeting_room", 0xEB4F, "会议室"),
         SymbolIconInfo("warehouse", 0xEBB8, "仓库"),
         SymbolIconInfo("air_purifier", 0xE97E, "空气净化器"),
         SymbolIconInfo("air_purifier_gen", 0xE829, "净化器二代"),
+        SymbolIconInfo("ac_unit", 0xEB3B, "空调"),
         SymbolIconInfo("mode_fan", 0xF168, "风扇"),
         SymbolIconInfo("fireplace", 0xEA43, "壁炉"),
         SymbolIconInfo("foundation", 0xF200, "地基"),
@@ -149,8 +182,6 @@ object SymbolGroups {
         SymbolIconInfo("build", 0xF8CD, "建造"),
         SymbolIconInfo("cloud", 0xF15C, "云"),
         SymbolIconInfo("wifi", 0xE63E, "无线网"),
-        SymbolIconInfo("request_quote", 0xF1B6, "报价请求"),
-        SymbolIconInfo("trending_up", 0xE8E5, "上升趋势"),
         SymbolIconInfo("engineering", 0xEA3D, "工程"),
         SymbolIconInfo("corporate_fare", 0xF1D0, "商务差旅"),
         SymbolIconInfo("desk", 0xF8F4, "办公桌"),
@@ -170,7 +201,6 @@ object SymbolGroups {
         SymbolIconInfo("feed", 0xF009, "动态"),
         SymbolIconInfo("find_in_page", 0xE880, "页面查找"),
         SymbolIconInfo("forward_to_inbox", 0xF187, "转发到收件箱"),
-        SymbolIconInfo("handshake", 0xEBCB, "握手"),
         SymbolIconInfo("note_add", 0xE89C, "添加笔记"),
         SymbolIconInfo("post_add", 0xEA20, "添加帖子"),
         SymbolIconInfo("publish", 0xE255, "发布"),
@@ -191,7 +221,6 @@ object SymbolGroups {
         SymbolIconInfo("medical_services", 0xF109, "医疗服务"),
         SymbolIconInfo("pill", 0xE11F, "药丸"),
         SymbolIconInfo("biotech", 0xEA3A, "生物技术"),
-        SymbolIconInfo("science", 0xEA4B, "科学"),
         SymbolIconInfo("clean_hands", 0xF21F, "洗手"),
         SymbolIconInfo("health_and_beauty", 0xEF9D, "健康美容"),
         SymbolIconInfo("coronavirus", 0xF221, "病毒"),
@@ -223,7 +252,6 @@ object SymbolGroups {
         SymbolIconInfo("history_edu", 0xEA3E, "历史教育"),
         SymbolIconInfo("palette", 0xE40A, "调色板"),
         SymbolIconInfo("quiz", 0xF04C, "测验"),
-        SymbolIconInfo("self_improvement", 0xEA78, "自我提升"),
         SymbolIconInfo("sort_by_alpha", 0xE053, "按字母排序"),
         SymbolIconInfo("translate", 0xE8E2, "翻译"),
         SymbolIconInfo("architecture", 0xEA3B, "建筑"),
@@ -235,8 +263,6 @@ object SymbolGroups {
         SymbolIconInfo("developer_mode", 0xF2E2, "开发者模式"),
         SymbolIconInfo("diamond", 0xEAD5, "钻石"),
         SymbolIconInfo("functions", 0xE24A, "函数"),
-        SymbolIconInfo("insights", 0xF092, "洞察"),
-        SymbolIconInfo("model_training", 0xF0CF, "模型训练"),
         SymbolIconInfo("modeling", 0xF3AA, "建模"),
         SymbolIconInfo("numbers", 0xEAC7, "数字"),
         SymbolIconInfo("square_foot", 0xEA49, "平方英尺"),
@@ -246,6 +272,7 @@ object SymbolGroups {
     val 娱乐休闲 = listOf(
         SymbolIconInfo("sports_esports", 0xEA28, "电竞"),
         SymbolIconInfo("movie", 0xE404, "电影"),
+        SymbolIconInfo("tv", 0xE63B, "电视"),
         SymbolIconInfo("music_note", 0xE405, "音乐"),
         SymbolIconInfo("travel_explore", 0xE2DB, "旅行探索"),
         SymbolIconInfo("sports_basketball", 0xEA26, "篮球"),
@@ -263,13 +290,11 @@ object SymbolGroups {
         SymbolIconInfo("toys", 0xE332, "玩具"),
         SymbolIconInfo("playground", 0xF28E, "游乐场"),
         SymbolIconInfo("playground_2", 0xF28F, "游乐场2"),
-        SymbolIconInfo("smart_toy", 0xF06C, "智能玩具"),
         SymbolIconInfo("sports_baseball", 0xEA51, "棒球"),
         SymbolIconInfo("sports_football", 0xEA29, "橄榄球"),
         SymbolIconInfo("sports_golf", 0xEA2A, "高尔夫"),
         SymbolIconInfo("sports_hockey", 0xEA2B, "冰球"),
         SymbolIconInfo("sports_mma", 0xEA2C, "格斗"),
-        SymbolIconInfo("sports_rugby", 0xEA2E, "橄榄球"),
         SymbolIconInfo("sports_tennis", 0xEA32, "网球"),
         SymbolIconInfo("sports_volleyball", 0xEA31, "排球"),
         SymbolIconInfo("surfing", 0xE515, "冲浪"),
@@ -279,7 +304,7 @@ object SymbolGroups {
     /** 人物社交 */
     val 人物社交 = listOf(
         SymbolIconInfo("person", 0xF0D3, "个人"),
-        SymbolIconInfo("group", 0xEA21, "群组"),
+        SymbolIconInfo("groups", 0xF233, "群组"),
         SymbolIconInfo("family_restroom", 0xF1A2, "家庭卫生间"),
         SymbolIconInfo("child_care", 0xEB41, "育儿"),
         SymbolIconInfo("diversity_1", 0xF8D7, "多元人群"),
@@ -302,7 +327,6 @@ object SymbolGroups {
         SymbolIconInfo("celebration", 0xEA65, "庆祝"),
         SymbolIconInfo("event", 0xE878, "活动"),
         SymbolIconInfo("group_add", 0xE7F0, "添加群组"),
-        SymbolIconInfo("groups", 0xF233, "群组"),
         SymbolIconInfo("groups_2", 0xF8DF, "群组2"),
         SymbolIconInfo("groups_3", 0xF8E0, "群组3"),
         SymbolIconInfo("interpreter_mode", 0xE83B, "翻译模式"),
@@ -327,6 +351,7 @@ object SymbolGroups {
         SymbolIconInfo("ice_skating", 0xE50B, "滑冰"),
         SymbolIconInfo("roller_skating", 0xEBCD, "轮滑"),
         SymbolIconInfo("waves", 0xE176, "波浪"),
+        SymbolIconInfo("water_drop", 0xE798, "水滴"),
         SymbolIconInfo("agriculture", 0xEA79, "农业"),
         SymbolIconInfo("compost", 0xE761, "堆肥"),
         SymbolIconInfo("eco", 0xEA35, "生态"),
@@ -345,6 +370,9 @@ object SymbolGroups {
         SymbolIconInfo("tablet", 0xE32F, "平板"),
         SymbolIconInfo("watch", 0xE334, "手表"),
         SymbolIconInfo("speaker", 0xE32D, "音箱"),
+        SymbolIconInfo("camera", 0xE3AF, "相机"),
+        SymbolIconInfo("image", 0xE3F4, "图片"),
+        SymbolIconInfo("add_photo_alternate", 0xE43E, "添加图片"),
         SymbolIconInfo("videocam", 0xE04B, "摄像"),
         SymbolIconInfo("bluetooth", 0xE1A7, "蓝牙"),
         SymbolIconInfo("gps_fixed", 0xE55C, "定位"),
@@ -353,6 +381,8 @@ object SymbolGroups {
         SymbolIconInfo("sd_card", 0xE623, "SD卡"),
         SymbolIconInfo("sim_card", 0xE32B, "SIM卡"),
         SymbolIconInfo("storage", 0xE1DB, "存储"),
+        SymbolIconInfo("database", 0xF20E, "数据库"),
+        SymbolIconInfo("data_usage", 0xEFF2, "数据用量"),
         SymbolIconInfo("usb", 0xE1E0, "USB"),
         SymbolIconInfo("battery_full", 0xE1A5, "满电"),
         SymbolIconInfo("charging_station", 0xF2E3, "充电站"),
@@ -380,7 +410,6 @@ object SymbolGroups {
         SymbolIconInfo("info", 0xE88E, "信息"),
         SymbolIconInfo("help", 0xE8FD, "帮助"),
         SymbolIconInfo("tune", 0xE429, "调节"),
-        SymbolIconInfo("palette", 0xE40A, "调色板"),
         SymbolIconInfo("archive", 0xE149, "归档"),
         SymbolIconInfo("unarchive", 0xE169, "恢复"),
         SymbolIconInfo("expand_more", 0xE5CF, "展开"),
@@ -388,10 +417,8 @@ object SymbolGroups {
         SymbolIconInfo("category", 0xE574, "分类"),
         SymbolIconInfo("bookmark", 0xE8E7, "书签"),
         SymbolIconInfo("flag", 0xF0C6, "旗帜"),
-        SymbolIconInfo("label", 0xE893, "标签"),
         SymbolIconInfo("lock", 0xE899, "锁"),
         SymbolIconInfo("key", 0xE73C, "钥匙"),
-        SymbolIconInfo("verified", 0xEF76, "已验证"),
         SymbolIconInfo("add", 0xE145, "添加"),
         SymbolIconInfo("check", 0xE5CA, "勾选"),
         SymbolIconInfo("close", 0xE5CD, "关闭"),
@@ -400,18 +427,23 @@ object SymbolGroups {
         SymbolIconInfo("arrow_back", 0xE5C4, "返回"),
         SymbolIconInfo("arrow_forward", 0xE5C8, "前进"),
         SymbolIconInfo("menu", 0xE5D2, "菜单"),
-        SymbolIconInfo("more_vert", 0xE5D4, "更多"),
         SymbolIconInfo("settings", 0xE8B8, "设置"),
         SymbolIconInfo("search", 0xE8B6, "搜索"),
+        SymbolIconInfo("search_off", 0xEA76, "无搜索结果"),
         SymbolIconInfo("filter_list", 0xE152, "筛选"),
         SymbolIconInfo("sort", 0xE164, "排序"),
         SymbolIconInfo("refresh", 0xE5D5, "刷新"),
-        SymbolIconInfo("home", 0xE9B2, "首页"),
-        SymbolIconInfo("person", 0xF0D3, "个人"),
         SymbolIconInfo("notifications", 0xE7F5, "通知"),
         SymbolIconInfo("share", 0xE80D, "分享"),
         SymbolIconInfo("download", 0xF090, "下载"),
         SymbolIconInfo("upload", 0xF09B, "上传"),
+        SymbolIconInfo("cloud_download", 0xE2C0, "云下载"),
+        SymbolIconInfo("cloud_upload", 0xE2C3, "云上传"),
+        SymbolIconInfo("folder_open", 0xE2C8, "打开文件夹"),
+        SymbolIconInfo("folder_copy", 0xEBBD, "复制文件夹"),
+        SymbolIconInfo("event_repeat", 0xEB7B, "周期事件"),
+        SymbolIconInfo("content_paste", 0xE14F, "粘贴"),
+        SymbolIconInfo("domain_verification", 0xEF4C, "域验证"),
         SymbolIconInfo("print", 0xE8AD, "打印"),
         SymbolIconInfo("calendar_today", 0xE935, "日历"),
         SymbolIconInfo("schedule", 0xEFD6, "日程"),
@@ -426,6 +458,8 @@ object SymbolGroups {
         SymbolIconGroup("饮食", 饮食),
         SymbolIconGroup("交通出行", 交通出行),
         SymbolIconGroup("购物消费", 购物消费),
+        SymbolIconGroup("收入与财务", 收入财务),
+        SymbolIconGroup("AI 智能", AI智能),
         SymbolIconGroup("家居生活", 家居生活),
         SymbolIconGroup("工作办公", 工作办公),
         SymbolIconGroup("医疗健康", 医疗健康),
@@ -454,12 +488,20 @@ object SymbolGroups {
     fun iconForCategory(name: String): String {
         val lower = name.lowercase()
         return when {
+            lower.contains("ai") || lower.contains("智能") || lower.contains("自动") ||
+                lower.contains("模型") || lower.contains("助手") -> "auto_awesome"
+            lower.contains("外卖") || lower.contains("配送") || lower.contains("打包") -> "takeout_dining"
+            lower.contains("咖啡") || lower.contains("奶茶") -> "local_cafe"
             lower.contains("餐") || lower.contains("食") || lower.contains("吃") ||
                 lower.contains("饭") || lower.contains("饮") -> "restaurant"
             lower.contains("车") || lower.contains("交") || lower.contains("行") ||
                 lower.contains("路") -> "directions_car"
             lower.contains("购") || lower.contains("买") || lower.contains("消费") ||
-                lower.contains("物") -> "shopping_bag"
+                lower.contains("物") || lower.contains("超市") -> "shopping_bag"
+            lower.contains("工资") || lower.contains("薪") || lower.contains("收入") -> "payments"
+            lower.contains("投资") || lower.contains("收益") || lower.contains("理财") -> "trending_up"
+            lower.contains("账") || lower.contains("财") || lower.contains("钱") ||
+                lower.contains("预算") -> "account_balance_wallet"
             lower.contains("家") || lower.contains("居") || lower.contains("住") -> "home"
             lower.contains("工") || lower.contains("办") || lower.contains("职") -> "work"
             lower.contains("医") || lower.contains("药") || lower.contains("健") -> "local_hospital"

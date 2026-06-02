@@ -12,21 +12,26 @@ object SymbolCodepoints {
 
     private val codepoints = mapOf(
         "ac_unit" to 0xEB3B, // 空调
-        "account_balance" to 0xE84F, // 账户余额
-        "account_balance_wallet" to 0xE850, // 钱包余额
+        "account_balance" to 0xE84F, // 银行账户
+        "account_balance_wallet" to 0xE850, // 账户钱包
+        "account_tree" to 0xE97A, // 账户树
         "adaptive_audio_mic" to 0xF4CC, // 麦克风
         "add" to 0xE145, // 添加
+        "add_photo_alternate" to 0xE43E, // 添加图片
         "agriculture" to 0xEA79, // 农业
         "air_purifier" to 0xE97E, // 空气净化器
         "air_purifier_gen" to 0xE829, // 净化器二代
+        "analytics" to 0xEF3E, // 数据分析
         "architecture" to 0xEA3B, // 建筑
         "archive" to 0xE149, // 归档
         "arrow_back" to 0xE5C4, // 返回
         "arrow_forward" to 0xE5C8, // 前进
         "attach_money" to 0xE227, // 货币
+        "auto_awesome" to 0xE65F, // AI 自动
         "auto_stories" to 0xE666, // 故事
-        "bar_chart" to 0xE26B, // 柱状图
+        "automation" to 0xF421, // 自动化
         "bakery_dining" to 0xEA53, // 烘焙
+        "bar_chart" to 0xE26B, // 柱状图
         "barcode_scanner" to 0xE70C, // 条码扫描
         "bathroom" to 0xEFDD, // 浴室
         "bathtub" to 0xEA41, // 浴缸
@@ -63,6 +68,8 @@ object SymbolCodepoints {
         "cleaning_services" to 0xF0FF, // 清洁服务
         "close" to 0xE5CD, // 关闭
         "cloud" to 0xF15C, // 云
+        "cloud_download" to 0xE2C0, // 云下载
+        "cloud_upload" to 0xE2C3, // 云上传
         "co_present" to 0xEAF0, // 共同演示
         "code" to 0xE86F, // 代码
         "coffee" to 0xEFEF, // 咖啡
@@ -71,13 +78,19 @@ object SymbolCodepoints {
         "computer" to 0xE31E, // 电脑
         "contact_mail" to 0xE0D0, // 联系邮件
         "contact_phone" to 0xF0C0, // 联系电话
+        "content_paste" to 0xE14F, // 粘贴
         "cooking" to 0xE2B6, // 烹饪
         "coronavirus" to 0xF221, // 病毒
-        "corporate_fare" to 0xF1D0, // 企业费用
+        "corporate_fare" to 0xF1D0, // 商务差旅
         "credit_card" to 0xE8A1, // 信用卡
+        "credit_score" to 0xEFF1, // 信用管理
+        "currency_exchange" to 0xEB70, // 货币兑换
+        "currency_yuan" to 0xEAF9, // 人民币
         "cyclone" to 0xEBD5, // 旋风
         "dark_mode" to 0xE51C, // 深色模式
         "data_object" to 0xEAD3, // 数据对象
+        "data_usage" to 0xEFF2, // 数据用量
+        "database" to 0xF20E, // 数据库
         "delete" to 0xE92E, // 删除
         "description" to 0xE873, // 描述
         "design_services" to 0xF10A, // 设计服务
@@ -99,9 +112,10 @@ object SymbolCodepoints {
         "directions_walk" to 0xE536, // 步行
         "dishwasher" to 0xE9A0, // 洗碗机
         "display_settings" to 0xEB97, // 显示设置
-        "diversity_1" to 0xF8D7, // 多元1
-        "diversity_2" to 0xF8D8, // 多元2
-        "diversity_3" to 0xF8D9, // 多元3
+        "diversity_1" to 0xF8D7, // 多元人群
+        "diversity_2" to 0xF8D8, // 多元社群
+        "diversity_3" to 0xF8D9, // 多元包容
+        "domain_verification" to 0xEF4C, // 域验证
         "door_front" to 0xEFFD, // 前门
         "downhill_skiing" to 0xE509, // 高山滑雪
         "download" to 0xF090, // 下载
@@ -116,7 +130,7 @@ object SymbolCodepoints {
         "edit_document" to 0xF88C, // 编辑文档
         "edit_note" to 0xE745, // 编辑笔记
         "egg" to 0xEACC, // 鸡蛋
-        "egg_alt" to 0xEAC8, // 鸡蛋
+        "egg_alt" to 0xEAC8,
         "electric_bike" to 0xEB1B, // 电动自行车
         "electric_car" to 0xEB1C, // 电动车
         "electric_moped" to 0xEB1D, // 电动轻摩
@@ -125,9 +139,11 @@ object SymbolCodepoints {
         "emergency" to 0xE1EB, // 急救
         "engineering" to 0xEA3D, // 工程
         "event" to 0xE878, // 活动
+        "event_repeat" to 0xEB7B, // 周期事件
         "expand_less" to 0xE5CE, // 收起
         "expand_more" to 0xE5CF, // 展开
         "explore" to 0xE87A, // 探索
+        "fact_check" to 0xF0C5, // 对账核查
         "family_restroom" to 0xF1A2, // 家庭卫生间
         "fastfood" to 0xE57A, // 快餐
         "favorite" to 0xE87E, // 收藏
@@ -143,7 +159,9 @@ object SymbolCodepoints {
         "flight_land" to 0xE904, // 降落
         "flight_takeoff" to 0xE905, // 起飞
         "flood" to 0xEBE6, // 洪水
-        "flutter_dash" to 0xE00B, // Flutter
+        "flutter_dash" to 0xE00B,
+        "folder_copy" to 0xEBBD, // 复制文件夹
+        "folder_open" to 0xE2C8, // 打开文件夹
         "food_bank" to 0xF1F2, // 食物银行
         "forward_to_inbox" to 0xF187, // 转发到收件箱
         "foundation" to 0xF200, // 地基
@@ -154,14 +172,14 @@ object SymbolCodepoints {
         "gps_fixed" to 0xE55C, // 定位
         "grass" to 0xF205, // 草坪
         "grocery" to 0xEF97, // 杂货
-        "group" to 0xEA21, // 群组
+        "group" to 0xEA21,
         "group_add" to 0xE7F0, // 添加群组
         "groups" to 0xF233, // 群组
         "groups_2" to 0xF8DF, // 群组2
         "groups_3" to 0xF8E0, // 群组3
         "hail" to 0xE9B1, // 打车
         "handshake" to 0xEBCB, // 握手
-        "headphones" to 0xF01F, // 耳机
+        "headphones" to 0xF01F,
         "headset" to 0xF01F, // 耳机
         "headset_mic" to 0xE311, // 耳麦
         "healing" to 0xE3F3, // 治疗
@@ -176,8 +194,9 @@ object SymbolCodepoints {
         "houseboat" to 0xE584, // 船屋
         "ice_skating" to 0xE50B, // 滑冰
         "icecream" to 0xEA69, // 冰淇淋
+        "image" to 0xE3F4, // 图片
         "info" to 0xE88E, // 信息
-        "insights" to 0xF092, // 洞察
+        "insights" to 0xF092, // 智能洞察
         "interpreter_mode" to 0xE83B, // 翻译模式
         "inventory" to 0xE179, // 库存
         "kayaking" to 0xE50C, // 皮划艇
@@ -208,7 +227,9 @@ object SymbolCodepoints {
         "location_on" to 0xF1DB, // 位置
         "lock" to 0xE899, // 锁
         "lunch_dining" to 0xEA61, // 午餐
+        "magic_button" to 0xF136, // 魔法按钮
         "mail" to 0xE159, // 邮件
+        "manage_accounts" to 0xF02E, // 账户管理
         "mark_email_read" to 0xF18C, // 邮件已读
         "masks" to 0xF218, // 口罩
         "medical_information" to 0xEBED, // 医疗信息
@@ -225,7 +246,7 @@ object SymbolCodepoints {
         "mood" to 0xEA22, // 心情
         "mood_bad" to 0xE7F3, // 心情差
         "more_horiz" to 0xE5D3, // 更多
-        "more_vert" to 0xE5D4, // 更多
+        "more_vert" to 0xE5D4,
         "motorcycle" to 0xE91B, // 摩托
         "move_to_inbox" to 0xE168, // 移至收件箱
         "movie" to 0xE404, // 电影
@@ -235,6 +256,7 @@ object SymbolCodepoints {
         "nature_people" to 0xE407, // 自然人物
         "network_cell" to 0xE1B9, // 蜂窝网络
         "network_wifi" to 0xE1BA, // WiFi
+        "neurology" to 0xE10E, // 神经网络
         "nordic_walking" to 0xE50E, // 北欧步行
         "note_add" to 0xE89C, // 添加笔记
         "notifications" to 0xE7F5, // 通知
@@ -247,7 +269,7 @@ object SymbolCodepoints {
         "paragliding" to 0xE50F, // 滑翔伞
         "park" to 0xEA63, // 公园
         "payments" to 0xEF63, // 支付
-        "people" to 0xEA21, // 人群
+        "people" to 0xEA21,
         "person" to 0xF0D3, // 个人
         "personal_injury" to 0xE6DA, // 人身伤害
         "pets" to 0xE91D, // 宠物
@@ -264,15 +286,18 @@ object SymbolCodepoints {
         "psychology" to 0xEA4A, // 心理
         "public" to 0xE80B, // 公共
         "publish" to 0xE255, // 发布
+        "qr_code" to 0xEF6B, // 二维码
+        "qr_code_scanner" to 0xF206, // 扫码
         "quiz" to 0xF04C, // 测验
         "ramen_dining" to 0xEA64, // 拉面
         "receipt" to 0xE8B0, // 收据
         "receipt_long" to 0xEF6E, // 长收据
-        "redeem" to 0xE8F6, // 兑换
+        "redeem" to 0xE8F6, // 礼品
         "refresh" to 0xE5D5, // 刷新
         "request_quote" to 0xF1B6, // 报价请求
         "restaurant" to 0xE56C, // 餐厅
-        "restaurant_menu" to 0xE561, // 菜单
+        "restaurant_menu" to 0xE561,
+        "robot" to 0xF882, // 机器人
         "roller_skating" to 0xEBCD, // 轮滑
         "roofing" to 0xF201, // 屋顶
         "rowing" to 0xE921, // 划船
@@ -285,6 +310,7 @@ object SymbolCodepoints {
         "scuba_diving" to 0xEBCE, // 水肺潜水
         "sd_card" to 0xE623, // SD卡
         "search" to 0xE8B6, // 搜索
+        "search_off" to 0xEA76, // 无搜索结果
         "security" to 0xE32A, // 安全
         "self_improvement" to 0xEA78, // 自我提升
         "sell" to 0xF05B, // 出售
@@ -298,10 +324,11 @@ object SymbolCodepoints {
         "shopping_bag" to 0xF1CC, // 购物袋
         "shopping_cart" to 0xE8CC, // 购物车
         "shoppingmode" to 0xEFB7, // 购物模式
+        "show_chart" to 0xE6E1, // 折线图
         "sick" to 0xF220, // 生病
         "sim_card" to 0xE32B, // SIM卡
         "skateboarding" to 0xE511, // 滑板
-        "smart_toy" to 0xF06C, // 智能玩具
+        "smart_toy" to 0xF06C, // 智能助手
         "smartphone" to 0xE7BA, // 手机
         "snowboarding" to 0xE513, // 滑雪板
         "snowmobile" to 0xE503, // 雪地摩托
@@ -318,7 +345,7 @@ object SymbolCodepoints {
         "sports_handball" to 0xEA33, // 手球
         "sports_hockey" to 0xEA2B, // 冰球
         "sports_mma" to 0xEA2C, // 格斗
-        "sports_rugby" to 0xEA2E, // 橄榄球
+        "sports_rugby" to 0xEA2E,
         "sports_soccer" to 0xEA2F, // 足球
         "sports_tennis" to 0xEA32, // 网球
         "sports_volleyball" to 0xEA31, // 排球
@@ -328,15 +355,17 @@ object SymbolCodepoints {
         "storage" to 0xE1DB, // 存储
         "store" to 0xE8D1, // 商店
         "storefront" to 0xEA12, // 店铺
+        "subscriptions" to 0xE064, // 订阅
         "subway" to 0xE56F, // 地铁
         "sunny" to 0xE81A, // 晴天
         "support_agent" to 0xF0E2, // 客服
         "surfing" to 0xE515, // 冲浪
         "surgical" to 0xE131, // 外科
         "tablet" to 0xE32F, // 平板
+        "takeout_dining" to 0xEA74, // 外卖
         "tapas" to 0xF1E9, // 小吃
         "taxi_alert" to 0xEF74, // 出租车警报
-        "terrain" to 0xE564, // 地形
+        "terrain" to 0xE564,
         "theater_comedy" to 0xEA66, // 喜剧
         "thermometer" to 0xE846, // 体温计
         "thermostat" to 0xF076, // 恒温器

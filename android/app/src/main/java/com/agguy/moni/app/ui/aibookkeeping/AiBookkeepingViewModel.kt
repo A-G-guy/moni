@@ -84,12 +84,13 @@ class AiBookkeepingViewModel(
         }
 
         viewModelScope.launch {
+            val sentAt = System.currentTimeMillis() / 1000
             val userContent = buildUserMessageContent(text, images.size)
             val userMessage = ChatMessage(
                 sessionId = sessionId,
                 messageType = MessageType.USER_TEXT,
                 content = userContent,
-                createdAt = System.currentTimeMillis() / 1000
+                createdAt = sentAt
             )
             chatRepository.insert(userMessage)
             _inputText.value = ""
@@ -104,6 +105,7 @@ class AiBookkeepingViewModel(
                     AiBookkeepingParseRequest(
                         text = text,
                         images = images.map { it.toInput() },
+                        sentAt = sentAt,
                     )
                 )
 
@@ -125,13 +127,6 @@ class AiBookkeepingViewModel(
                     )
                     chatRepository.insert(aiCardMessage)
 
-                    val aiTextMessage = ChatMessage(
-                        sessionId = sessionId,
-                        messageType = MessageType.AI_TEXT,
-                        content = parseResult.replyText,
-                        createdAt = System.currentTimeMillis() / 1000
-                    )
-                    chatRepository.insert(aiTextMessage)
                 } else {
                     val aiTextMessage = ChatMessage(
                         sessionId = sessionId,

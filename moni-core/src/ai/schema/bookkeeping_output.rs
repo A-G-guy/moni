@@ -12,8 +12,6 @@ pub struct BookkeepingModelOutput {
     pub amount_cents: Option<i64>,
     pub record_type: Option<String>,
     pub category_id: Option<i64>,
-    #[serde(default)]
-    pub account_id: Option<i64>,
     pub timestamp: Option<i64>,
     pub note: Option<String>,
     #[serde(default = "default_confidence")]
@@ -55,7 +53,6 @@ fn validate_output(output: BookkeepingModelOutput) -> Result<AiBookkeepingParseR
         amount_cents,
         record_type,
         category_id: output.category_id.unwrap_or(-1),
-        account_id: output.account_id.unwrap_or(-1),
         timestamp: output.timestamp.unwrap_or(0).max(0),
         note: output.note.unwrap_or_default(),
     };

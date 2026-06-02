@@ -78,7 +78,7 @@ fun AiMessageContainer(
 private fun AiMessageContainerPreviewLight() {
     MoniTheme {
         AiMessageContainer(
-            text = "好的，我来帮你记账。今天中午的牛肉面25元已记录为「餐饮」类别。"
+            text = "已整理成待确认的记账卡片，请确认后保存。"
         )
     }
 }
@@ -92,7 +92,7 @@ private fun AiMessageContainerPreviewLight() {
 private fun AiMessageContainerPreviewDark() {
     MoniTheme {
         AiMessageContainer(
-            text = "好的，我来帮你记账。今天中午的牛肉面25元已记录为「餐饮」类别。"
+            text = "已整理成待确认的记账卡片，请确认后保存。"
         )
     }
 }

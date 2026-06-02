@@ -44,7 +44,7 @@ pub fn insert(
     Ok(conn.last_insert_rowid())
 }
 
-/// 按会话 ID 分页查询消息，按 `created_at` 降序（最新消息在前）。
+/// 按会话 ID 分页查询最新消息，并按 `created_at/id` 升序返回（最新消息在下方）。
 pub fn get_by_session(
     conn: &Connection,
     session_id: &str,
@@ -52,7 +52,12 @@ pub fn get_by_session(
     offset: i64,
 ) -> Result<Vec<ChatMessageRow>, rusqlite::Error> {
     let mut stmt = conn.prepare(
-        "SELECT * FROM chat_messages WHERE session_id = ?1 ORDER BY created_at DESC LIMIT ?2 OFFSET ?3"
+        "SELECT * FROM (
+             SELECT * FROM chat_messages
+             WHERE session_id = ?1
+             ORDER BY created_at DESC, id DESC
+             LIMIT ?2 OFFSET ?3
+         ) ORDER BY created_at ASC, id ASC",
     )?;
     let rows = stmt.query_map(
         rusqlite::params![session_id, limit, offset],

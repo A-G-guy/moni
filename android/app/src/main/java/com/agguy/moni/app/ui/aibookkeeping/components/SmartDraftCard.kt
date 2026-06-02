@@ -8,13 +8,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -22,7 +18,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,9 +26,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -54,7 +47,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -82,7 +74,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 private enum class EditorSheet {
-    NONE, AMOUNT, CATEGORY, ACCOUNT
+    NONE, AMOUNT, CATEGORY
 }
 
 @Composable
@@ -93,7 +85,6 @@ fun SmartDraftCard(
     onCardDataChange: (DraftCardData) -> Unit = {},
     numPadSettings: NumPadSettings = NumPadSettings(),
     categories: List<CoreCategory> = emptyList(),
-    accounts: List<String> = listOf("微信支付", "支付宝", "现金", "银行卡"),
     onSaveClick: () -> Unit = {},
     onCancelClick: () -> Unit = {},
 ) {
@@ -102,11 +93,6 @@ fun SmartDraftCard(
     var noteText by remember { mutableStateOf(cardData.note) }
     var tempCategoryId by remember { mutableLongStateOf(cardData.categoryId) }
     var categoryGridPage by remember { mutableIntStateOf(0) }
-    var tempAccountIndex by remember { mutableIntStateOf(
-        if (cardData.accountId >= 0 && cardData.accountId < accounts.size)
-            cardData.accountId.toInt()
-        else 0
-    ) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var tempTimestamp by remember { mutableLongStateOf(cardData.timestamp) }
@@ -204,7 +190,6 @@ fun SmartDraftCard(
                 InfoColumn(
                     cardData = cardData,
                     categories = categories,
-                    accounts = accounts,
                     isNoteEditing = isNoteEditing,
                     noteText = noteText,
                     onNoteTextChange = { noteText = it },
@@ -214,7 +199,6 @@ fun SmartDraftCard(
                         isNoteEditing = false
                     },
                     onAmountClick = { currentSheet = EditorSheet.AMOUNT },
-                    onAccountClick = { currentSheet = EditorSheet.ACCOUNT },
                     onTimeClick = {
                         tempTimestamp = cardData.timestamp
                         showDatePicker = true
@@ -286,22 +270,6 @@ fun SmartDraftCard(
         )
     }
 
-    if (currentSheet == EditorSheet.ACCOUNT) {
-        AccountEditorSheet(
-            accounts = accounts,
-            selectedIndex = tempAccountIndex,
-            onAccountSelected = { tempAccountIndex = it },
-            onConfirm = {
-                onCardDataChange(cardData.copy(accountId = tempAccountIndex.toLong()))
-                currentSheet = EditorSheet.NONE
-            },
-            onDismiss = {
-                tempAccountIndex = if (cardData.accountId >= 0 && cardData.accountId < accounts.size)
-                    cardData.accountId.toInt() else 0
-                currentSheet = EditorSheet.NONE
-            }
-        )
-    }
 
     if (showDatePicker) {
         DatePickerBottomSheet(
@@ -390,14 +358,12 @@ private fun HeaderRow(
 private fun InfoColumn(
     cardData: DraftCardData,
     categories: List<CoreCategory>,
-    accounts: List<String>,
     isNoteEditing: Boolean,
     noteText: String,
     onNoteTextChange: (String) -> Unit,
     onNoteEditStart: () -> Unit,
     onNoteEditConfirm: () -> Unit,
     onAmountClick: () -> Unit,
-    onAccountClick: () -> Unit,
     onTimeClick: () -> Unit
 ) {
     val amountText = "%.2f".format(cardData.amountCents / 100.0)
@@ -405,12 +371,6 @@ private fun InfoColumn(
         MaterialTheme.colorScheme.expenseRed
     } else {
         MaterialTheme.colorScheme.incomeGreen
-    }
-
-    val accountName = if (cardData.accountId >= 0 && cardData.accountId < accounts.size) {
-        accounts[cardData.accountId.toInt()]
-    } else {
-        accounts.firstOrNull() ?: "未指定"
     }
 
     Column(
@@ -430,13 +390,6 @@ private fun InfoColumn(
                 color = amountColor
             )
         }
-
-        InfoRowItem(
-            iconName = "account_balance_wallet",
-            iconDescription = "账户图标",
-            text = accountName,
-            onClick = onAccountClick
-        )
 
         InfoRowItem(
             iconName = "schedule",
@@ -666,77 +619,6 @@ private fun CategoryEditorSheet(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AccountEditorSheet(
-    accounts: List<String>,
-    selectedIndex: Int,
-    onAccountSelected: (Int) -> Unit,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "选择账户",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 320.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                accounts.forEachIndexed { index, account ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onAccountSelected(index) }
-                            .padding(vertical = 8.dp, horizontal = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        RadioButton(
-                            selected = index == selectedIndex,
-                            onClick = { onAccountSelected(index) }
-                        )
-                        Text(
-                            text = account,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.End,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                TextButton(onClick = onDismiss) {
-                    Text("取消")
-                }
-                TextButton(onClick = onConfirm) {
-                    Text("确认")
-                }
-            }
-        }
-    }
-}
-
 private fun formatTimestamp(timestamp: Long): String {
     if (timestamp <= 0) return "今天 12:00"
 
@@ -763,7 +645,6 @@ private fun SmartDraftCardDraftPreview() {
                 amountCents = 3500L,
                 recordType = RecordType.EXPENSE,
                 categoryId = 1L,
-                accountId = 0L,
                 timestamp = System.currentTimeMillis() / 1000,
                 note = "麦当劳"
             ),
@@ -781,7 +662,6 @@ private fun SmartDraftCardSavedPreview() {
                 amountCents = 500000L,
                 recordType = RecordType.INCOME,
                 categoryId = 2L,
-                accountId = 1L,
                 timestamp = System.currentTimeMillis() / 1000 - 86400,
                 note = ""
             ),

@@ -78,7 +78,6 @@ Moni 的 AI 记账请求与响应处理统一放在 Rust Core 中实现，Kotlin
   "amount_cents": 3500,
   "record_type": "expense",
   "category_id": 1,
-  "account_id": -1,
   "timestamp": 0,
   "note": "午餐",
   "confidence": 0.9,
@@ -90,7 +89,7 @@ Moni 的 AI 记账请求与响应处理统一放在 Rust Core 中实现，Kotlin
 
 - `amount_cents` 必须大于 0 才能生成卡片。
 - `record_type` 仅允许 `expense` 或 `income`。
-- 不确定的 `category_id/account_id/timestamp` 分别使用 `-1/-1/0`。
+- 不确定的 `category_id/timestamp` 分别使用 `-1/0`。
 - `category_id=-1` 只能进入草稿态，用户必须手动选择分类后才能入账。
 - 分类选择遵循二级优先：能确定二级分类时返回二级分类 id；无法确定二级或该一级无二级时返回一级分类 id；完全未知时返回 `-1`。
 - 备注 `note` 优先提取文字或图片票据中的具体商户、商品、餐品或场景，例如“小微家盖饭”。

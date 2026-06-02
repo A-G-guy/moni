@@ -49,10 +49,6 @@ fn bookkeeping_schema(openai_strict: bool) -> Value {
                 "type": "integer",
                 "description": "分类 ID；不确定时为 -1"
             },
-            "account_id": {
-                "type": "integer",
-                "description": "账户 ID；不确定时为 -1"
-            },
             "timestamp": {
                 "type": "integer",
                 "description": "记账时间戳，秒；不确定时为 0"
@@ -76,7 +72,6 @@ fn bookkeeping_schema(openai_strict: bool) -> Value {
             "amount_cents",
             "record_type",
             "category_id",
-            "account_id",
             "timestamp",
             "note",
             "confidence",

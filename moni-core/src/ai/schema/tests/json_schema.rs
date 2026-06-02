@@ -5,12 +5,18 @@ fn builds_openai_schema_with_strict_wrapper() {
     let value = openai_response_format();
     assert_eq!(value["type"], "json_schema");
     assert_eq!(value["json_schema"]["strict"], true);
+    assert!(
+        value["json_schema"]["schema"]["properties"]
+            .get("account_id")
+            .is_none()
+    );
 }
 
 #[test]
 fn builds_gemini_schema_object() {
     let value = gemini_response_schema();
     assert_eq!(value["type"], "object");
+    assert!(value["properties"].get("account_id").is_none());
     assert_eq!(
         value["properties"]["clarification_question"]["type"],
         "string"

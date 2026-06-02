@@ -17,7 +17,7 @@ impl HttpClient for FakeHttpClient {
             body: json!({
                 "choices": [{
                     "message": {
-                        "content": "{\"is_bookkeeping\":true,\"reply_text\":\"ok\",\"amount_cents\":100,\"record_type\":\"expense\",\"category_id\":1,\"account_id\":null,\"timestamp\":null,\"note\":\"测试\",\"confidence\":0.9,\"clarification_question\":null}"
+                        "content": "{\"is_bookkeeping\":true,\"reply_text\":\"ok\",\"amount_cents\":100,\"record_type\":\"expense\",\"category_id\":1,\"timestamp\":null,\"note\":\"测试\",\"confidence\":0.9,\"clarification_question\":null}"
                     }
                 }]
             })
@@ -42,6 +42,7 @@ fn rejects_images_when_preset_does_not_support_vision() {
             base64_data: "abcd".to_string(),
             original_size_bytes: Some(3),
         }],
+        sent_at: None,
     };
     let error = parse_request_with_client(&FakeHttpClient, &preset(), request, "1 餐饮 expense")
         .expect_err("vision unsupported");

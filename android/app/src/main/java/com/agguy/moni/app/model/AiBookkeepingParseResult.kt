@@ -36,7 +36,6 @@ internal data class AiDraftCardDataDto(
     @SerialName("amount_cents") val amountCents: Long = 0L,
     @SerialName("record_type") val recordType: String = "expense",
     @SerialName("category_id") val categoryId: Long = -1L,
-    @SerialName("account_id") val accountId: Long = -1L,
     val timestamp: Long = 0L,
     val note: String = "",
 ) {
@@ -44,7 +43,6 @@ internal data class AiDraftCardDataDto(
         amountCents = amountCents,
         recordType = parseRecordType(recordType),
         categoryId = categoryId,
-        accountId = accountId,
         timestamp = timestamp,
         note = note,
     )

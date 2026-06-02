@@ -103,6 +103,8 @@ pub struct AiBookkeepingParseRequest {
     pub text: String,
     #[serde(default)]
     pub images: Vec<AiBookkeepingImageInput>,
+    #[serde(default)]
+    pub sent_at: Option<i64>,
 }
 
 impl AiBookkeepingParseRequest {
@@ -110,15 +112,24 @@ impl AiBookkeepingParseRequest {
         Self {
             text: text.into(),
             images: Vec::new(),
+            sent_at: None,
         }
     }
 
     pub fn normalized_text(&self) -> String {
         let trimmed = self.text.trim();
-        if trimmed.is_empty() && !self.images.is_empty() {
-            return "请根据图片识别记账信息。".to_string();
+        let user_text = if trimmed.is_empty() && !self.images.is_empty() {
+            "请根据图片识别记账信息。"
+        } else {
+            trimmed
+        };
+        match self.sent_at.filter(|timestamp| *timestamp > 0) {
+            Some(timestamp) => format!(
+                "本次请求发送时间：Unix 秒={timestamp}，本地时间={}。此时间仅用于理解“今天、现在、刚刚”等相对时间；如果文字或图片凭证中有明确日期/时间，以凭证为准；否则一般按发送当天当时判断。\n\n用户输入：{user_text}",
+                format_local_timestamp(timestamp)
+            ),
+            None => user_text.to_string(),
         }
-        trimmed.to_string()
     }
 }
 
@@ -147,9 +158,19 @@ pub struct DraftCardDataOutput {
     pub amount_cents: i64,
     pub record_type: String,
     pub category_id: i64,
-    pub account_id: i64,
     pub timestamp: i64,
     pub note: String,
+}
+
+fn format_local_timestamp(timestamp: i64) -> String {
+    chrono::DateTime::from_timestamp(timestamp, 0)
+        .map(|date_time| {
+            date_time
+                .with_timezone(&chrono::Local)
+                .format("%Y-%m-%d %H:%M:%S %:z")
+                .to_string()
+        })
+        .unwrap_or_else(|| "无效时间戳".to_string())
 }
 
 fn mask_api_key(api_key: &str) -> String {

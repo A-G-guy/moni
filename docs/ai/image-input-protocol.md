@@ -33,7 +33,8 @@ Rust Core 负责核心逻辑：
       "base64_data": "...",
       "original_size_bytes": 123456
     }
-  ]
+  ],
+  "sent_at": 1780329600
 }
 ```
 

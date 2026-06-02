@@ -13,7 +13,6 @@ import kotlinx.serialization.Serializable
  * @property amountCents 金额（单位：分）
  * @property recordType 收支类型
  * @property categoryId 分类 ID，-1 表示未分类
- * @property accountId 账户 ID，-1 表示未指定
  * @property timestamp 时间戳（秒），0 表示未指定
  * @property note 备注
  */
@@ -22,7 +21,6 @@ data class DraftCardData(
     @SerialName("amount_cents") val amountCents: Long = 0L,
     @SerialName("record_type") val recordType: RecordType = RecordType.EXPENSE,
     @SerialName("category_id") val categoryId: Long = -1L,
-    @SerialName("account_id") val accountId: Long = -1L,
     val timestamp: Long = 0L,
     val note: String = ""
 )

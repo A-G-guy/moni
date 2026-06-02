@@ -63,13 +63,12 @@ object MockAiService {
         val timestamp = parseTime(text)
 
         val categoryDisplay = if (category.id > 0) category.name else "未分类"
-        val replyText = "好的，已记录一笔${categoryDisplay}支出${amount}元。"
+        val replyText = "已整理一笔${categoryDisplay}支出${amount}元，请确认后保存。"
 
         val cardData = DraftCardData(
             amountCents = amountCents,
             recordType = RecordType.EXPENSE,
             categoryId = category.id,
-            accountId = -1L,
             timestamp = timestamp,
             note = text
         )

@@ -23,7 +23,7 @@ impl HttpClient for FakeHttpClient {
             body: json!({
                 "choices": [{
                     "message": {
-                        "content": "{\"is_bookkeeping\":true,\"reply_text\":\"ok\",\"amount_cents\":1200,\"record_type\":\"expense\",\"category_id\":1,\"account_id\":null,\"timestamp\":null,\"note\":\"午餐\",\"confidence\":0.9,\"clarification_question\":null}"
+                        "content": "{\"is_bookkeeping\":true,\"reply_text\":\"ok\",\"amount_cents\":1200,\"record_type\":\"expense\",\"category_id\":1,\"timestamp\":null,\"note\":\"午餐\",\"confidence\":0.9,\"clarification_question\":null}"
                     }
                 }]
             })
@@ -80,6 +80,7 @@ fn builds_multi_image_content_parts() {
                 original_size_bytes: None,
             },
         ],
+        sent_at: None,
     };
     OpenAiChatAdapter
         .parse_bookkeeping(&http, &preset(true), &request, "1 餐饮 expense")

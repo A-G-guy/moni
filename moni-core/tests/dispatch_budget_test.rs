@@ -19,11 +19,16 @@ fn upsert_intent(category_id: Option<i64>, amount_cents: i64, scope: &str) -> St
     match category_id {
         Some(cid) => format!(
             r#"{{"type":"budget_upsert","category_id":{},"amount_cents":{},"year_month":"{}","scope":"{}"}}"#,
-            cid, amount_cents, current_ym(), scope
+            cid,
+            amount_cents,
+            current_ym(),
+            scope
         ),
         None => format!(
             r#"{{"type":"budget_upsert","category_id":null,"amount_cents":{},"year_month":"{}","scope":"{}"}}"#,
-            amount_cents, current_ym(), scope
+            amount_cents,
+            current_ym(),
+            scope
         ),
     }
 }
@@ -31,7 +36,9 @@ fn upsert_intent(category_id: Option<i64>, amount_cents: i64, scope: &str) -> St
 fn delete_intent(id: i64, scope: &str) -> String {
     format!(
         r#"{{"type":"budget_delete","id":{},"year_month":"{}","scope":"{}"}}"#,
-        id, current_ym(), scope
+        id,
+        current_ym(),
+        scope
     )
 }
 
@@ -64,9 +71,13 @@ fn test_budget_upsert_category_budget() {
         let snapshot = core.snapshot_json().await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
         let category_id = state["categories"]
-            .as_array().unwrap()
-            .iter().find(|c| c["name"] == "餐饮").unwrap()["id"]
-            .as_i64().unwrap();
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["name"] == "餐饮")
+            .unwrap()["id"]
+            .as_i64()
+            .unwrap();
 
         let intent = upsert_intent(Some(category_id), 200000, "this_and_future");
         let update = core.dispatch(intent).await.expect("设置分类预算应成功");
@@ -106,9 +117,13 @@ fn test_budget_upsert_income_category_fails() {
         let snapshot = core.snapshot_json().await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
         let income_id = state["categories"]
-            .as_array().unwrap()
-            .iter().find(|c| c["name"] == "工资").unwrap()["id"]
-            .as_i64().unwrap();
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["name"] == "工资")
+            .unwrap()["id"]
+            .as_i64()
+            .unwrap();
 
         let intent = upsert_intent(Some(income_id), 100000, "this_and_future");
         let update = core.dispatch(intent).await.expect("dispatch 不应失败");
@@ -144,16 +159,24 @@ fn test_budget_list_populates_state() {
     let rt = tokio::runtime::Runtime::new().unwrap();
 
     rt.block_on(async {
-        core.dispatch(upsert_intent(None, 500000, "this_and_future")).await.unwrap();
+        core.dispatch(upsert_intent(None, 500000, "this_and_future"))
+            .await
+            .unwrap();
 
         let snapshot = core.snapshot_json().await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
         let category_id = state["categories"]
-            .as_array().unwrap()
-            .iter().find(|c| c["name"] == "餐饮").unwrap()["id"]
-            .as_i64().unwrap();
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["name"] == "餐饮")
+            .unwrap()["id"]
+            .as_i64()
+            .unwrap();
 
-        core.dispatch(upsert_intent(Some(category_id), 200000, "this_and_future")).await.unwrap();
+        core.dispatch(upsert_intent(Some(category_id), 200000, "this_and_future"))
+            .await
+            .unwrap();
 
         let list_intent = format!(
             r#"{{"type":"budget_list","year_month":"{}"}}"#,
@@ -343,21 +366,32 @@ fn test_budget_snapshot_overrides_template() {
         let snapshot = core.snapshot_json().await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
         let category_id = state["categories"]
-            .as_array().unwrap()
-            .iter().find(|c| c["name"] == "餐饮").unwrap()["id"]
-            .as_i64().unwrap();
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["name"] == "餐饮")
+            .unwrap()["id"]
+            .as_i64()
+            .unwrap();
 
         // 设置模板 ¥1500
-        core.dispatch(upsert_intent(Some(category_id), 150000, "this_and_future")).await.unwrap();
+        core.dispatch(upsert_intent(Some(category_id), 150000, "this_and_future"))
+            .await
+            .unwrap();
 
         // 设置本月快照 ¥2000（覆盖模板）
-        core.dispatch(upsert_intent(Some(category_id), 200000, "this_month")).await.unwrap();
+        core.dispatch(upsert_intent(Some(category_id), 200000, "this_month"))
+            .await
+            .unwrap();
 
         // 查询本月预算应为快照 ¥2000
-        let update = core.dispatch(format!(
-            r#"{{"type":"budget_list","year_month":"{}"}}"#,
-            current_ym()
-        )).await.unwrap();
+        let update = core
+            .dispatch(format!(
+                r#"{{"type":"budget_list","year_month":"{}"}}"#,
+                current_ym()
+            ))
+            .await
+            .unwrap();
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
         let budget = &state["budgets"][0];
         assert_eq!(budget["amountCents"], 200000);
@@ -374,21 +408,32 @@ fn test_budget_this_month_does_not_affect_future() {
         let snapshot = core.snapshot_json().await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
         let category_id = state["categories"]
-            .as_array().unwrap()
-            .iter().find(|c| c["name"] == "餐饮").unwrap()["id"]
-            .as_i64().unwrap();
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["name"] == "餐饮")
+            .unwrap()["id"]
+            .as_i64()
+            .unwrap();
 
         // 设置模板 ¥1500
-        core.dispatch(upsert_intent(Some(category_id), 150000, "this_and_future")).await.unwrap();
+        core.dispatch(upsert_intent(Some(category_id), 150000, "this_and_future"))
+            .await
+            .unwrap();
 
         // 本月临时改为 ¥3000（仅本月）
-        core.dispatch(upsert_intent(Some(category_id), 300000, "this_month")).await.unwrap();
+        core.dispatch(upsert_intent(Some(category_id), 300000, "this_month"))
+            .await
+            .unwrap();
 
         // 查询未来月份应使用模板 ¥1500
-        let update = core.dispatch(format!(
-            r#"{{"type":"budget_list","year_month":"{}"}}"#,
-            next_ym()
-        )).await.unwrap();
+        let update = core
+            .dispatch(format!(
+                r#"{{"type":"budget_list","year_month":"{}"}}"#,
+                next_ym()
+            ))
+            .await
+            .unwrap();
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
         let budget = &state["budgets"][0];
         assert_eq!(budget["amountCents"], 150000);
@@ -405,31 +450,45 @@ fn test_budget_future_only_preserves_current_month() {
         let snapshot = core.snapshot_json().await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
         let category_id = state["categories"]
-            .as_array().unwrap()
-            .iter().find(|c| c["name"] == "餐饮").unwrap()["id"]
-            .as_i64().unwrap();
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["name"] == "餐饮")
+            .unwrap()["id"]
+            .as_i64()
+            .unwrap();
 
         // 设置模板 ¥1500
-        core.dispatch(upsert_intent(Some(category_id), 150000, "this_and_future")).await.unwrap();
+        core.dispatch(upsert_intent(Some(category_id), 150000, "this_and_future"))
+            .await
+            .unwrap();
 
         // 仅以后月份改为 ¥2000
-        core.dispatch(upsert_intent(Some(category_id), 200000, "future_only")).await.unwrap();
+        core.dispatch(upsert_intent(Some(category_id), 200000, "future_only"))
+            .await
+            .unwrap();
 
         // 查询本月应为旧模板 ¥1500（已自动创建快照保留）
-        let update = core.dispatch(format!(
-            r#"{{"type":"budget_list","year_month":"{}"}}"#,
-            current_ym()
-        )).await.unwrap();
+        let update = core
+            .dispatch(format!(
+                r#"{{"type":"budget_list","year_month":"{}"}}"#,
+                current_ym()
+            ))
+            .await
+            .unwrap();
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
         let budget = &state["budgets"][0];
         assert_eq!(budget["amountCents"], 150000);
         assert_eq!(budget["isSnapshot"], true); // 自动创建的快照
 
         // 查询未来月份应为新模板 ¥2000
-        let update = core.dispatch(format!(
-            r#"{{"type":"budget_list","year_month":"{}"}}"#,
-            next_ym()
-        )).await.unwrap();
+        let update = core
+            .dispatch(format!(
+                r#"{{"type":"budget_list","year_month":"{}"}}"#,
+                next_ym()
+            ))
+            .await
+            .unwrap();
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
         let budget = &state["budgets"][0];
         assert_eq!(budget["amountCents"], 200000);
@@ -446,28 +505,41 @@ fn test_budget_delete_keeps_history() {
         let snapshot = core.snapshot_json().await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
         let category_id = state["categories"]
-            .as_array().unwrap()
-            .iter().find(|c| c["name"] == "餐饮").unwrap()["id"]
-            .as_i64().unwrap();
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["name"] == "餐饮")
+            .unwrap()["id"]
+            .as_i64()
+            .unwrap();
 
         // 设置模板 ¥1500
-        core.dispatch(upsert_intent(Some(category_id), 150000, "this_and_future")).await.unwrap();
+        core.dispatch(upsert_intent(Some(category_id), 150000, "this_and_future"))
+            .await
+            .unwrap();
 
         // 为本月创建快照 ¥2000
-        core.dispatch(upsert_intent(Some(category_id), 200000, "this_month")).await.unwrap();
+        core.dispatch(upsert_intent(Some(category_id), 200000, "this_month"))
+            .await
+            .unwrap();
 
         // 获取快照 ID 并删除（从本月起停止）
         let snapshot = core.snapshot_json().await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
         let budget_id = state["budgets"][0]["id"].as_i64().unwrap();
 
-        core.dispatch(delete_intent(budget_id, "this_month")).await.unwrap();
+        core.dispatch(delete_intent(budget_id, "this_month"))
+            .await
+            .unwrap();
 
         // 本月预算应为空
-        let update = core.dispatch(format!(
-            r#"{{"type":"budget_list","year_month":"{}"}}"#,
-            current_ym()
-        )).await.unwrap();
+        let update = core
+            .dispatch(format!(
+                r#"{{"type":"budget_list","year_month":"{}"}}"#,
+                current_ym()
+            ))
+            .await
+            .unwrap();
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
         let budgets = state["budgets"].as_array().unwrap();
         let has_catering = budgets.iter().any(|b| b["categoryId"] == category_id);
@@ -484,34 +556,48 @@ fn test_budget_delete_future_only_preserves_current() {
         let snapshot = core.snapshot_json().await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
         let category_id = state["categories"]
-            .as_array().unwrap()
-            .iter().find(|c| c["name"] == "餐饮").unwrap()["id"]
-            .as_i64().unwrap();
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["name"] == "餐饮")
+            .unwrap()["id"]
+            .as_i64()
+            .unwrap();
 
         // 设置模板 ¥1500
-        core.dispatch(upsert_intent(Some(category_id), 150000, "this_and_future")).await.unwrap();
+        core.dispatch(upsert_intent(Some(category_id), 150000, "this_and_future"))
+            .await
+            .unwrap();
 
         // 从下月起停止
         let snapshot = core.snapshot_json().await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
         let budget_id = state["budgets"][0]["id"].as_i64().unwrap();
 
-        core.dispatch(delete_intent(budget_id, "future_only")).await.unwrap();
+        core.dispatch(delete_intent(budget_id, "future_only"))
+            .await
+            .unwrap();
 
         // 本月应保留 ¥1500（自动创建快照）
-        let update = core.dispatch(format!(
-            r#"{{"type":"budget_list","year_month":"{}"}}"#,
-            current_ym()
-        )).await.unwrap();
+        let update = core
+            .dispatch(format!(
+                r#"{{"type":"budget_list","year_month":"{}"}}"#,
+                current_ym()
+            ))
+            .await
+            .unwrap();
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
         let budget = &state["budgets"][0];
         assert_eq!(budget["amountCents"], 150000);
 
         // 下月应为空
-        let update = core.dispatch(format!(
-            r#"{{"type":"budget_list","year_month":"{}"}}"#,
-            next_ym()
-        )).await.unwrap();
+        let update = core
+            .dispatch(format!(
+                r#"{{"type":"budget_list","year_month":"{}"}}"#,
+                next_ym()
+            ))
+            .await
+            .unwrap();
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
         let budgets = state["budgets"].as_array().unwrap();
         let has_catering = budgets.iter().any(|b| b["categoryId"] == category_id);
@@ -531,24 +617,35 @@ fn test_archive_category_clears_budget() {
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
         // 使用"医疗"分类（没有子分类）
         let category_id = state["categories"]
-            .as_array().unwrap()
-            .iter().find(|c| c["name"] == "医疗").unwrap()["id"]
-            .as_i64().unwrap();
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["name"] == "医疗")
+            .unwrap()["id"]
+            .as_i64()
+            .unwrap();
 
         // 设置模板 ¥1500
-        core.dispatch(upsert_intent(Some(category_id), 150000, "this_and_future")).await.unwrap();
+        core.dispatch(upsert_intent(Some(category_id), 150000, "this_and_future"))
+            .await
+            .unwrap();
 
         // 归档分类
         core.dispatch(format!(
             r#"{{"type":"category_archive","id":{}}}"#,
             category_id
-        )).await.unwrap();
+        ))
+        .await
+        .unwrap();
 
         // 预算列表中不应有医疗预算
-        let update = core.dispatch(format!(
-            r#"{{"type":"budget_list","year_month":"{}"}}"#,
-            current_ym()
-        )).await.unwrap();
+        let update = core
+            .dispatch(format!(
+                r#"{{"type":"budget_list","year_month":"{}"}}"#,
+                current_ym()
+            ))
+            .await
+            .unwrap();
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
         let budgets = state["budgets"].as_array().unwrap();
         let has_medical = budgets.iter().any(|b| b["categoryId"] == category_id);
@@ -775,17 +872,25 @@ fn test_budget_check_income_category_fails() {
         let snapshot = core.snapshot_json().await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
         let income_id = state["categories"]
-            .as_array().unwrap()
-            .iter().find(|c| c["name"] == "工资").unwrap()["id"]
-            .as_i64().unwrap();
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["name"] == "工资")
+            .unwrap()["id"]
+            .as_i64()
+            .unwrap();
 
         let intent = format!(
             r#"{{"type":"budget_check","category_id":{},"year_month":"{}","amount_cents":10000}}"#,
-            income_id, current_ym()
+            income_id,
+            current_ym()
         );
         let update = core.dispatch(intent).await.expect("dispatch 不应失败");
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
-        assert!(!state["ui"]["errorMessage"].is_null(), "收入分类不应支持预算检查");
+        assert!(
+            !state["ui"]["errorMessage"].is_null(),
+            "收入分类不应支持预算检查"
+        );
     });
 }
 
@@ -918,31 +1023,48 @@ fn test_budget_check_result_cleared_on_list() {
         let snapshot = core.snapshot_json().await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
         let category_id = state["categories"]
-            .as_array().unwrap()
-            .iter().find(|c| c["name"] == "餐饮").unwrap()["id"]
-            .as_i64().unwrap();
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c["name"] == "餐饮")
+            .unwrap()["id"]
+            .as_i64()
+            .unwrap();
 
-        core.dispatch(upsert_intent(Some(category_id), 100000, "this_and_future")).await.unwrap();
+        core.dispatch(upsert_intent(Some(category_id), 100000, "this_and_future"))
+            .await
+            .unwrap();
 
         // 调用 budget_check
         core.dispatch(format!(
             r#"{{"type":"budget_check","category_id":{},"year_month":"{}","amount_cents":10000}}"#,
-            category_id, current_ym()
-        )).await.unwrap();
+            category_id,
+            current_ym()
+        ))
+        .await
+        .unwrap();
 
         let snapshot = core.snapshot_json().await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
-        assert!(state["budgetCheckResult"].is_object(), "budget_check 后应有结果");
+        assert!(
+            state["budgetCheckResult"].is_object(),
+            "budget_check 后应有结果"
+        );
 
         // 调用 budget_list 后 budget_check_result 应被清空
         core.dispatch(format!(
             r#"{{"type":"budget_list","year_month":"{}"}}"#,
             current_ym()
-        )).await.unwrap();
+        ))
+        .await
+        .unwrap();
 
         let snapshot = core.snapshot_json().await.unwrap();
         let state: serde_json::Value = serde_json::from_str(&snapshot).unwrap();
-        assert!(state["budgetCheckResult"].is_null(), "budget_list 后应清空 budget_check_result");
+        assert!(
+            state["budgetCheckResult"].is_null(),
+            "budget_list 后应清空 budget_check_result"
+        );
     });
 }
 
@@ -953,19 +1075,31 @@ fn test_total_budget_snapshot_no_duplicate() {
 
     rt.block_on(async {
         // 连续三次修改总预算快照（同一月份）
-        core.dispatch(upsert_intent(None, 500000, "this_month")).await.unwrap();
-        core.dispatch(upsert_intent(None, 600000, "this_month")).await.unwrap();
-        core.dispatch(upsert_intent(None, 700000, "this_month")).await.unwrap();
+        core.dispatch(upsert_intent(None, 500000, "this_month"))
+            .await
+            .unwrap();
+        core.dispatch(upsert_intent(None, 600000, "this_month"))
+            .await
+            .unwrap();
+        core.dispatch(upsert_intent(None, 700000, "this_month"))
+            .await
+            .unwrap();
 
-        let update = core.dispatch(format!(
-            r#"{{"type":"budget_list","year_month":"{}"}}"#,
-            current_ym()
-        )).await.unwrap();
+        let update = core
+            .dispatch(format!(
+                r#"{{"type":"budget_list","year_month":"{}"}}"#,
+                current_ym()
+            ))
+            .await
+            .unwrap();
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
         let budgets = state["budgets"].as_array().unwrap();
 
         // 总预算快照应只有一条，且为最新金额
-        let total_budgets: Vec<_> = budgets.iter().filter(|b| b["categoryId"].is_null()).collect();
+        let total_budgets: Vec<_> = budgets
+            .iter()
+            .filter(|b| b["categoryId"].is_null())
+            .collect();
         assert_eq!(total_budgets.len(), 1, "总预算快照不应重复插入");
         assert_eq!(total_budgets[0]["amountCents"], 700000);
     });
@@ -978,19 +1112,31 @@ fn test_total_budget_template_no_duplicate() {
 
     rt.block_on(async {
         // 连续三次修改总预算模板
-        core.dispatch(upsert_intent(None, 500000, "this_and_future")).await.unwrap();
-        core.dispatch(upsert_intent(None, 600000, "this_and_future")).await.unwrap();
-        core.dispatch(upsert_intent(None, 700000, "this_and_future")).await.unwrap();
+        core.dispatch(upsert_intent(None, 500000, "this_and_future"))
+            .await
+            .unwrap();
+        core.dispatch(upsert_intent(None, 600000, "this_and_future"))
+            .await
+            .unwrap();
+        core.dispatch(upsert_intent(None, 700000, "this_and_future"))
+            .await
+            .unwrap();
 
         // 查询未来月份应只有一条总预算模板
-        let update = core.dispatch(format!(
-            r#"{{"type":"budget_list","year_month":"{}"}}"#,
-            next_ym()
-        )).await.unwrap();
+        let update = core
+            .dispatch(format!(
+                r#"{{"type":"budget_list","year_month":"{}"}}"#,
+                next_ym()
+            ))
+            .await
+            .unwrap();
         let state: serde_json::Value = serde_json::from_str(&update.state_json).unwrap();
         let budgets = state["budgets"].as_array().unwrap();
 
-        let total_budgets: Vec<_> = budgets.iter().filter(|b| b["categoryId"].is_null()).collect();
+        let total_budgets: Vec<_> = budgets
+            .iter()
+            .filter(|b| b["categoryId"].is_null())
+            .collect();
         assert_eq!(total_budgets.len(), 1, "总预算模板不应重复插入");
         assert_eq!(total_budgets[0]["amountCents"], 700000);
         assert_eq!(total_budgets[0]["isSnapshot"], false);

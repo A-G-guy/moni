@@ -13,7 +13,10 @@ fn map_category(row: &Row) -> Result<Category, rusqlite::Error> {
             "income" => RecordType::Income,
             "expense" => RecordType::Expense,
             other => {
-                log::warn!("数据库中存在未知的分类类型: {other}, id={}", row.get::<_, i64>("id")?);
+                log::warn!(
+                    "数据库中存在未知的分类类型: {other}, id={}",
+                    row.get::<_, i64>("id")?
+                );
                 return Err(rusqlite::Error::InvalidColumnType(
                     0,
                     "category_type".to_string(),
@@ -142,7 +145,7 @@ pub fn list_by_parent(
     parent_id: CategoryId,
 ) -> Result<Vec<Category>, rusqlite::Error> {
     let mut stmt = conn.prepare(
-        "SELECT * FROM categories WHERE parent_id = ?1 ORDER BY sort_order ASC, created_at ASC"
+        "SELECT * FROM categories WHERE parent_id = ?1 ORDER BY sort_order ASC, created_at ASC",
     )?;
     let rows = stmt.query_map([parent_id], map_category)?;
     rows.collect()
@@ -193,7 +196,13 @@ pub fn seed_presets(conn: &Connection) -> Result<(), rusqlite::Error> {
 
     // 一级分类
     let parents = [
-        ("餐饮", RecordType::Expense, "restaurant", 1, None::<CategoryId>),
+        (
+            "餐饮",
+            RecordType::Expense,
+            "restaurant",
+            1,
+            None::<CategoryId>,
+        ),
         ("交通", RecordType::Expense, "directions_car", 2, None),
         ("购物", RecordType::Expense, "shopping_bag", 3, None),
         ("娱乐", RecordType::Expense, "sports_esports", 4, None),
@@ -215,12 +224,48 @@ pub fn seed_presets(conn: &Connection) -> Result<(), rusqlite::Error> {
 
     // 二级分类示例
     let children = [
-        ("早餐", RecordType::Expense, "bakery_dining", 101, Some(parent_ids[0])),
-        ("外卖", RecordType::Expense, "takeout_dining", 102, Some(parent_ids[0])),
-        ("地铁", RecordType::Expense, "subway", 103, Some(parent_ids[1])),
-        ("打车", RecordType::Expense, "local_taxi", 104, Some(parent_ids[1])),
-        ("网购", RecordType::Expense, "shopping_cart", 105, Some(parent_ids[2])),
-        ("超市", RecordType::Expense, "storefront", 106, Some(parent_ids[2])),
+        (
+            "早餐",
+            RecordType::Expense,
+            "bakery_dining",
+            101,
+            Some(parent_ids[0]),
+        ),
+        (
+            "外卖",
+            RecordType::Expense,
+            "takeout_dining",
+            102,
+            Some(parent_ids[0]),
+        ),
+        (
+            "地铁",
+            RecordType::Expense,
+            "subway",
+            103,
+            Some(parent_ids[1]),
+        ),
+        (
+            "打车",
+            RecordType::Expense,
+            "local_taxi",
+            104,
+            Some(parent_ids[1]),
+        ),
+        (
+            "网购",
+            RecordType::Expense,
+            "shopping_cart",
+            105,
+            Some(parent_ids[2]),
+        ),
+        (
+            "超市",
+            RecordType::Expense,
+            "storefront",
+            106,
+            Some(parent_ids[2]),
+        ),
     ];
 
     for (name, ty, icon, order, pid) in &children {

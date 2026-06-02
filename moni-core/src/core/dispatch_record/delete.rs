@@ -14,8 +14,8 @@ impl AppCoreRuntime {
             return Err(CoreError::Internal("意图类型不匹配".to_string()));
         };
 
-        let record = record_repo::get_by_id(&self.conn, id)?
-            .ok_or(CoreError::RecordNotFound(id))?;
+        let record =
+            record_repo::get_by_id(&self.conn, id)?.ok_or(CoreError::RecordNotFound(id))?;
         record_repo::delete(&self.conn, id)?;
         log::info!("记录删除成功: id={id}");
         self.state.records.retain(|r| r.id != id);

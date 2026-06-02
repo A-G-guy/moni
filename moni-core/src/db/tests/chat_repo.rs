@@ -90,5 +90,8 @@ fn deletes_messages_older_than_timestamp() {
     let rows = get_by_session(&conn, "s1", 10, 0).expect("list");
 
     assert_eq!(deleted, 1);
-    assert_eq!(rows.iter().map(|row| row.id).collect::<Vec<_>>(), vec![new_id]);
+    assert_eq!(
+        rows.iter().map(|row| row.id).collect::<Vec<_>>(),
+        vec![new_id]
+    );
 }

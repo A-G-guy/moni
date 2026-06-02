@@ -175,60 +175,104 @@ mod tests {
             AutoBackupFrequency::EveryLaunch,
             "2026-05-07T10:00:00+08:00"
         ));
-        assert!(should_auto_backup(None, AutoBackupFrequency::EveryLaunch, "2026-05-07T10:00:00+08:00"));
+        assert!(should_auto_backup(
+            None,
+            AutoBackupFrequency::EveryLaunch,
+            "2026-05-07T10:00:00+08:00"
+        ));
     }
 
     #[test]
     fn test_should_auto_backup_daily_same_day_false() {
         let last = "2026-05-07T10:00:00+08:00";
         let now = "2026-05-07T20:00:00+08:00";
-        assert!(!should_auto_backup(Some(last), AutoBackupFrequency::Daily, now));
+        assert!(!should_auto_backup(
+            Some(last),
+            AutoBackupFrequency::Daily,
+            now
+        ));
     }
 
     #[test]
     fn test_should_auto_backup_daily_next_day_true() {
         let last = "2026-05-07T23:59:59+08:00";
         let now = "2026-05-08T00:00:01+08:00";
-        assert!(should_auto_backup(Some(last), AutoBackupFrequency::Daily, now));
+        assert!(should_auto_backup(
+            Some(last),
+            AutoBackupFrequency::Daily,
+            now
+        ));
     }
 
     #[test]
     fn test_should_auto_backup_weekly_same_week_false() {
         let last = "2026-05-05T10:00:00+08:00"; // 周二
         let now = "2026-05-07T10:00:00+08:00"; // 周四（同一周）
-        assert!(!should_auto_backup(Some(last), AutoBackupFrequency::Weekly, now));
+        assert!(!should_auto_backup(
+            Some(last),
+            AutoBackupFrequency::Weekly,
+            now
+        ));
     }
 
     #[test]
     fn test_should_auto_backup_weekly_next_week_true() {
         let last = "2026-05-04T10:00:00+08:00"; // 周一
         let now = "2026-05-11T10:00:00+08:00"; // 下周一
-        assert!(should_auto_backup(Some(last), AutoBackupFrequency::Weekly, now));
+        assert!(should_auto_backup(
+            Some(last),
+            AutoBackupFrequency::Weekly,
+            now
+        ));
     }
 
     #[test]
     fn test_should_auto_backup_monthly_same_month_false() {
         let last = "2026-05-01T10:00:00+08:00";
         let now = "2026-05-31T10:00:00+08:00";
-        assert!(!should_auto_backup(Some(last), AutoBackupFrequency::Monthly, now));
+        assert!(!should_auto_backup(
+            Some(last),
+            AutoBackupFrequency::Monthly,
+            now
+        ));
     }
 
     #[test]
     fn test_should_auto_backup_monthly_next_month_true() {
         let last = "2026-05-31T10:00:00+08:00";
         let now = "2026-06-01T10:00:00+08:00";
-        assert!(should_auto_backup(Some(last), AutoBackupFrequency::Monthly, now));
+        assert!(should_auto_backup(
+            Some(last),
+            AutoBackupFrequency::Monthly,
+            now
+        ));
     }
 
     #[test]
     fn test_should_auto_backup_none_last_time_always_true() {
-        assert!(should_auto_backup(None, AutoBackupFrequency::Daily, "2026-05-07T10:00:00+08:00"));
-        assert!(should_auto_backup(None, AutoBackupFrequency::Weekly, "2026-05-07T10:00:00+08:00"));
-        assert!(should_auto_backup(None, AutoBackupFrequency::Monthly, "2026-05-07T10:00:00+08:00"));
+        assert!(should_auto_backup(
+            None,
+            AutoBackupFrequency::Daily,
+            "2026-05-07T10:00:00+08:00"
+        ));
+        assert!(should_auto_backup(
+            None,
+            AutoBackupFrequency::Weekly,
+            "2026-05-07T10:00:00+08:00"
+        ));
+        assert!(should_auto_backup(
+            None,
+            AutoBackupFrequency::Monthly,
+            "2026-05-07T10:00:00+08:00"
+        ));
     }
 
     #[test]
     fn test_should_auto_backup_invalid_last_time_treated_as_none() {
-        assert!(should_auto_backup(Some("not-a-date"), AutoBackupFrequency::Daily, "2026-05-07T10:00:00+08:00"));
+        assert!(should_auto_backup(
+            Some("not-a-date"),
+            AutoBackupFrequency::Daily,
+            "2026-05-07T10:00:00+08:00"
+        ));
     }
 }

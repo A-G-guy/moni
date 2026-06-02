@@ -23,7 +23,10 @@ pub fn compute_category_spending(
          GROUP BY category_id",
     )?;
     let rows = stmt.query_map([year_month], |row| {
-        Ok((row.get::<_, i64>(0)?, row.get::<_, Option<AmountCents>>(1)?.unwrap_or(0)))
+        Ok((
+            row.get::<_, i64>(0)?,
+            row.get::<_, Option<AmountCents>>(1)?.unwrap_or(0),
+        ))
     })?;
     rows.collect()
 }
@@ -45,7 +48,10 @@ pub fn compute_parent_category_spending(
          GROUP BY parent_category_id",
     )?;
     let rows = stmt.query_map([year_month], |row| {
-        Ok((row.get::<_, i64>(0)?, row.get::<_, Option<AmountCents>>(1)?.unwrap_or(0)))
+        Ok((
+            row.get::<_, i64>(0)?,
+            row.get::<_, Option<AmountCents>>(1)?.unwrap_or(0),
+        ))
     })?;
     rows.collect()
 }
@@ -58,13 +64,18 @@ fn compute_parent_spent(
     parent_category_spending: &HashMap<CategoryId, AmountCents>,
 ) -> AmountCents {
     let direct = category_spending.get(&parent_id).copied().unwrap_or(0);
-    let children = parent_category_spending.get(&parent_id).copied().unwrap_or(0);
+    let children = parent_category_spending
+        .get(&parent_id)
+        .copied()
+        .unwrap_or(0);
     direct.saturating_add(children)
 }
 
 /// 计算总预算的已用金额（当月所有支出之和）。
 fn compute_total_spent(category_spending: &HashMap<CategoryId, AmountCents>) -> AmountCents {
-    category_spending.values().fold(0i64, |a, b| a.saturating_add(*b))
+    category_spending
+        .values()
+        .fold(0i64, |a, b| a.saturating_add(*b))
 }
 
 /// 计算指定分类路径上的有效可用额度。
@@ -96,7 +107,8 @@ pub fn effective_available(
         // 二级分类路径
         // 父一级预算
         if let Some(parent_budget) = budgets.iter().find(|b| b.category_id == Some(parent_id)) {
-            let parent_spent = compute_parent_spent(parent_id, category_spending, parent_category_spending);
+            let parent_spent =
+                compute_parent_spent(parent_id, category_spending, parent_category_spending);
             remainings.push(parent_budget.amount_cents.saturating_sub(parent_spent));
         }
         // 二级预算自身
@@ -107,7 +119,8 @@ pub fn effective_available(
     } else {
         // 一级分类路径
         if let Some(self_budget) = budgets.iter().find(|b| b.category_id == Some(category_id)) {
-            let self_spent = compute_parent_spent(category_id, category_spending, parent_category_spending);
+            let self_spent =
+                compute_parent_spent(category_id, category_spending, parent_category_spending);
             remainings.push(self_budget.amount_cents.saturating_sub(self_spent));
         }
     }
@@ -148,7 +161,8 @@ pub fn bottleneck_budget_with_name(
     if let Some(parent_id) = category.parent_id {
         // 二级路径：先检查父一级
         if let Some(parent_budget) = budgets.iter().find(|b| b.category_id == Some(parent_id)) {
-            let parent_spent = compute_parent_spent(parent_id, category_spending, parent_category_spending);
+            let parent_spent =
+                compute_parent_spent(parent_id, category_spending, parent_category_spending);
             let remaining = parent_budget.amount_cents.saturating_sub(parent_spent);
             let parent_name = categories
                 .iter()
@@ -163,24 +177,17 @@ pub fn bottleneck_budget_with_name(
             let self_spent = category_spending.get(&category_id).copied().unwrap_or(0);
             let remaining = self_budget.amount_cents.saturating_sub(self_spent);
             if best.as_ref().map_or(true, |(min, _, _)| remaining < *min) {
-                best = Some((
-                    remaining,
-                    "self".to_string(),
-                    Some(category.name.clone()),
-                ));
+                best = Some((remaining, "self".to_string(), Some(category.name.clone())));
             }
         }
     } else {
         // 一级路径
         if let Some(self_budget) = budgets.iter().find(|b| b.category_id == Some(category_id)) {
-            let self_spent = compute_parent_spent(category_id, category_spending, parent_category_spending);
+            let self_spent =
+                compute_parent_spent(category_id, category_spending, parent_category_spending);
             let remaining = self_budget.amount_cents.saturating_sub(self_spent);
             if best.as_ref().map_or(true, |(min, _, _)| remaining < *min) {
-                best = Some((
-                    remaining,
-                    "self".to_string(),
-                    Some(category.name.clone()),
-                ));
+                best = Some((remaining, "self".to_string(), Some(category.name.clone())));
             }
         }
     }
@@ -199,7 +206,14 @@ pub fn build_budget_dtos(
     categories: &[CategoryDto],
     year_month: &str,
     today: &str,
-) -> Result<(Vec<BudgetDto>, HashMap<CategoryId, AmountCents>, HashMap<CategoryId, AmountCents>), rusqlite::Error> {
+) -> Result<
+    (
+        Vec<BudgetDto>,
+        HashMap<CategoryId, AmountCents>,
+        HashMap<CategoryId, AmountCents>,
+    ),
+    rusqlite::Error,
+> {
     let category_spending = compute_category_spending(conn, year_month)?;
     let parent_category_spending = compute_parent_category_spending(conn, year_month)?;
 
@@ -252,13 +266,14 @@ pub fn build_budget_dtos(
                 0.0
             };
             dto.percentage = percentage;
-            dto.status = BudgetStatus::from_percentage(percentage).as_str().to_string();
+            dto.status = BudgetStatus::from_percentage(percentage)
+                .as_str()
+                .to_string();
 
             // 仅对总预算计算进度状态（需要 elapsed_days / total_days）
             if b.category_id.is_none() {
-                dto.progress_status = compute_budget_progress_status(
-                    spent, b.amount_cents, year_month, today,
-                );
+                dto.progress_status =
+                    compute_budget_progress_status(spent, b.amount_cents, year_month, today);
             }
 
             dto
@@ -272,8 +287,12 @@ pub fn build_budget_dtos(
             (None, Some(_)) => std::cmp::Ordering::Less,
             (Some(_), None) => std::cmp::Ordering::Greater,
             (Some(a_id), Some(b_id)) => {
-                let a_is_child = cat_by_id.get(&a_id).map_or(false, |c| c.parent_id.is_some());
-                let b_is_child = cat_by_id.get(&b_id).map_or(false, |c| c.parent_id.is_some());
+                let a_is_child = cat_by_id
+                    .get(&a_id)
+                    .map_or(false, |c| c.parent_id.is_some());
+                let b_is_child = cat_by_id
+                    .get(&b_id)
+                    .map_or(false, |c| c.parent_id.is_some());
 
                 if a_is_child && b_is_child {
                     // 都是二级：先按父分类排序，再按自身排序
@@ -326,7 +345,12 @@ fn compute_budget_progress_status(
     let today_day = today_date.day();
 
     let (elapsed_days, _) = date_utils::calculate_day_counts(
-        sel_year, sel_month, today_year, today_month, today_day, total_days,
+        sel_year,
+        sel_month,
+        today_year,
+        today_month,
+        today_day,
+        total_days,
     );
 
     #[allow(clippy::cast_precision_loss)]

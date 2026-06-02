@@ -26,13 +26,11 @@ fn sample_manifest() -> BackupManifest {
             budget_count: Some(0),
             settings_count: 4,
         },
-        files: vec![
-            FileFingerprint {
-                path: "db/moni.db".to_string(),
-                size: 1024,
-                sha256: "abcd1234".to_string(),
-            },
-        ],
+        files: vec![FileFingerprint {
+            path: "db/moni.db".to_string(),
+            size: 1024,
+            sha256: "abcd1234".to_string(),
+        }],
         manifest_sha256: String::new(),
     }
 }

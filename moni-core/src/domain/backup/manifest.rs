@@ -97,7 +97,9 @@ pub fn validate_format_version(format_version: u32) -> Result<(), crate::core::e
 }
 
 /// 计算不含 manifest_sha256 字段的 manifest 自身指纹。
-pub fn compute_manifest_sha256(manifest: &BackupManifest) -> Result<String, crate::core::error::CoreError> {
+pub fn compute_manifest_sha256(
+    manifest: &BackupManifest,
+) -> Result<String, crate::core::error::CoreError> {
     let mut stripped = manifest.clone();
     stripped.manifest_sha256 = String::new();
     let json = serde_json::to_string(&stripped)

@@ -106,10 +106,16 @@ fn test_seed_presets_idempotent() {
 #[test]
 fn test_update_custom_ok() {
     let conn = setup();
-    let id =
-        category_repo::insert(&conn, "原名", None, RecordType::Expense, "x", 1, None).unwrap();
-    let affected =
-        category_repo::update(&conn, id, Some("新名"), Some("新描述"), Some("new_icon"), None).unwrap();
+    let id = category_repo::insert(&conn, "原名", None, RecordType::Expense, "x", 1, None).unwrap();
+    let affected = category_repo::update(
+        &conn,
+        id,
+        Some("新名"),
+        Some("新描述"),
+        Some("new_icon"),
+        None,
+    )
+    .unwrap();
     assert_eq!(affected, 1);
 
     let cat = category_repo::get_by_id(&conn, id).unwrap().unwrap();
@@ -123,10 +129,13 @@ fn test_update_preset_ok() {
     let conn = setup();
     category_repo::seed_presets(&conn).unwrap();
     let presets = category_repo::list_all(&conn).unwrap();
-    let affected = category_repo::update(&conn, presets[0].id, Some("改名"), None, None, None).unwrap();
+    let affected =
+        category_repo::update(&conn, presets[0].id, Some("改名"), None, None, None).unwrap();
     assert_eq!(affected, 1);
 
-    let cat = category_repo::get_by_id(&conn, presets[0].id).unwrap().unwrap();
+    let cat = category_repo::get_by_id(&conn, presets[0].id)
+        .unwrap()
+        .unwrap();
     assert_eq!(cat.name, "改名");
 }
 
@@ -176,11 +185,25 @@ fn test_is_in_use() {
 fn test_insert_sub_category() {
     let conn = setup();
     let parent_id = category_repo::insert(
-        &conn, "父分类", None, RecordType::Expense, "parent", 1, None,
-    ).unwrap();
+        &conn,
+        "父分类",
+        None,
+        RecordType::Expense,
+        "parent",
+        1,
+        None,
+    )
+    .unwrap();
     let child_id = category_repo::insert(
-        &conn, "子分类", None, RecordType::Expense, "child", 2, Some(parent_id),
-    ).unwrap();
+        &conn,
+        "子分类",
+        None,
+        RecordType::Expense,
+        "child",
+        2,
+        Some(parent_id),
+    )
+    .unwrap();
 
     let child = category_repo::get_by_id(&conn, child_id).unwrap().unwrap();
     assert_eq!(child.parent_id, Some(parent_id));
@@ -191,17 +214,45 @@ fn test_insert_sub_category() {
 fn test_list_by_parent() {
     let conn = setup();
     let parent_id = category_repo::insert(
-        &conn, "父分类", None, RecordType::Expense, "parent", 1, None,
-    ).unwrap();
+        &conn,
+        "父分类",
+        None,
+        RecordType::Expense,
+        "parent",
+        1,
+        None,
+    )
+    .unwrap();
     let _child_a = category_repo::insert(
-        &conn, "子分类A", None, RecordType::Expense, "a", 1, Some(parent_id),
-    ).unwrap();
+        &conn,
+        "子分类A",
+        None,
+        RecordType::Expense,
+        "a",
+        1,
+        Some(parent_id),
+    )
+    .unwrap();
     let _child_b = category_repo::insert(
-        &conn, "子分类B", None, RecordType::Expense, "b", 2, Some(parent_id),
-    ).unwrap();
+        &conn,
+        "子分类B",
+        None,
+        RecordType::Expense,
+        "b",
+        2,
+        Some(parent_id),
+    )
+    .unwrap();
     let _other = category_repo::insert(
-        &conn, "其他分类", None, RecordType::Expense, "other", 3, None,
-    ).unwrap();
+        &conn,
+        "其他分类",
+        None,
+        RecordType::Expense,
+        "other",
+        3,
+        None,
+    )
+    .unwrap();
 
     let children = category_repo::list_by_parent(&conn, parent_id).unwrap();
     assert_eq!(children.len(), 2);
@@ -213,13 +264,27 @@ fn test_list_by_parent() {
 fn test_has_children() {
     let conn = setup();
     let parent_id = category_repo::insert(
-        &conn, "父分类", None, RecordType::Expense, "parent", 1, None,
-    ).unwrap();
+        &conn,
+        "父分类",
+        None,
+        RecordType::Expense,
+        "parent",
+        1,
+        None,
+    )
+    .unwrap();
     assert!(!category_repo::has_children(&conn, parent_id).unwrap());
 
     let _child_id = category_repo::insert(
-        &conn, "子分类", None, RecordType::Expense, "child", 1, Some(parent_id),
-    ).unwrap();
+        &conn,
+        "子分类",
+        None,
+        RecordType::Expense,
+        "child",
+        1,
+        Some(parent_id),
+    )
+    .unwrap();
     assert!(category_repo::has_children(&conn, parent_id).unwrap());
 }
 
@@ -227,15 +292,28 @@ fn test_has_children() {
 fn test_update_set_parent() {
     let conn = setup();
     let parent_id = category_repo::insert(
-        &conn, "父分类", None, RecordType::Expense, "parent", 1, None,
-    ).unwrap();
+        &conn,
+        "父分类",
+        None,
+        RecordType::Expense,
+        "parent",
+        1,
+        None,
+    )
+    .unwrap();
     let child_id = category_repo::insert(
-        &conn, "原为一级", None, RecordType::Expense, "icon", 2, None,
-    ).unwrap();
+        &conn,
+        "原为一级",
+        None,
+        RecordType::Expense,
+        "icon",
+        2,
+        None,
+    )
+    .unwrap();
 
-    let affected = category_repo::update(
-        &conn, child_id, None, None, None, Some(Some(parent_id)),
-    ).unwrap();
+    let affected =
+        category_repo::update(&conn, child_id, None, None, None, Some(Some(parent_id))).unwrap();
     assert_eq!(affected, 1);
 
     let cat = category_repo::get_by_id(&conn, child_id).unwrap().unwrap();
@@ -246,15 +324,27 @@ fn test_update_set_parent() {
 fn test_update_clear_parent() {
     let conn = setup();
     let parent_id = category_repo::insert(
-        &conn, "父分类", None, RecordType::Expense, "parent", 1, None,
-    ).unwrap();
+        &conn,
+        "父分类",
+        None,
+        RecordType::Expense,
+        "parent",
+        1,
+        None,
+    )
+    .unwrap();
     let child_id = category_repo::insert(
-        &conn, "原为二级", None, RecordType::Expense, "icon", 2, Some(parent_id),
-    ).unwrap();
+        &conn,
+        "原为二级",
+        None,
+        RecordType::Expense,
+        "icon",
+        2,
+        Some(parent_id),
+    )
+    .unwrap();
 
-    let affected = category_repo::update(
-        &conn, child_id, None, None, None, Some(None),
-    ).unwrap();
+    let affected = category_repo::update(&conn, child_id, None, None, None, Some(None)).unwrap();
     assert_eq!(affected, 1);
 
     let cat = category_repo::get_by_id(&conn, child_id).unwrap().unwrap();
@@ -266,24 +356,36 @@ fn test_update_clear_parent() {
 fn test_list_all_hierarchy_ordering() {
     let conn = setup();
     // 插入顺序：父B、父A、子A1、子B1
-    let parent_b = category_repo::insert(
-        &conn, "父B", None, RecordType::Expense, "b", 2, None,
-    ).unwrap();
-    let parent_a = category_repo::insert(
-        &conn, "父A", None, RecordType::Expense, "a", 1, None,
-    ).unwrap();
+    let parent_b =
+        category_repo::insert(&conn, "父B", None, RecordType::Expense, "b", 2, None).unwrap();
+    let parent_a =
+        category_repo::insert(&conn, "父A", None, RecordType::Expense, "a", 1, None).unwrap();
     let _child_a1 = category_repo::insert(
-        &conn, "子A1", None, RecordType::Expense, "a1", 1, Some(parent_a),
-    ).unwrap();
+        &conn,
+        "子A1",
+        None,
+        RecordType::Expense,
+        "a1",
+        1,
+        Some(parent_a),
+    )
+    .unwrap();
     let _child_b1 = category_repo::insert(
-        &conn, "子B1", None, RecordType::Expense, "b1", 1, Some(parent_b),
-    ).unwrap();
+        &conn,
+        "子B1",
+        None,
+        RecordType::Expense,
+        "b1",
+        1,
+        Some(parent_b),
+    )
+    .unwrap();
 
     let list = category_repo::list_all(&conn).unwrap();
     assert_eq!(list.len(), 4);
     // SQL 排序：一级分类在前（按 sort_order），子分类在后（按 parent_id、sort_order）
-    assert_eq!(list[0].name, "父A");  // sort_order=1
-    assert_eq!(list[1].name, "父B");  // sort_order=2
+    assert_eq!(list[0].name, "父A"); // sort_order=1
+    assert_eq!(list[1].name, "父B"); // sort_order=2
     assert_eq!(list[2].name, "子B1"); // parent_id=parent_b(1)
     assert_eq!(list[3].name, "子A1"); // parent_id=parent_a(2)
 }
@@ -317,15 +419,13 @@ fn test_seed_presets_has_sub_categories() {
 #[test]
 fn test_reorder_parents() {
     let mut conn = setup();
-    let id_a = category_repo::insert(
-        &conn, "分类A", None, RecordType::Expense, "a", 1, None,
-    ).unwrap();
-    let id_b = category_repo::insert(
-        &conn, "分类B", None, RecordType::Expense, "b", 2, None,
-    ).unwrap();
+    let id_a =
+        category_repo::insert(&conn, "分类A", None, RecordType::Expense, "a", 1, None).unwrap();
+    let id_b =
+        category_repo::insert(&conn, "分类B", None, RecordType::Expense, "b", 2, None).unwrap();
 
     // 交换顺序
-    category_repo::reorder(&mut conn, &[ id_b, id_a ]).unwrap();
+    category_repo::reorder(&mut conn, &[id_b, id_a]).unwrap();
 
     let list = category_repo::list_all(&conn).unwrap();
     assert_eq!(list[0].name, "分类B");
@@ -338,17 +438,38 @@ fn test_reorder_parents() {
 fn test_reorder_children() {
     let mut conn = setup();
     let parent_id = category_repo::insert(
-        &conn, "父分类", None, RecordType::Expense, "parent", 1, None,
-    ).unwrap();
+        &conn,
+        "父分类",
+        None,
+        RecordType::Expense,
+        "parent",
+        1,
+        None,
+    )
+    .unwrap();
     let id_a = category_repo::insert(
-        &conn, "子A", None, RecordType::Expense, "a", 1, Some(parent_id),
-    ).unwrap();
+        &conn,
+        "子A",
+        None,
+        RecordType::Expense,
+        "a",
+        1,
+        Some(parent_id),
+    )
+    .unwrap();
     let id_b = category_repo::insert(
-        &conn, "子B", None, RecordType::Expense, "b", 2, Some(parent_id),
-    ).unwrap();
+        &conn,
+        "子B",
+        None,
+        RecordType::Expense,
+        "b",
+        2,
+        Some(parent_id),
+    )
+    .unwrap();
 
     // 交换顺序
-    category_repo::reorder(&mut conn, &[ id_b, id_a ]).unwrap();
+    category_repo::reorder(&mut conn, &[id_b, id_a]).unwrap();
 
     let children = category_repo::list_by_parent(&conn, parent_id).unwrap();
     assert_eq!(children[0].name, "子B");
@@ -360,18 +481,15 @@ fn test_reorder_children() {
 #[test]
 fn test_reorder_persists_sort_order() {
     let mut conn = setup();
-    let id_a = category_repo::insert(
-        &conn, "分类A", None, RecordType::Expense, "a", 5, None,
-    ).unwrap();
-    let id_b = category_repo::insert(
-        &conn, "分类B", None, RecordType::Expense, "b", 10, None,
-    ).unwrap();
-    let id_c = category_repo::insert(
-        &conn, "分类C", None, RecordType::Expense, "c", 1, None,
-    ).unwrap();
+    let id_a =
+        category_repo::insert(&conn, "分类A", None, RecordType::Expense, "a", 5, None).unwrap();
+    let id_b =
+        category_repo::insert(&conn, "分类B", None, RecordType::Expense, "b", 10, None).unwrap();
+    let id_c =
+        category_repo::insert(&conn, "分类C", None, RecordType::Expense, "c", 1, None).unwrap();
 
     // 重新排序为 C, A, B
-    category_repo::reorder(&mut conn, &[ id_c, id_a, id_b ]).unwrap();
+    category_repo::reorder(&mut conn, &[id_c, id_a, id_b]).unwrap();
 
     let cat_a = category_repo::get_by_id(&conn, id_a).unwrap().unwrap();
     let cat_b = category_repo::get_by_id(&conn, id_b).unwrap().unwrap();

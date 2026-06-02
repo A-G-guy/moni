@@ -2,7 +2,7 @@ mod common;
 
 use std::io::{Read, Write};
 
-use moni_core::domain::backup::manifest::{compute_manifest_sha256, BackupManifest};
+use moni_core::domain::backup::manifest::{BackupManifest, compute_manifest_sha256};
 
 /// 构造 manifest.stats 与实际数据库行数不一致的备份包，验证恢复阶段会触发 `db_validation` 行数校验失败路径。
 ///

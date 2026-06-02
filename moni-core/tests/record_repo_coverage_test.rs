@@ -28,7 +28,16 @@ fn test_list_by_date_range_same_second() {
     let cat_id = create_category(&conn, "餐饮", RecordType::Expense);
 
     let ts = 1704067200i64; // 2024-01-01 00:00:00 UTC
-    record_repo::insert(&conn, 100, RecordType::Expense, cat_id, None, "同秒测试", Some(ts)).unwrap();
+    record_repo::insert(
+        &conn,
+        100,
+        RecordType::Expense,
+        cat_id,
+        None,
+        "同秒测试",
+        Some(ts),
+    )
+    .unwrap();
 
     let recs = record_repo::list_by_date_range(&conn, ts, ts).unwrap();
     assert_eq!(recs.len(), 1);
@@ -54,8 +63,26 @@ fn test_list_by_date_range_cross_year() {
     // 2024-01-01 00:01:00 UTC = 1704067260
     let jan_01 = 1704067260i64;
 
-    record_repo::insert(&conn, 100, RecordType::Expense, cat_id, None, "跨年-旧", Some(dec_31)).unwrap();
-    record_repo::insert(&conn, 200, RecordType::Expense, cat_id, None, "跨年-新", Some(jan_01)).unwrap();
+    record_repo::insert(
+        &conn,
+        100,
+        RecordType::Expense,
+        cat_id,
+        None,
+        "跨年-旧",
+        Some(dec_31),
+    )
+    .unwrap();
+    record_repo::insert(
+        &conn,
+        200,
+        RecordType::Expense,
+        cat_id,
+        None,
+        "跨年-新",
+        Some(jan_01),
+    )
+    .unwrap();
 
     let recs = record_repo::list_by_date_range(&conn, dec_31, jan_01).unwrap();
     assert_eq!(recs.len(), 2);

@@ -153,11 +153,7 @@ fn evaluate_postfix(postfix: &[String]) -> Option<f64> {
         }
     }
 
-    if stack.len() == 1 {
-        stack.pop()
-    } else {
-        None
-    }
+    if stack.len() == 1 { stack.pop() } else { None }
 }
 
 /// 解析表达式并返回计算结果（分）。

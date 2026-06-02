@@ -42,7 +42,10 @@ fn test_dev_seed_presets_populates_state_categories() {
         assert!(has_income, "预设应包含收入分类");
 
         // 错误信息应为空
-        assert!(state["ui"]["errorMessage"].is_null(), "成功后不应有 errorMessage");
+        assert!(
+            state["ui"]["errorMessage"].is_null(),
+            "成功后不应有 errorMessage"
+        );
     });
 }
 

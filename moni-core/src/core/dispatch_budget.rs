@@ -12,10 +12,7 @@ use crate::models::intent::CoreIntent;
 use crate::models::state::BudgetCheckResult;
 
 impl AppCoreRuntime {
-    pub(super) fn dispatch_budget(
-        &mut self,
-        intent: CoreIntent,
-    ) -> Result<CoreUpdate, CoreError> {
+    pub(super) fn dispatch_budget(&mut self, intent: CoreIntent) -> Result<CoreUpdate, CoreError> {
         match intent {
             CoreIntent::BudgetUpsert {
                 category_id,
@@ -28,9 +25,7 @@ impl AppCoreRuntime {
                 year_month,
                 scope,
             } => self.handle_budget_delete(id, &year_month, &scope),
-            CoreIntent::BudgetList { year_month } => {
-                self.handle_budget_list(year_month.as_deref())
-            }
+            CoreIntent::BudgetList { year_month } => self.handle_budget_list(year_month.as_deref()),
             CoreIntent::BudgetCheck {
                 category_id,
                 year_month,
@@ -54,7 +49,9 @@ impl AppCoreRuntime {
 
         if amount_cents <= 0 {
             log::warn!("设置预算失败: 金额必须大于0");
-            return Err(CoreError::InvalidInput(MSG_BUDGET_AMOUNT_MUST_BE_POSITIVE.to_string()));
+            return Err(CoreError::InvalidInput(
+                MSG_BUDGET_AMOUNT_MUST_BE_POSITIVE.to_string(),
+            ));
         }
 
         // 若指定了分类，校验分类存在且为支出类型
@@ -72,8 +69,7 @@ impl AppCoreRuntime {
 
         match scope {
             moni_contracts::budget::BudgetScope::ThisMonth => {
-                budget_repo::upsert(&tx, category_id, Some(year_month), amount_cents,
-                )?;
+                budget_repo::upsert(&tx, category_id, Some(year_month), amount_cents)?;
             }
             moni_contracts::budget::BudgetScope::ThisAndFuture => {
                 budget_repo::upsert(&tx, category_id, None, amount_cents)?;
@@ -87,17 +83,11 @@ impl AppCoreRuntime {
                     let snapshot_amount = budget_repo::get_template(&tx, category_id)?
                         .map(|t| t.amount_cents)
                         .unwrap_or(0);
-                    budget_repo::upsert(
-                        &tx,
-                        category_id,
-                        Some(year_month),
-                        snapshot_amount,
-                    )?;
+                    budget_repo::upsert(&tx, category_id, Some(year_month), snapshot_amount)?;
                 }
                 budget_repo::upsert(&tx, category_id, None, amount_cents)?;
                 let next_month = compute_next_month(year_month)?;
-                budget_repo::delete_snapshots_from(
-                    &tx, category_id, &next_month)?;
+                budget_repo::delete_snapshots_from(&tx, category_id, &next_month)?;
             }
         }
 
@@ -134,17 +124,12 @@ impl AppCoreRuntime {
             moni_contracts::budget::BudgetScope::ThisMonth => {
                 // 从本月起停止预算：删除模板 + 删除从当前月开始的所有快照
                 budget_repo::delete_template(&tx, budget.category_id)?;
-                budget_repo::delete_snapshots_from(
-                    &tx,
-                    budget.category_id,
-                    year_month,
-                )?;
+                budget_repo::delete_snapshots_from(&tx, budget.category_id, year_month)?;
             }
             moni_contracts::budget::BudgetScope::FutureOnly => {
                 // 保留当前月（无快照则创建）
                 let has_snapshot =
-                    budget_repo::has_snapshot_for_month(
-                        &tx, budget.category_id, year_month)?;
+                    budget_repo::has_snapshot_for_month(&tx, budget.category_id, year_month)?;
                 if !has_snapshot {
                     budget_repo::upsert(
                         &tx,
@@ -157,21 +142,13 @@ impl AppCoreRuntime {
                 budget_repo::delete_template(&tx, budget.category_id)?;
                 // 删除下月及以后的快照
                 let next_month = compute_next_month(year_month)?;
-                budget_repo::delete_snapshots_from(
-                    &tx,
-                    budget.category_id,
-                    &next_month,
-                )?;
+                budget_repo::delete_snapshots_from(&tx, budget.category_id, &next_month)?;
             }
             moni_contracts::budget::BudgetScope::ThisAndFuture => {
                 // BudgetDelete 不支持 ThisAndFuture，按 ThisMonth 处理
                 log::warn!("预算删除不支持 this_and_future 范围，回退到 this_month");
                 budget_repo::delete_template(&tx, budget.category_id)?;
-                budget_repo::delete_snapshots_from(
-                    &tx,
-                    budget.category_id,
-                    year_month,
-                )?;
+                budget_repo::delete_snapshots_from(&tx, budget.category_id, year_month)?;
             }
         }
 
@@ -185,10 +162,7 @@ impl AppCoreRuntime {
         }])
     }
 
-    fn handle_budget_list(
-        &mut self,
-        year_month: Option<&str>,
-    ) -> Result<CoreUpdate, CoreError> {
+    fn handle_budget_list(&mut self, year_month: Option<&str>) -> Result<CoreUpdate, CoreError> {
         if let Some(ym) = year_month {
             validate_year_month(ym)?;
         }
@@ -215,7 +189,13 @@ impl AppCoreRuntime {
         let raw_budgets = budget_repo::list_for_month(&self.conn, year_month)?;
         let today = chrono::Local::now().format("%Y-%m-%d").to_string();
         let (budget_dtos, category_spending, parent_category_spending) =
-            calculator::build_budget_dtos(&self.conn, &raw_budgets, &self.state.categories, year_month, &today)?;
+            calculator::build_budget_dtos(
+                &self.conn,
+                &raw_budgets,
+                &self.state.categories,
+                year_month,
+                &today,
+            )?;
 
         let effective = calculator::effective_available(
             category_id,
@@ -244,9 +224,12 @@ impl AppCoreRuntime {
                     Some(BudgetStatus::Overrun.as_str().to_string())
                 } else {
                     #[allow(clippy::cast_precision_loss)]
-                    let percentage =
-                        (eff.saturating_sub(remaining_after) as f64) / (eff as f64);
-                    Some(BudgetStatus::from_percentage(percentage).as_str().to_string())
+                    let percentage = (eff.saturating_sub(remaining_after) as f64) / (eff as f64);
+                    Some(
+                        BudgetStatus::from_percentage(percentage)
+                            .as_str()
+                            .to_string(),
+                    )
                 }
             }
         } else {
@@ -303,12 +286,12 @@ fn validate_year_month(year_month: &str) -> Result<(), CoreError> {
     let year_str = &year_month[..4];
     let month_str = &year_month[5..];
 
-    let year: i32 = year_str.parse().map_err(|_| {
-        CoreError::InvalidInput(format!("year_month 年份无效: {year_month}"))
-    })?;
-    let month: u32 = month_str.parse().map_err(|_| {
-        CoreError::InvalidInput(format!("year_month 月份无效: {year_month}"))
-    })?;
+    let year: i32 = year_str
+        .parse()
+        .map_err(|_| CoreError::InvalidInput(format!("year_month 年份无效: {year_month}")))?;
+    let month: u32 = month_str
+        .parse()
+        .map_err(|_| CoreError::InvalidInput(format!("year_month 月份无效: {year_month}")))?;
 
     if year < 1900 || year > 3000 {
         return Err(CoreError::InvalidInput(format!(

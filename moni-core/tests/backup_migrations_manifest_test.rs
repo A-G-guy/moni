@@ -9,13 +9,13 @@
 
 use std::io::Write;
 
-use moni_core::db::schema::{init_schema, CURRENT_SCHEMA_VERSION};
+use moni_core::db::schema::{CURRENT_SCHEMA_VERSION, init_schema};
+use moni_core::domain::backup::MAX_SUPPORTED_FORMAT_VERSION;
 use moni_core::domain::backup::manifest::{
     BackupManifest, BackupStats, DeviceInfo, FileFingerprint, bytes_to_hex,
     compute_manifest_sha256, compute_sha256_hex, read_manifest, validate_format_version,
 };
 use moni_core::domain::backup::migrations::apply_migrations;
-use moni_core::domain::backup::MAX_SUPPORTED_FORMAT_VERSION;
 
 /// 构造一个最小可用的 manifest 样本。
 fn sample_manifest() -> BackupManifest {
@@ -184,7 +184,10 @@ fn test_validate_format_version_just_above_boundary_fails() {
     let result = validate_format_version(MAX_SUPPORTED_FORMAT_VERSION + 1);
     assert!(result.is_err(), "上限+1 应被拒绝");
     let err = format!("{:?}", result.unwrap_err());
-    assert!(err.contains("BackupTooNew"), "应返回 BackupTooNew，实际: {err}");
+    assert!(
+        err.contains("BackupTooNew"),
+        "应返回 BackupTooNew，实际: {err}"
+    );
 }
 
 /// `compute_sha256_hex` 处理空输入应返回 SHA-256 已知零长度值。
@@ -220,10 +223,7 @@ fn test_compute_manifest_sha256_ignores_self_field() {
     manifest.manifest_sha256 = "noise_value_should_not_affect".to_string();
     let hash_b = compute_manifest_sha256(&manifest).unwrap();
 
-    assert_eq!(
-        hash_a, hash_b,
-        "manifest_sha256 字段不应参与自指纹计算"
-    );
+    assert_eq!(hash_a, hash_b, "manifest_sha256 字段不应参与自指纹计算");
 }
 
 /// `bytes_to_hex` 边界：空数组与单字节最大值。

@@ -102,7 +102,10 @@ impl CoreError {
         match self {
             CoreError::RecordNotFound(id) => vec![id.to_string()],
             CoreError::CategoryNotFound(id) => vec![id.to_string()],
-            CoreError::BackupTooNew { required, supported } => {
+            CoreError::BackupTooNew {
+                required,
+                supported,
+            } => {
                 vec![required.to_string(), supported.to_string()]
             }
             CoreError::BackupRestoreFailed { stage, reason } => {

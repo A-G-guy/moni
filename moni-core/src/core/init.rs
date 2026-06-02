@@ -9,8 +9,9 @@ impl AppCoreRuntime {
     pub fn initialize(&mut self) -> Result<CoreUpdate, crate::core::error::CoreError> {
         self.state = AppState::default();
         // 确保使用全新内存连接，避免被之前失败的文件连接污染
-        self.conn = rusqlite::Connection::open_in_memory()
-            .map_err(|e| crate::core::error::CoreError::Database(format!("内存数据库创建失败: {e}")))?;
+        self.conn = rusqlite::Connection::open_in_memory().map_err(|e| {
+            crate::core::error::CoreError::Database(format!("内存数据库创建失败: {e}"))
+        })?;
         init_schema(&self.conn)?;
         self.finish(Vec::new())
     }

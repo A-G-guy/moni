@@ -98,16 +98,17 @@ impl AppCoreRuntime {
         )?;
 
         // 聚合统计
-        let (total_count, total_income, total_expense, _total_amount) = record_repo::search_summary(
-            &self.conn,
-            keyword.as_deref(),
-            rt_str,
-            category_ids_slice,
-            *amount_min,
-            *amount_max,
-            *date_start,
-            *date_end,
-        )?;
+        let (total_count, total_income, total_expense, _total_amount) =
+            record_repo::search_summary(
+                &self.conn,
+                keyword.as_deref(),
+                rt_str,
+                category_ids_slice,
+                *amount_min,
+                *amount_max,
+                *date_start,
+                *date_end,
+            )?;
 
         self.state.records = record_list_to_dto(&list, &self.state.categories);
         self.state.record_groups = crate::dto::group_records_by_date(&self.state.records);

@@ -503,13 +503,9 @@ impl MoniCore {
                 let inner = inner
                     .lock()
                     .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
-                crate::db::chat_repo::delete_older_than(
-                    &inner.conn,
-                    &session_id,
-                    before_timestamp,
-                )
-                .map(|count| count as i64)
-                .map_err(|e| CoreError::Database(format!("清理聊天消息失败: {e}")))
+                crate::db::chat_repo::delete_older_than(&inner.conn, &session_id, before_timestamp)
+                    .map(|count| count as i64)
+                    .map_err(|e| CoreError::Database(format!("清理聊天消息失败: {e}")))
             })
             .await
             .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?

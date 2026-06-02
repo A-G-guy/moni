@@ -3,11 +3,10 @@ use moni_contracts::types::CategoryId;
 
 use crate::core::error::CoreError;
 use crate::core::error::{
-    MSG_ARCHIVED_CANNOT_SORT, MSG_CANNOT_SET_SELF_AS_PARENT,
-    MSG_CATEGORY_ARCHIVED_FOR_RECORD, MSG_CATEGORY_NAME_EMPTY, MSG_DIFFERENT_LEVEL_CANNOT_SORT,
-    MSG_HAS_CHILDREN_CANNOT_BE_SUB, MSG_ICON_NAME_EMPTY, MSG_ONLY_SINGLE_LEVEL,
-    MSG_PARENT_CATEGORY_ARCHIVED, MSG_PARENT_CHILD_TYPE_MISMATCH, MSG_REORDER_LIST_EMPTY,
-    MSG_RECORD_TYPE_MISMATCH,
+    MSG_ARCHIVED_CANNOT_SORT, MSG_CANNOT_SET_SELF_AS_PARENT, MSG_CATEGORY_ARCHIVED_FOR_RECORD,
+    MSG_CATEGORY_NAME_EMPTY, MSG_DIFFERENT_LEVEL_CANNOT_SORT, MSG_HAS_CHILDREN_CANNOT_BE_SUB,
+    MSG_ICON_NAME_EMPTY, MSG_ONLY_SINGLE_LEVEL, MSG_PARENT_CATEGORY_ARCHIVED,
+    MSG_PARENT_CHILD_TYPE_MISMATCH, MSG_RECORD_TYPE_MISMATCH, MSG_REORDER_LIST_EMPTY,
 };
 use crate::core::runtime::AppCoreRuntime;
 use crate::db::{budget_repo, category_repo};
@@ -52,7 +51,9 @@ impl AppCoreRuntime {
             CoreIntent::CategoryArchive { id } => self.handle_category_archive(id),
             CoreIntent::CategoryUnarchive { id } => self.handle_category_unarchive(id),
             CoreIntent::CategoryList => self.handle_category_list(),
-            CoreIntent::CategoryReorder { ordered_ids } => self.handle_category_reorder(ordered_ids),
+            CoreIntent::CategoryReorder { ordered_ids } => {
+                self.handle_category_reorder(ordered_ids)
+            }
             _ => {
                 log::warn!("分类模块收到未支持的意图类型");
                 Err(CoreError::Internal("未支持的意图类型".to_string()))
@@ -251,11 +252,10 @@ impl AppCoreRuntime {
         }
 
         // 查找第一个分类确定层级
-        let first = category_repo::get_by_id(&self.conn, ordered_ids[0])?
-            .ok_or_else(|| {
-                log::warn!("分类排序失败: 分类不存在, id={}", ordered_ids[0]);
-                CoreError::CategoryNotFound(ordered_ids[0])
-            })?;
+        let first = category_repo::get_by_id(&self.conn, ordered_ids[0])?.ok_or_else(|| {
+            log::warn!("分类排序失败: 分类不存在, id={}", ordered_ids[0]);
+            CoreError::CategoryNotFound(ordered_ids[0])
+        })?;
 
         let expected_parent_id = first.parent_id;
 
@@ -326,11 +326,10 @@ fn validate_parent_id(
         ));
     }
 
-    let parent = category_repo::get_by_id(conn, parent_id)?
-        .ok_or_else(|| {
-            log::warn!("父分类校验失败: 父分类不存在, id={parent_id}");
-            CoreError::CategoryNotFound(parent_id)
-        })?;
+    let parent = category_repo::get_by_id(conn, parent_id)?.ok_or_else(|| {
+        log::warn!("父分类校验失败: 父分类不存在, id={parent_id}");
+        CoreError::CategoryNotFound(parent_id)
+    })?;
 
     if parent.archived_at.is_some() {
         log::warn!("父分类校验失败: 父分类已归档, id={parent_id}");
@@ -340,7 +339,11 @@ fn validate_parent_id(
     }
 
     if parent.category_type != child_type {
-        log::warn!("父分类校验失败: 类型不一致, parent={:?}, child={:?}", parent.category_type, child_type);
+        log::warn!(
+            "父分类校验失败: 类型不一致, parent={:?}, child={:?}",
+            parent.category_type,
+            child_type
+        );
         return Err(CoreError::InvalidInput(
             MSG_PARENT_CHILD_TYPE_MISMATCH.to_string(),
         ));
@@ -348,9 +351,7 @@ fn validate_parent_id(
 
     if parent.parent_id.is_some() {
         log::warn!("父分类校验失败: 仅支持单一层级, parent_id={parent_id}");
-        return Err(CoreError::InvalidInput(
-            MSG_ONLY_SINGLE_LEVEL.to_string(),
-        ));
+        return Err(CoreError::InvalidInput(MSG_ONLY_SINGLE_LEVEL.to_string()));
     }
 
     Ok(())

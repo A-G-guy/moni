@@ -1,4 +1,4 @@
-use moni_core::db::schema::{init_schema, CURRENT_SCHEMA_VERSION};
+use moni_core::db::schema::{CURRENT_SCHEMA_VERSION, init_schema};
 use moni_core::domain::backup::migrations::{apply_migrations, migration_registry};
 
 /// 当前 schema_version=1，无破坏性迁移，注册表应为空。

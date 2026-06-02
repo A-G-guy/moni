@@ -15,12 +15,11 @@ fn test_pagination_extreme_page() {
 
         // 超大页码应安全返回错误（CoreUpdate 中 errorMessage 非空）
         let result = core
-            .dispatch(
-                r#"{"type":"record_list","page":100001,"page_size":20}"#.to_string(),
-            )
+            .dispatch(r#"{"type":"record_list","page":100001,"page_size":20}"#.to_string())
             .await
             .expect("dispatch 不应失败");
-        let state: serde_json::Value = serde_json::from_str(&result.state_json).expect("状态解析失败");
+        let state: serde_json::Value =
+            serde_json::from_str(&result.state_json).expect("状态解析失败");
         assert!(
             state["ui"]["errorMessage"].is_string(),
             "超大页码应触发错误"
@@ -28,14 +27,9 @@ fn test_pagination_extreme_page() {
 
         // 正常页码应正常工作
         let result = core
-            .dispatch(
-                r#"{"type":"record_list","page":0,"page_size":20}"#.to_string(),
-            )
+            .dispatch(r#"{"type":"record_list","page":0,"page_size":20}"#.to_string())
             .await;
-        assert!(
-            result.is_ok(),
-            "正常页码应正常工作"
-        );
+        assert!(result.is_ok(), "正常页码应正常工作");
     });
 }
 

@@ -9,7 +9,6 @@ mod common;
 /// - 连续 dispatch 间状态正确累加。
 /// - errorMessage 在业务错误后被写入，成功 dispatch 后保留，仅 DismissError 可清除。
 /// - NavigateTo 在已有 errorMessage 时正确切换 tab 但不清理错误信息。
-
 use common::setup_core_with_presets;
 
 // ---------------------------------------------------------------------------

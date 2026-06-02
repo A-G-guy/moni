@@ -22,9 +22,18 @@ fn test_init_schema_is_idempotent_across_calls() {
         .unwrap()
         .filter_map(Result::ok)
         .collect();
-    assert!(names.iter().any(|n| n == "description"), "应存在 description 列");
-    assert!(names.iter().any(|n| n == "archived_at"), "应存在 archived_at 列");
-    assert!(names.iter().any(|n| n == "parent_id"), "应存在 parent_id 列");
+    assert!(
+        names.iter().any(|n| n == "description"),
+        "应存在 description 列"
+    );
+    assert!(
+        names.iter().any(|n| n == "archived_at"),
+        "应存在 archived_at 列"
+    );
+    assert!(
+        names.iter().any(|n| n == "parent_id"),
+        "应存在 parent_id 列"
+    );
 
     // description 列应仅有一份（多次 ALTER 不应出现重复）
     let description_count = names.iter().filter(|n| n.as_str() == "description").count();

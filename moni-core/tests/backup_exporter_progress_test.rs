@@ -82,7 +82,10 @@ fn test_exporter_no_listener_produces_valid_zip() {
         "ZIP 应含 settings/preferences.json"
     );
     assert!(zip.by_name("README.md").is_ok(), "ZIP 应含 README.md");
-    assert!(zip.by_name("manifest.json").is_ok(), "ZIP 应含 manifest.json");
+    assert!(
+        zip.by_name("manifest.json").is_ok(),
+        "ZIP 应含 manifest.json"
+    );
 
     // 验证 manifest 可读且字段正确
     let manifest = moni_core::domain::backup::manifest::read_manifest(&mut zip).unwrap();
@@ -432,26 +435,17 @@ fn test_exporter_with_listener_receives_callbacks() {
 
     // 验证各阶段都被触发
     let stages: Vec<String> = captured.iter().map(|(s, _)| s.clone()).collect();
-    assert!(
-        stages.iter().any(|s| s.contains("统计")),
-        "应包含统计阶段"
-    );
+    assert!(stages.iter().any(|s| s.contains("统计")), "应包含统计阶段");
     assert!(
         stages.iter().any(|s| s.contains("副本")),
         "应包含创建副本阶段"
     );
-    assert!(
-        stages.iter().any(|s| s.contains("打包")),
-        "应包含打包阶段"
-    );
+    assert!(stages.iter().any(|s| s.contains("打包")), "应包含打包阶段");
     assert!(
         stages.iter().any(|s| s.contains("清单")),
         "应包含生成清单阶段"
     );
-    assert!(
-        stages.iter().any(|s| s.contains("完成")),
-        "应包含完成阶段"
-    );
+    assert!(stages.iter().any(|s| s.contains("完成")), "应包含完成阶段");
 }
 
 /// 验证 build_manifest 在正常场景下成功生成合法 JSON，
@@ -465,8 +459,7 @@ fn test_exporter_manifest_integrity_self_verifies() {
 
     let conn = rusqlite::Connection::open_in_memory().unwrap();
     moni_core::db::schema::init_schema(&conn).unwrap();
-    let cat_id = insert_category(
-        &conn, "测试分类", "expense", "test", None);
+    let cat_id = insert_category(&conn, "测试分类", "expense", "test", None);
     conn.execute(
         "INSERT INTO records (amount_cents, record_type, category_id, note, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
         rusqlite::params![999, "expense", cat_id, "manifest 测试", chrono::Local::now().timestamp()],

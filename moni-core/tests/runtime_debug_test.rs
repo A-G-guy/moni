@@ -1,14 +1,17 @@
 use moni_core::MoniCore;
 use moni_core::core::AppCoreRuntime;
-use moni_core::models::state::AppState;
 use moni_core::models::effects::CoreEffect;
+use moni_core::models::state::AppState;
 
 /// 验证 `MoniCore` 的 Debug 实现可被格式化（占位字符串，不暴露内部状态）。
 #[test]
 fn test_moni_core_debug_format_does_not_panic() {
     let core = MoniCore::new();
     let debug_str = format!("{core:?}");
-    assert!(debug_str.contains("MoniCore"), "Debug 输出应包含类型名，实际: {debug_str}");
+    assert!(
+        debug_str.contains("MoniCore"),
+        "Debug 输出应包含类型名，实际: {debug_str}"
+    );
 }
 
 /// 验证 `MoniCore::default()` 与 `MoniCore::new()` 行为一致。
@@ -40,7 +43,10 @@ fn test_app_core_runtime_debug_format() {
     };
 
     let debug_str = format!("{runtime:?}");
-    assert!(debug_str.contains("AppCoreRuntime"), "Debug 输出应包含类型名");
+    assert!(
+        debug_str.contains("AppCoreRuntime"),
+        "Debug 输出应包含类型名"
+    );
     assert!(debug_str.contains("state"), "Debug 输出应包含 state 字段");
     // 不应泄漏 SQLite Connection 的内部表示
     assert!(
@@ -69,4 +75,3 @@ fn test_app_core_runtime_finish_packs_state_and_effects() {
         serde_json::from_str(&update.state_json).expect("state_json 应可解析");
     assert!(state.is_object(), "序列化结果应为对象");
 }
-

@@ -29,18 +29,16 @@ fn test_core_error_display_branches() {
             .to_string()
             .contains("参数错误")
     );
-    assert!(
-        CoreError::RecordNotFound(42)
-            .to_string()
-            .contains("id=42")
+    assert!(CoreError::RecordNotFound(42).to_string().contains("id=42"));
+    assert!(CoreError::CategoryNotFound(7).to_string().contains("id=7"));
+    assert_eq!(
+        CoreError::CategoryInUse.to_string(),
+        "分类已被使用，无法删除"
     );
-    assert!(
-        CoreError::CategoryNotFound(7)
-            .to_string()
-            .contains("id=7")
+    assert_eq!(
+        CoreError::CategoryAlreadyArchived.to_string(),
+        "分类已被归档"
     );
-    assert_eq!(CoreError::CategoryInUse.to_string(), "分类已被使用，无法删除");
-    assert_eq!(CoreError::CategoryAlreadyArchived.to_string(), "分类已被归档");
     assert_eq!(CoreError::CategoryNotArchived.to_string(), "分类未归档");
 
     let too_new = CoreError::BackupTooNew {
@@ -59,9 +57,21 @@ fn test_core_error_display_branches() {
     assert!(s.contains("validation"));
     assert!(s.contains("row mismatch"));
 
-    assert!(CoreError::BackupZipError("z".into()).to_string().contains("ZIP"));
-    assert!(CoreError::BackupManifestInvalid("m".into()).to_string().contains("清单"));
-    assert!(CoreError::BackupCorrupted("c".into()).to_string().contains("损坏"));
+    assert!(
+        CoreError::BackupZipError("z".into())
+            .to_string()
+            .contains("ZIP")
+    );
+    assert!(
+        CoreError::BackupManifestInvalid("m".into())
+            .to_string()
+            .contains("清单")
+    );
+    assert!(
+        CoreError::BackupCorrupted("c".into())
+            .to_string()
+            .contains("损坏")
+    );
     assert!(CoreError::BackupIo("io".into()).to_string().contains("IO"));
 }
 

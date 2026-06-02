@@ -41,22 +41,18 @@ impl AppCoreRuntime {
             | CoreIntent::CategoryReorder { .. } => self.dispatch_category(intent),
             CoreIntent::StatsMonthlySummary { .. }
             | CoreIntent::StatsCategoryBreakdown { .. }
-            | CoreIntent::StatsOverviewMetrics { .. } => {
-                self.dispatch_stats(intent)
-            }
+            | CoreIntent::StatsOverviewMetrics { .. } => self.dispatch_stats(intent),
             CoreIntent::RefreshMonthData { year_month } => {
                 self.dispatch_refresh_month_data(year_month)
             }
-            CoreIntent::SettingsUpdateCurrency { .. } => {
-                self.dispatch_settings(intent)
-            }
+            CoreIntent::SettingsUpdateCurrency { .. } => self.dispatch_settings(intent),
             CoreIntent::BudgetUpsert { .. }
             | CoreIntent::BudgetDelete { .. }
             | CoreIntent::BudgetList { .. }
             | CoreIntent::BudgetCheck { .. } => self.dispatch_budget(intent),
-            CoreIntent::DevClearAllData | CoreIntent::DevGenerateMockData { .. } | CoreIntent::DevSeedPresets => {
-                self.dispatch_dev(intent)
-            }
+            CoreIntent::DevClearAllData
+            | CoreIntent::DevGenerateMockData { .. }
+            | CoreIntent::DevSeedPresets => self.dispatch_dev(intent),
             CoreIntent::NavigateTo { screen } => {
                 self.state.ui.active_tab = screen;
                 self.finish(Vec::new())
@@ -68,10 +64,7 @@ impl AppCoreRuntime {
         }
     }
 
-    fn dispatch_refresh_month_data(
-        &mut self,
-        year_month: String,
-    ) -> Result<CoreUpdate, CoreError> {
+    fn dispatch_refresh_month_data(&mut self, year_month: String) -> Result<CoreUpdate, CoreError> {
         let mut all_effects = Vec::new();
 
         // 依次执行各子操作，任一失败不影响其他，收集所有 effects

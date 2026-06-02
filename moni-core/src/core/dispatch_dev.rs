@@ -13,7 +13,9 @@ impl AppCoreRuntime {
                 log::warn!("执行清空所有数据");
 
                 {
-                    let tx = self.conn.transaction()
+                    let tx = self
+                        .conn
+                        .transaction()
                         .map_err(|e| CoreError::Internal(format!("开启事务失败: {e}")))?;
                     // 先删除记录（避免外键约束冲突）
                     tx.execute("DELETE FROM records;", [])
@@ -105,7 +107,10 @@ impl AppCoreRuntime {
                 log::info!("Mock 数据生成完成: {} 条", records.len());
                 self.finish(vec![crate::models::effects::CoreEffect {
                     kind: "show_snackbar".to_string(),
-                    payload_json: format!(r#"{{"message_key":"mock_data_generated","count":{}}}"#, records.len()),
+                    payload_json: format!(
+                        r#"{{"message_key":"mock_data_generated","count":{}}}"#,
+                        records.len()
+                    ),
                 }])
             }
             _ => {

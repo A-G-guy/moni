@@ -83,7 +83,9 @@ fn test_initialize_with_file_db_persists_data() {
         assert_eq!(count, 1, "文件数据库应保留 1 条记录");
 
         let amount: i64 = conn
-            .query_row("SELECT amount_cents FROM records LIMIT 1", [], |row| row.get(0))
+            .query_row("SELECT amount_cents FROM records LIMIT 1", [], |row| {
+                row.get(0)
+            })
             .unwrap();
         assert_eq!(amount, 999);
 
@@ -138,7 +140,10 @@ fn test_backup_export_to_nonexistent_dir_fails() {
     let rt = tokio::runtime::Runtime::new().unwrap();
 
     rt.block_on(async {
-        let bad_path = format!("/tmp/nonexistent_moni_dir_{}/export.zip", uuid::Uuid::new_v4());
+        let bad_path = format!(
+            "/tmp/nonexistent_moni_dir_{}/export.zip",
+            uuid::Uuid::new_v4()
+        );
         let result = core
             .backup_export(
                 bad_path,
@@ -167,7 +172,8 @@ fn test_backup_inspect_missing_manifest() {
     let core = common::setup_core();
     let rt = tokio::runtime::Runtime::new().unwrap();
 
-    let tmp_dir = std::env::temp_dir().join(format!("moni_test_no_manifest_{}", uuid::Uuid::new_v4()));
+    let tmp_dir =
+        std::env::temp_dir().join(format!("moni_test_no_manifest_{}", uuid::Uuid::new_v4()));
     let _ = std::fs::create_dir_all(&tmp_dir);
     let zip_path = tmp_dir.join("no_manifest.zip");
 
@@ -230,7 +236,8 @@ fn test_backup_restore_empty_file_fails() {
     let core = common::setup_core();
     let rt = tokio::runtime::Runtime::new().unwrap();
 
-    let tmp_dir = std::env::temp_dir().join(format!("moni_test_restore_empty_{}", uuid::Uuid::new_v4()));
+    let tmp_dir =
+        std::env::temp_dir().join(format!("moni_test_restore_empty_{}", uuid::Uuid::new_v4()));
     let _ = std::fs::create_dir_all(&tmp_dir);
     let empty_zip = tmp_dir.join("empty.zip");
     std::fs::write(&empty_zip, b"").unwrap();
@@ -264,7 +271,8 @@ fn test_backup_roundtrip_with_file_db() {
     let core = MoniCore::new();
     let rt = tokio::runtime::Runtime::new().unwrap();
 
-    let tmp_dir = std::env::temp_dir().join(format!("moni_test_roundtrip_{}", uuid::Uuid::new_v4()));
+    let tmp_dir =
+        std::env::temp_dir().join(format!("moni_test_roundtrip_{}", uuid::Uuid::new_v4()));
     let _ = std::fs::create_dir_all(&tmp_dir);
     let db_path = tmp_dir.join("moni_roundtrip.db");
     let out_zip = tmp_dir.join("roundtrip.zip");

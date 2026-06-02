@@ -150,10 +150,7 @@ fn migrate_old_columns(conn: &Connection) -> Result<(), rusqlite::Error> {
         |row| row.get(0),
     )?;
     if has_records_year_month == 0 {
-        conn.execute(
-            "ALTER TABLE records ADD COLUMN year_month TEXT NULL",
-            [],
-        )?;
+        conn.execute("ALTER TABLE records ADD COLUMN year_month TEXT NULL", [])?;
     }
 
     // budgets.year_month（2026-05-07 迁移：预算月度快照）
@@ -163,10 +160,7 @@ fn migrate_old_columns(conn: &Connection) -> Result<(), rusqlite::Error> {
         |row| row.get(0),
     )?;
     if has_year_month == 0 {
-        conn.execute(
-            "ALTER TABLE budgets ADD COLUMN year_month TEXT NULL",
-            [],
-        )?;
+        conn.execute("ALTER TABLE budgets ADD COLUMN year_month TEXT NULL", [])?;
     }
 
     // records.parent_category_id（2026-05-07 迁移：固化账单父级关系）
@@ -234,7 +228,10 @@ fn init_schema_v5(conn: &Connection) -> Result<(), rusqlite::Error> {
         |row| row.get(0),
     )?;
     if null_parent_count > 0 {
-        log::warn!("V5 迁移后仍有 {} 条记录的 parent_category_id 为 NULL", null_parent_count);
+        log::warn!(
+            "V5 迁移后仍有 {} 条记录的 parent_category_id 为 NULL",
+            null_parent_count
+        );
     }
 
     Ok(())

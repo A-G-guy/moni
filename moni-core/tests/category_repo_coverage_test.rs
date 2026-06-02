@@ -195,7 +195,16 @@ fn test_create_sub_category_snapshot() {
 #[test]
 fn test_list_active_excludes_archived_direct() {
     let conn = setup_conn();
-    let id = category_repo::insert(&conn, "活跃与归档", None, RecordType::Expense, "star", 1, None).unwrap();
+    let id = category_repo::insert(
+        &conn,
+        "活跃与归档",
+        None,
+        RecordType::Expense,
+        "star",
+        1,
+        None,
+    )
+    .unwrap();
 
     let active_before = category_repo::list_active(&conn).unwrap();
     assert!(active_before.iter().any(|c| c.id == id));
@@ -210,9 +219,36 @@ fn test_list_active_excludes_archived_direct() {
 #[test]
 fn test_list_by_parent_returns_children_direct() {
     let conn = setup_conn();
-    let parent_id = category_repo::insert(&conn, "父分类", None, RecordType::Expense, "parent", 1, None).unwrap();
-    let _child_a = category_repo::insert(&conn, "子A", None, RecordType::Expense, "a", 1, Some(parent_id)).unwrap();
-    let _child_b = category_repo::insert(&conn, "子B", None, RecordType::Expense, "b", 2, Some(parent_id)).unwrap();
+    let parent_id = category_repo::insert(
+        &conn,
+        "父分类",
+        None,
+        RecordType::Expense,
+        "parent",
+        1,
+        None,
+    )
+    .unwrap();
+    let _child_a = category_repo::insert(
+        &conn,
+        "子A",
+        None,
+        RecordType::Expense,
+        "a",
+        1,
+        Some(parent_id),
+    )
+    .unwrap();
+    let _child_b = category_repo::insert(
+        &conn,
+        "子B",
+        None,
+        RecordType::Expense,
+        "b",
+        2,
+        Some(parent_id),
+    )
+    .unwrap();
 
     let children = category_repo::list_by_parent(&conn, parent_id).unwrap();
     assert_eq!(children.len(), 2);
@@ -224,7 +260,8 @@ fn test_list_by_parent_returns_children_direct() {
 #[test]
 fn test_list_by_parent_empty_direct() {
     let conn = setup_conn();
-    let parent_id = category_repo::insert(&conn, "空父", None, RecordType::Expense, "empty", 1, None).unwrap();
+    let parent_id =
+        category_repo::insert(&conn, "空父", None, RecordType::Expense, "empty", 1, None).unwrap();
 
     let children = category_repo::list_by_parent(&conn, parent_id).unwrap();
     assert!(children.is_empty());
@@ -234,10 +271,20 @@ fn test_list_by_parent_empty_direct() {
 #[test]
 fn test_has_children_true_and_false_direct() {
     let conn = setup_conn();
-    let parent_id = category_repo::insert(&conn, "无子父", None, RecordType::Expense, "star", 1, None).unwrap();
+    let parent_id =
+        category_repo::insert(&conn, "无子父", None, RecordType::Expense, "star", 1, None).unwrap();
     assert!(!category_repo::has_children(&conn, parent_id).unwrap());
 
-    let _child_id = category_repo::insert(&conn, "子", None, RecordType::Expense, "child", 1, Some(parent_id)).unwrap();
+    let _child_id = category_repo::insert(
+        &conn,
+        "子",
+        None,
+        RecordType::Expense,
+        "child",
+        1,
+        Some(parent_id),
+    )
+    .unwrap();
     assert!(category_repo::has_children(&conn, parent_id).unwrap());
 }
 
@@ -245,7 +292,16 @@ fn test_has_children_true_and_false_direct() {
 #[test]
 fn test_is_in_use_with_and_without_record_direct() {
     let conn = setup_conn();
-    let cat_id = category_repo::insert(&conn, "使用测试", None, RecordType::Expense, "star", 1, None).unwrap();
+    let cat_id = category_repo::insert(
+        &conn,
+        "使用测试",
+        None,
+        RecordType::Expense,
+        "star",
+        1,
+        None,
+    )
+    .unwrap();
     assert!(!category_repo::is_in_use(&conn, cat_id).unwrap());
 
     conn.execute(

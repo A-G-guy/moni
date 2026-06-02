@@ -147,10 +147,7 @@ pub fn get_for_month(
 }
 
 /// 查询某月的所有有效预算（快照优先，模板兜底）。
-pub fn list_for_month(
-    conn: &Connection,
-    year_month: &str,
-) -> Result<Vec<Budget>, rusqlite::Error> {
+pub fn list_for_month(conn: &Connection, year_month: &str) -> Result<Vec<Budget>, rusqlite::Error> {
     let mut stmt = conn.prepare(
         "SELECT b.* FROM budgets b
          WHERE b.year_month IS NULL
@@ -169,7 +166,9 @@ pub fn list_for_month(
 
 /// 查询所有预算（含模板和快照）。
 pub fn list_all(conn: &Connection) -> Result<Vec<Budget>, rusqlite::Error> {
-    let mut stmt = conn.prepare("SELECT * FROM budgets ORDER BY category_id NULLS FIRST, year_month NULLS FIRST")?;
+    let mut stmt = conn.prepare(
+        "SELECT * FROM budgets ORDER BY category_id NULLS FIRST, year_month NULLS FIRST",
+    )?;
     let rows = stmt.query_map([], map_budget)?;
     rows.collect()
 }

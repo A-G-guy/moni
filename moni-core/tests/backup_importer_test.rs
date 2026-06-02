@@ -18,13 +18,15 @@ fn test_validate_restored_db_budgets_match_succeeds() {
     conn.execute(
         "INSERT INTO categories (name, category_type, icon_name) VALUES (?1, ?2, ?3)",
         rusqlite::params!["餐饮", "expense", "food"],
-    ).unwrap();
+    )
+    .unwrap();
 
     // 插入 1 条 budget
     conn.execute(
         "INSERT INTO budgets (year_month, category_id, amount_cents) VALUES (?1, ?2, ?3)",
         rusqlite::params!["2026-05", 1, 10000],
-    ).unwrap();
+    )
+    .unwrap();
 
     drop(conn);
 
@@ -44,13 +46,15 @@ fn test_validate_restored_db_budgets_mismatch_fails() {
     conn.execute(
         "INSERT INTO categories (name, category_type, icon_name) VALUES (?1, ?2, ?3)",
         rusqlite::params!["餐饮", "expense", "food"],
-    ).unwrap();
+    )
+    .unwrap();
 
     // 插入 1 条 budget，但期望 5 条
     conn.execute(
         "INSERT INTO budgets (year_month, category_id, amount_cents) VALUES (?1, ?2, ?3)",
         rusqlite::params!["2026-05", 1, 10000],
-    ).unwrap();
+    )
+    .unwrap();
 
     drop(conn);
 
@@ -75,18 +79,23 @@ fn test_validate_restored_db_budget_none_skips_check() {
     conn.execute(
         "INSERT INTO categories (name, category_type, icon_name) VALUES (?1, ?2, ?3)",
         rusqlite::params!["餐饮", "expense", "food"],
-    ).unwrap();
+    )
+    .unwrap();
 
     // 插入 budgets，但 expected 为 None
     conn.execute(
         "INSERT INTO budgets (year_month, category_id, amount_cents) VALUES (?1, ?2, ?3)",
         rusqlite::params!["2026-05", 1, 10000],
-    ).unwrap();
+    )
+    .unwrap();
 
     drop(conn);
 
     let result = validate_restored_db(db_path.to_str().unwrap(), 0, 1, None);
-    assert!(result.is_ok(), "budget_count 为 None 时应跳过校验并直接通过");
+    assert!(
+        result.is_ok(),
+        "budget_count 为 None 时应跳过校验并直接通过"
+    );
 }
 
 /// records 或 categories 不匹配时仍应先于 budgets 校验失败。
@@ -121,7 +130,8 @@ fn test_validate_restored_db_all_counts_match_succeeds() {
     conn.execute(
         "INSERT INTO categories (name, category_type, icon_name) VALUES (?1, ?2, ?3)",
         rusqlite::params!["餐饮", "expense", "food"],
-    ).unwrap();
+    )
+    .unwrap();
     conn.execute(
         "INSERT INTO records (amount_cents, record_type, category_id, note, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
         rusqlite::params![1000, "expense", 1, "午餐", chrono::Local::now().timestamp()],

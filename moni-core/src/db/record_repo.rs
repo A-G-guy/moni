@@ -12,7 +12,10 @@ fn map_record(row: &Row) -> Result<Record, rusqlite::Error> {
             "income" => RecordType::Income,
             "expense" => RecordType::Expense,
             other => {
-                log::warn!("数据库中存在未知的记录类型: {other}, id={}", row.get::<_, i64>("id")?);
+                log::warn!(
+                    "数据库中存在未知的记录类型: {other}, id={}",
+                    row.get::<_, i64>("id")?
+                );
                 return Err(rusqlite::Error::InvalidColumnType(
                     0,
                     "record_type".to_string(),
@@ -119,10 +122,12 @@ pub fn update(
         RecordType::Income => "income",
         RecordType::Expense => "expense",
     });
-    let (created_at, year_month) = timestamp.map(|ts| {
-        let ym = year_month_from_timestamp(ts);
-        (Some(ts), Some(ym))
-    }).unwrap_or((None, None));
+    let (created_at, year_month) = timestamp
+        .map(|ts| {
+            let ym = year_month_from_timestamp(ts);
+            (Some(ts), Some(ym))
+        })
+        .unwrap_or((None, None));
 
     match parent_category_id {
         Some(pid) => conn.execute(
@@ -150,7 +155,7 @@ pub fn list_by_year_month(
     let mut stmt = conn.prepare(
         "SELECT * FROM records
          WHERE strftime('%Y-%m', datetime(created_at, 'unixepoch', 'localtime')) = ?1
-         ORDER BY created_at DESC"
+         ORDER BY created_at DESC",
     )?;
     let rows = stmt.query_map([year_month], map_record)?;
     rows.collect()
@@ -245,7 +250,10 @@ pub fn category_aggregates_by_parent(
 
 /// 转义 LIKE 模式中的通配符。
 fn escape_like_pattern(input: &str) -> String {
-    input.replace('\\', "\\\\").replace('%', "\\%").replace('_', "\\_")
+    input
+        .replace('\\', "\\\\")
+        .replace('%', "\\%")
+        .replace('_', "\\_")
 }
 
 /// 构建搜索查询的 WHERE 条件和参数列表。
@@ -281,9 +289,8 @@ fn build_search_conditions(
 
     if let Some(ids) = category_ids {
         if !ids.is_empty() {
-            let placeholders: Vec<String> = (0..ids.len())
-                .map(|i| format!("?{}", idx + i))
-                .collect();
+            let placeholders: Vec<String> =
+                (0..ids.len()).map(|i| format!("?{}", idx + i)).collect();
             conditions.push(format!("r.category_id IN ({})", placeholders.join(", ")));
             for id in ids {
                 params.push(rusqlite::types::Value::Integer(*id));
@@ -348,7 +355,13 @@ pub fn search(
     page_size: u32,
 ) -> Result<Vec<Record>, rusqlite::Error> {
     let (where_clause, mut params) = build_search_conditions(
-        keyword, record_type, category_ids, amount_min, amount_max, date_start, date_end,
+        keyword,
+        record_type,
+        category_ids,
+        amount_min,
+        amount_max,
+        date_start,
+        date_end,
     );
 
     let offset = i64::from(page)
@@ -371,7 +384,8 @@ pub fn search(
         params.len(),
     );
 
-    let param_refs: Vec<&dyn rusqlite::ToSql> = params.iter().map(|v| v as &dyn rusqlite::ToSql).collect();
+    let param_refs: Vec<&dyn rusqlite::ToSql> =
+        params.iter().map(|v| v as &dyn rusqlite::ToSql).collect();
     let mut stmt = conn.prepare(&sql)?;
     let rows = stmt.query_map(param_refs.as_slice(), map_record)?;
     rows.collect()
@@ -390,7 +404,13 @@ pub fn search_summary(
     date_end: Option<i64>,
 ) -> Result<(i64, i64, i64, i64), rusqlite::Error> {
     let (where_clause, params) = build_search_conditions(
-        keyword, record_type, category_ids, amount_min, amount_max, date_start, date_end,
+        keyword,
+        record_type,
+        category_ids,
+        amount_min,
+        amount_max,
+        date_start,
+        date_end,
     );
 
     let sql = format!(
@@ -405,7 +425,8 @@ pub fn search_summary(
         where_clause,
     );
 
-    let param_refs: Vec<&dyn rusqlite::ToSql> = params.iter().map(|v| v as &dyn rusqlite::ToSql).collect();
+    let param_refs: Vec<&dyn rusqlite::ToSql> =
+        params.iter().map(|v| v as &dyn rusqlite::ToSql).collect();
     conn.query_row(&sql, param_refs.as_slice(), |row| {
         Ok((
             row.get::<_, i64>(0)?,

@@ -28,9 +28,7 @@ impl AppCoreRuntime {
         const MAX_PAGE: u32 = 100_000;
         if page > MAX_PAGE {
             log::warn!("分页查询失败: 页码过大, 收到: {page}");
-            return Err(CoreError::InvalidInput(format!(
-                "页码不能超过 {MAX_PAGE}"
-            )));
+            return Err(CoreError::InvalidInput(format!("页码不能超过 {MAX_PAGE}")));
         }
 
         let list = record_repo::list_paginated(&self.conn, page, page_size)?;

@@ -35,7 +35,10 @@ fn test_collect_stats_invalid_json_fallbacks_to_zero() {
     init_schema(&conn).expect("init_schema 应成功");
 
     let stats = collect_stats(&conn, "not valid json").expect("collect_stats 应成功");
-    assert_eq!(stats.settings_count, 0, "无效 JSON 的 settings_count 应回退为 0");
+    assert_eq!(
+        stats.settings_count, 0,
+        "无效 JSON 的 settings_count 应回退为 0"
+    );
 }
 
 /// 非对象 JSON（如数组）应回退到 settings_count = 0。
@@ -45,7 +48,10 @@ fn test_collect_stats_array_json_fallbacks_to_zero() {
     init_schema(&conn).expect("init_schema 应成功");
 
     let stats = collect_stats(&conn, "[1, 2, 3]").expect("collect_stats 应成功");
-    assert_eq!(stats.settings_count, 0, "数组 JSON 的 settings_count 应回退为 0");
+    assert_eq!(
+        stats.settings_count, 0,
+        "数组 JSON 的 settings_count 应回退为 0"
+    );
 }
 
 /// budget_count 应从数据库 budgets 表正确读取。
@@ -58,21 +64,25 @@ fn test_collect_stats_budget_count_from_db() {
     conn.execute(
         "INSERT INTO categories (name, category_type, icon_name) VALUES (?1, ?2, ?3)",
         rusqlite::params!["餐饮", "expense", "food"],
-    ).unwrap();
+    )
+    .unwrap();
     conn.execute(
         "INSERT INTO categories (name, category_type, icon_name) VALUES (?1, ?2, ?3)",
         rusqlite::params!["交通", "expense", "bus"],
-    ).unwrap();
+    )
+    .unwrap();
 
     // 插入 2 个预算
     conn.execute(
         "INSERT INTO budgets (year_month, category_id, amount_cents) VALUES (?1, ?2, ?3)",
         rusqlite::params!["2026-05", 1, 10000],
-    ).unwrap();
+    )
+    .unwrap();
     conn.execute(
         "INSERT INTO budgets (year_month, category_id, amount_cents) VALUES (?1, ?2, ?3)",
         rusqlite::params!["2026-05", 2, 20000],
-    ).unwrap();
+    )
+    .unwrap();
 
     let stats = collect_stats(&conn, "{}").expect("collect_stats 应成功");
     assert_eq!(stats.budget_count, Some(2), "budget_count 应为 2");

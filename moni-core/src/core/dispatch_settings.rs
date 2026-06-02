@@ -11,17 +11,15 @@ impl AppCoreRuntime {
     ) -> Result<CoreUpdate, CoreError> {
         match intent {
             CoreIntent::SettingsUpdateCurrency { symbol } => {
-                settings_repo::set(&self.conn,
-                    "currency_symbol",
-                    &symbol,
-                )?;
+                settings_repo::set(&self.conn, "currency_symbol", &symbol)?;
                 self.state.settings.currency_symbol = symbol.clone();
                 let effect = crate::models::effects::CoreEffect {
                     kind: "persist_setting".to_string(),
                     payload_json: serde_json::json!({
                         "key": "currency_symbol",
                         "value": symbol
-                    }).to_string(),
+                    })
+                    .to_string(),
                 };
                 self.finish(vec![effect])
             }

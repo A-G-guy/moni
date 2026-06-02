@@ -118,7 +118,12 @@ fn test_dev_generate_then_clear_all() {
         assert!(state["records"].as_array().unwrap().is_empty());
         assert!(state["categories"].as_array().unwrap().is_empty());
         assert!(state["monthlySummaries"].as_array().unwrap().is_empty());
-        assert!(state["currentMonthBreakdown"].as_array().unwrap().is_empty());
+        assert!(
+            state["currentMonthBreakdown"]
+                .as_array()
+                .unwrap()
+                .is_empty()
+        );
         assert!(state["ui"]["errorMessage"].is_null());
     });
 }
@@ -153,11 +158,7 @@ fn test_dev_generate_normal_then_stress() {
 
         let state: serde_json::Value = serde_json::from_str(&result.state_json).unwrap();
         let records = state["records"].as_array().unwrap();
-        assert_eq!(
-            records.len(),
-            10,
-            "先后生成 3+7 条，状态中应共 10 条"
-        );
+        assert_eq!(records.len(), 10, "先后生成 3+7 条，状态中应共 10 条");
         assert!(state["ui"]["errorMessage"].is_null());
     });
 }
@@ -276,7 +277,12 @@ fn test_stats_category_breakdown_aggregate_by_parent_empty() {
             .unwrap();
         let state: serde_json::Value = serde_json::from_str(&result.state_json).unwrap();
         assert!(state["ui"]["errorMessage"].is_null());
-        assert!(state["currentMonthBreakdown"].as_array().unwrap().is_empty());
+        assert!(
+            state["currentMonthBreakdown"]
+                .as_array()
+                .unwrap()
+                .is_empty()
+        );
     });
 }
 

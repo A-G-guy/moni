@@ -557,7 +557,9 @@ fn test_backup_restore_malformed_sqlite() {
         assert!(result.is_err(), "畸形 SQLite 应失败");
         let err_msg = format!("{:?}", result.unwrap_err());
         assert!(
-            err_msg.contains("Database") || err_msg.contains("schema") || err_msg.contains("database"),
+            err_msg.contains("Database")
+                || err_msg.contains("schema")
+                || err_msg.contains("database"),
             "错误应来自数据库/schema 阶段，实际: {err_msg}"
         );
 
@@ -694,7 +696,8 @@ fn test_backup_restore_manifest_skip_self_checksum() {
             FileFingerprint {
                 path: "manifest.json".to_string(),
                 size: 1,
-                sha256: "0000000000000000000000000000000000000000000000000000000000000000".to_string(),
+                sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+                    .to_string(),
             },
         ];
         manifest.manifest_sha256 = compute_manifest_sha256(&manifest).unwrap();

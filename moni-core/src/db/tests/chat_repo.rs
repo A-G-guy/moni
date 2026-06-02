@@ -1,6 +1,9 @@
 use rusqlite::Connection;
 
-use super::{clear_session, delete_by_id, get_by_session, insert, update_card_data, update_status};
+use super::{
+    clear_session, delete_by_id, delete_older_than, get_by_session, insert, update_card_data,
+    update_status,
+};
 use crate::db::schema;
 
 #[test]
@@ -63,4 +66,29 @@ fn chat_list_returns_latest_page_in_chronological_order() {
         vec![second, third]
     );
     assert!(!rows.iter().any(|row| row.id == first));
+}
+
+#[test]
+fn deletes_messages_older_than_timestamp() {
+    let conn = Connection::open_in_memory().expect("db");
+    schema::init_schema(&conn).expect("schema");
+
+    let old_id = insert(&conn, "s1", "user_text", "旧消息", None, None).expect("insert old");
+    let new_id = insert(&conn, "s1", "ai_text", "新消息", None, None).expect("insert new");
+    conn.execute(
+        "UPDATE chat_messages SET created_at = ?1 WHERE id = ?2",
+        (100_i64, old_id),
+    )
+    .expect("age old");
+    conn.execute(
+        "UPDATE chat_messages SET created_at = ?1 WHERE id = ?2",
+        (200_i64, new_id),
+    )
+    .expect("age new");
+
+    let deleted = delete_older_than(&conn, "s1", 150).expect("delete old");
+    let rows = get_by_session(&conn, "s1", 10, 0).expect("list");
+
+    assert_eq!(deleted, 1);
+    assert_eq!(rows.iter().map(|row| row.id).collect::<Vec<_>>(), vec![new_id]);
 }

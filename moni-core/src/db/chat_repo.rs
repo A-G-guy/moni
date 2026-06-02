@@ -103,6 +103,18 @@ pub fn delete_by_id(conn: &Connection, id: i64) -> Result<(), rusqlite::Error> {
     Ok(())
 }
 
+/// 删除指定会话中过期的消息。
+pub fn delete_older_than(
+    conn: &Connection,
+    session_id: &str,
+    before_timestamp: i64,
+) -> Result<usize, rusqlite::Error> {
+    conn.execute(
+        "DELETE FROM chat_messages WHERE session_id = ?1 AND created_at < ?2",
+        (session_id, before_timestamp),
+    )
+}
+
 /// 清空指定会话的所有消息。
 pub fn clear_session(conn: &Connection, session_id: &str) -> Result<(), rusqlite::Error> {
     conn.execute(

@@ -25,4 +25,7 @@ interface ChatRepository {
 
     /** 清空指定会话的所有消息。 */
     suspend fun clearSession(sessionId: String)
+
+    /** 删除指定时间戳之前的会话消息，返回删除数量。 */
+    suspend fun deleteOlderThan(sessionId: String, beforeTimestamp: Long): Long
 }

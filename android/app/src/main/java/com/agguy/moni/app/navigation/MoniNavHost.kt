@@ -89,6 +89,7 @@ fun MoniNavHost(
     recordItemDisplaySettings: RecordItemDisplaySettings,
     numPadSettings: NumPadSettings = NumPadSettings(),
     aiBookkeepingEnabled: Boolean = true,
+    aiChatRetentionDays: Int = 90,
     selectedYearMonth: String,
     language: AppLocaleManager.AppLanguage = AppLocaleManager.AppLanguage.SYSTEM,
     onDispatch: (CoreIntent) -> Unit,
@@ -106,6 +107,7 @@ fun MoniNavHost(
     onUpdateRecordNotePriority: (Boolean) -> Unit = {},
     onUpdateNumPadSwapTopAndBottomRows: (Boolean) -> Unit = {},
     onUpdateAiBookkeepingEnabled: (Boolean) -> Unit = {},
+    onUpdateAiChatRetentionDays: (Int) -> Unit = {},
     onUpdateLanguage: (AppLocaleManager.AppLanguage) -> Unit = {},
     onNavigateToDeveloperOptions: () -> Unit = {},
     onNavigateToDevLog: () -> Unit = {},
@@ -270,7 +272,9 @@ fun MoniNavHost(
             AiSettingsScreen(
                 viewModel = viewModel,
                 aiBookkeepingEnabled = aiBookkeepingEnabled,
+                aiChatRetentionDays = aiChatRetentionDays,
                 onAiBookkeepingEnabledChange = onUpdateAiBookkeepingEnabled,
+                onAiChatRetentionDaysChange = onUpdateAiChatRetentionDays,
                 onNavigateBack = onNavigateBack
             )
         }
@@ -291,6 +295,7 @@ fun MoniNavHost(
                         return AiBookkeepingViewModel(
                             chatRepository = ChatRepositoryImpl(rustCore.core),
                             aiRepository = AiRepository(rustCore.core),
+                            chatRetentionDays = aiChatRetentionDays,
                             onCreateRecord = onCreateAiRecord
                         ) as T
                     }
@@ -301,7 +306,7 @@ fun MoniNavHost(
                 categories = appState.categories,
                 numPadSettings = numPadSettings,
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToRecordList = { navController.navigate(Screen.RecordList) }
+                onNavigateToAiSettings = { navController.navigate(Screen.AiSettings) }
             )
         }
     }

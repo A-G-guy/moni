@@ -53,8 +53,9 @@ object DataStoreHelper {
     // 小键盘数字键布局设置键
     private val NUMPAD_SWAP_TOP_BOTTOM_ROWS_KEY = booleanPreferencesKey("numpad_swap_top_bottom_rows")
 
-    // AI 记账总开关键
+    // AI 记账设置键
     private val AI_BOOKKEEPING_ENABLED_KEY = booleanPreferencesKey("ai_bookkeeping_enabled")
+    private val AI_CHAT_RETENTION_DAYS_KEY = intPreferencesKey("ai_chat_retention_days")
 
     /**
      * 获取货币符号流。
@@ -333,7 +334,7 @@ object DataStoreHelper {
 
     // endregion
 
-    // region AI 记账总开关
+    // region AI 记账设置
 
     /**
      * 获取 AI 记账启用状态流（默认 true）。
@@ -348,6 +349,22 @@ object DataStoreHelper {
     suspend fun saveAiBookkeepingEnabled(context: Context, enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[AI_BOOKKEEPING_ENABLED_KEY] = enabled
+        }
+    }
+
+    /**
+     * 获取 AI 聊天记录保留天数；0 表示永久保留。
+     */
+    fun aiChatRetentionDaysFlow(context: Context): Flow<Int> = context.dataStore.data.map { preferences ->
+        (preferences[AI_CHAT_RETENTION_DAYS_KEY] ?: 90).coerceIn(0, 3650)
+    }
+
+    /**
+     * 保存 AI 聊天记录保留天数；0 表示永久保留。
+     */
+    suspend fun saveAiChatRetentionDays(context: Context, days: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[AI_CHAT_RETENTION_DAYS_KEY] = days.coerceIn(0, 3650)
         }
     }
 

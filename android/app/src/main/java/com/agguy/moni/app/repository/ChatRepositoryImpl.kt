@@ -55,6 +55,9 @@ class ChatRepositoryImpl(
         core.chatClearSession(sessionId)
     }
 
+    override suspend fun deleteOlderThan(sessionId: String, beforeTimestamp: Long): Long =
+        core.chatDeleteOlderThan(sessionId, beforeTimestamp)
+
     /**
      * Rust 返回的聊天消息 JSON 结构映射。
      */

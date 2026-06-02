@@ -44,7 +44,9 @@ import com.agguy.moni.app.model.AiThinkingLevel
 fun AiSettingsScreen(
     viewModel: AiSettingsViewModel,
     aiBookkeepingEnabled: Boolean,
+    aiChatRetentionDays: Int,
     onAiBookkeepingEnabledChange: (Boolean) -> Unit,
+    onAiChatRetentionDaysChange: (Int) -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -88,6 +90,10 @@ fun AiSettingsScreen(
             AiBookkeepingSwitchCard(
                 enabled = aiBookkeepingEnabled,
                 onEnabledChange = onAiBookkeepingEnabledChange,
+            )
+            AiChatRetentionCard(
+                selectedDays = aiChatRetentionDays,
+                onSelectedDaysChange = onAiChatRetentionDaysChange,
             )
             uiState.message?.let { message ->
                 Text(
@@ -151,6 +157,44 @@ private fun AiBookkeepingSwitchCard(
                 checked = enabled,
                 onCheckedChange = onEnabledChange,
             )
+        }
+    }
+}
+
+@Composable
+private fun AiChatRetentionCard(
+    selectedDays: Int,
+    onSelectedDaysChange: (Int) -> Unit,
+) {
+    val options = listOf(
+        7 to "7 天",
+        30 to "30 天",
+        90 to "90 天",
+        365 to "1 年",
+        0 to "永久",
+    )
+    MoniCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text("聊天记录保留", style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = "进入 AI 记账时会自动清理超过保留时间的聊天记录。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                options.forEach { (days, label) ->
+                    FilterChip(
+                        selected = selectedDays == days,
+                        onClick = { onSelectedDaysChange(days) },
+                        label = { Text(label) },
+                    )
+                }
+            }
         }
     }
 }

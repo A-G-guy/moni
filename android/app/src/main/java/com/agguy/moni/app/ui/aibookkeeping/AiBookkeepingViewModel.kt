@@ -17,6 +17,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+internal const val AI_ERROR_PREFIX = "__MONI_AI_ERROR__\n"
+
+internal fun ChatMessage.isAiErrorMessage(): Boolean =
+    messageType == MessageType.AI_TEXT && content.startsWith(AI_ERROR_PREFIX)
+
+internal fun ChatMessage.displayContent(): String = content.removePrefix(AI_ERROR_PREFIX)
+
 /**
  * AI 记账页面 ViewModel。
  *
@@ -26,6 +33,7 @@ import kotlinx.coroutines.launch
 class AiBookkeepingViewModel(
     private val chatRepository: ChatRepository,
     private val aiRepository: AiRepository,
+    private val chatRetentionDays: Int,
     private val onCreateRecord: suspend (CoreIntent.RecordCreate) -> Boolean,
 ) : ViewModel() {
 
@@ -44,16 +52,38 @@ class AiBookkeepingViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _isLoadingOlder = MutableStateFlow(false)
+    val isLoadingOlder: StateFlow<Boolean> = _isLoadingOlder.asStateFlow()
+
+    private val _hasOlderMessages = MutableStateFlow(false)
+    val hasOlderMessages: StateFlow<Boolean> = _hasOlderMessages.asStateFlow()
+
     private val sessionId = "default_session"
 
     init {
-        loadMessages()
+        loadInitialMessages()
         loadDefaultPresetCapability()
     }
 
     fun loadMessages() {
+        loadInitialMessages()
+    }
+
+    fun loadOlderMessages() {
+        if (_isLoadingOlder.value || !_hasOlderMessages.value) return
         viewModelScope.launch {
-            _messages.value = chatRepository.getBySession(sessionId)
+            _isLoadingOlder.value = true
+            try {
+                val older = chatRepository.getBySession(
+                    sessionId = sessionId,
+                    limit = PAGE_SIZE,
+                    offset = _messages.value.size,
+                )
+                _messages.value = (older + _messages.value).distinctBy { it.id }
+                _hasOlderMessages.value = older.size == PAGE_SIZE
+            } finally {
+                _isLoadingOlder.value = false
+            }
         }
     }
 
@@ -84,78 +114,53 @@ class AiBookkeepingViewModel(
         }
 
         viewModelScope.launch {
-            val sentAt = System.currentTimeMillis() / 1000
-            val userContent = buildUserMessageContent(text, images.size)
-            val userMessage = ChatMessage(
-                sessionId = sessionId,
-                messageType = MessageType.USER_TEXT,
-                content = userContent,
-                createdAt = sentAt
-            )
-            chatRepository.insert(userMessage)
             _inputText.value = ""
             _selectedImages.value = emptyList()
-            refreshMessages()
+            sendRequest(text = text, images = images)
+        }
+    }
 
-            _isLoading.value = true
-            delay(300.milliseconds)
+    fun retryMessage(messageId: Long) {
+        val messages = _messages.value
+        val targetIndex = messages.indexOfFirst { it.id == messageId }
+        if (targetIndex < 0 || _isLoading.value) return
+        val userMessage = messages
+            .take(targetIndex)
+            .lastOrNull { it.messageType == MessageType.USER_TEXT }
+            ?: return
+        val retryText = userMessage.content
+            .lineSequence()
+            .filterNot { it.startsWith("已附加 ") }
+            .joinToString("\n")
+            .trim()
+        if (retryText.isBlank()) {
+            insertAiError("图片消息无法自动重试，请重新选择图片后发送。")
+            return
+        }
+        viewModelScope.launch {
+            sendRequest(text = retryText, images = emptyList())
+        }
+    }
 
-            try {
-                val parseResult = aiRepository.parseBookkeeping(
-                    AiBookkeepingParseRequest(
-                        text = text,
-                        images = images.map { it.toInput() },
-                        sentAt = sentAt,
-                    )
-                )
+    fun deleteMessage(messageId: Long) {
+        viewModelScope.launch {
+            runCatching { chatRepository.delete(messageId) }
+            refreshMessagesPreservingWindow()
+        }
+    }
 
-                if (parseResult.isBookkeeping) {
-                    val cardData = parseResult.cardData
-                        ?: DraftCardData(
-                            amountCents = 0L,
-                            recordType = com.agguy.moni.core.RecordType.EXPENSE,
-                            categoryId = -1L,
-                            note = text
-                        )
-                    val aiCardMessage = ChatMessage(
-                        sessionId = sessionId,
-                        messageType = MessageType.AI_CARD,
-                        content = "",
-                        cardData = cardData,
-                        cardStatus = CardStatus.DRAFT,
-                        createdAt = System.currentTimeMillis() / 1000
-                    )
-                    chatRepository.insert(aiCardMessage)
-
-                } else {
-                    val aiTextMessage = ChatMessage(
-                        sessionId = sessionId,
-                        messageType = MessageType.AI_TEXT,
-                        content = parseResult.replyText,
-                        createdAt = System.currentTimeMillis() / 1000
-                    )
-                    chatRepository.insert(aiTextMessage)
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("AiBookkeepingVM", "AI 处理失败", e)
-                val errorMessage = ChatMessage(
-                    sessionId = sessionId,
-                    messageType = MessageType.AI_TEXT,
-                    content = buildAiErrorMessage(e),
-                    createdAt = System.currentTimeMillis() / 1000
-                )
-                chatRepository.insert(errorMessage)
-            } finally {
-                refreshMessages()
-                _isLoading.value = false
-            }
+    fun clearChat() {
+        viewModelScope.launch {
+            chatRepository.clearSession(sessionId)
+            _messages.value = emptyList()
+            _hasOlderMessages.value = false
         }
     }
 
     fun updateCardData(messageId: Long, cardData: DraftCardData) {
         viewModelScope.launch {
             chatRepository.updateCardData(messageId, cardData)
-            refreshMessages()
+            refreshMessagesPreservingWindow()
         }
     }
 
@@ -172,10 +177,10 @@ class AiBookkeepingViewModel(
                         sessionId = sessionId,
                         messageType = MessageType.AI_TEXT,
                         content = "请先为这张卡片选择分类，再确认入账。",
-                        createdAt = System.currentTimeMillis() / 1000
+                        createdAt = nowSeconds()
                     )
                 )
-                refreshMessages()
+                refreshMessagesPreservingWindow()
                 return@launch
             }
 
@@ -191,17 +196,17 @@ class AiBookkeepingViewModel(
 
             if (created) {
                 chatRepository.updateStatus(messageId, CardStatus.SAVED)
-                refreshMessages()
+                refreshMessagesPreservingWindow()
             } else {
                 chatRepository.insert(
                     ChatMessage(
                         sessionId = sessionId,
                         messageType = MessageType.AI_TEXT,
-                        content = "入账失败，请检查分类是否可用后重试。",
-                        createdAt = System.currentTimeMillis() / 1000
+                        content = AI_ERROR_PREFIX + "入账失败，请检查分类是否可用后重试。",
+                        createdAt = nowSeconds()
                     )
                 )
-                refreshMessages()
+                refreshMessagesPreservingWindow()
             }
         }
     }
@@ -210,9 +215,90 @@ class AiBookkeepingViewModel(
      * 取消卡片：从仓库删除该消息。
      */
     fun cancelCard(messageId: Long) {
+        deleteMessage(messageId)
+    }
+
+    private fun loadInitialMessages() {
         viewModelScope.launch {
-            chatRepository.delete(messageId)
-            refreshMessages()
+            cleanupExpiredMessages()
+            val latest = chatRepository.getBySession(sessionId, PAGE_SIZE, 0)
+            _messages.value = latest
+            _hasOlderMessages.value = latest.size == PAGE_SIZE
+        }
+    }
+
+    private suspend fun cleanupExpiredMessages() {
+        if (chatRetentionDays <= 0) return
+        val before = nowSeconds() - chatRetentionDays.toLong() * 86_400L
+        chatRepository.deleteOlderThan(sessionId, before)
+    }
+
+    private suspend fun sendRequest(text: String, images: List<AiSelectedImage>) {
+        val sentAt = nowSeconds()
+        val userContent = buildUserMessageContent(text, images.size)
+        chatRepository.insert(
+            ChatMessage(
+                sessionId = sessionId,
+                messageType = MessageType.USER_TEXT,
+                content = userContent,
+                createdAt = sentAt
+            )
+        )
+        refreshMessagesPreservingWindow()
+
+        _isLoading.value = true
+        delay(300.milliseconds)
+
+        try {
+            val parseResult = aiRepository.parseBookkeeping(
+                AiBookkeepingParseRequest(
+                    text = text,
+                    images = images.map { it.toInput() },
+                    sentAt = sentAt,
+                )
+            )
+
+            if (parseResult.isBookkeeping) {
+                val cardData = parseResult.cardData
+                    ?: DraftCardData(
+                        amountCents = 0L,
+                        recordType = com.agguy.moni.core.RecordType.EXPENSE,
+                        categoryId = -1L,
+                        note = text
+                    )
+                chatRepository.insert(
+                    ChatMessage(
+                        sessionId = sessionId,
+                        messageType = MessageType.AI_CARD,
+                        content = "",
+                        cardData = cardData,
+                        cardStatus = CardStatus.DRAFT,
+                        createdAt = nowSeconds()
+                    )
+                )
+            } else {
+                chatRepository.insert(
+                    ChatMessage(
+                        sessionId = sessionId,
+                        messageType = MessageType.AI_TEXT,
+                        content = parseResult.replyText,
+                        createdAt = nowSeconds()
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("AiBookkeepingVM", "AI 处理失败", e)
+            chatRepository.insert(
+                ChatMessage(
+                    sessionId = sessionId,
+                    messageType = MessageType.AI_TEXT,
+                    content = buildAiErrorMessage(e),
+                    createdAt = nowSeconds()
+                )
+            )
+        } finally {
+            refreshMessagesPreservingWindow()
+            _isLoading.value = false
         }
     }
 
@@ -234,15 +320,32 @@ class AiBookkeepingViewModel(
                     sessionId = sessionId,
                     messageType = MessageType.AI_TEXT,
                     content = content,
-                    createdAt = System.currentTimeMillis() / 1000
+                    createdAt = nowSeconds()
                 )
             )
-            refreshMessages()
+            refreshMessagesPreservingWindow()
         }
     }
 
-    private suspend fun refreshMessages() {
-        _messages.value = chatRepository.getBySession(sessionId)
+    private fun insertAiError(content: String) {
+        viewModelScope.launch {
+            chatRepository.insert(
+                ChatMessage(
+                    sessionId = sessionId,
+                    messageType = MessageType.AI_TEXT,
+                    content = AI_ERROR_PREFIX + content,
+                    createdAt = nowSeconds()
+                )
+            )
+            refreshMessagesPreservingWindow()
+        }
+    }
+
+    private suspend fun refreshMessagesPreservingWindow() {
+        val limit = maxOf(PAGE_SIZE, _messages.value.size + 2)
+        val rows = chatRepository.getBySession(sessionId, limit, 0)
+        _messages.value = rows
+        _hasOlderMessages.value = rows.size == limit
     }
 
     private fun buildUserMessageContent(text: String, imageCount: Int): String {
@@ -265,7 +368,7 @@ class AiBookkeepingViewModel(
             message.contains("响应 JSON") || message.contains("记账结构") -> "AI 返回内容不符合结构化 JSON 要求，请重试或更换模型。"
             else -> "AI 处理出错，请查看下面的详细信息。"
         }
-        return "$friendlyMessage\n\n详情：${buildSanitizedErrorDetail(error)}"
+        return "$AI_ERROR_PREFIX$friendlyMessage\n\n详情：${buildSanitizedErrorDetail(error)}"
     }
 
     private fun buildSanitizedErrorDetail(error: Throwable): String {
@@ -283,4 +386,10 @@ class AiBookkeepingViewModel(
         .replace(Regex("(?i)(authorization\\s*[:=]\\s*bearer\\s+)[^\\s,}]+"), "$1[REDACTED]")
         .replace(Regex("(?i)(x-goog-api-key\\s*[:=]\\s*)[^\\s,}]+"), "$1[REDACTED]")
         .replace(Regex("sk-[A-Za-z0-9_-]{12,}"), "sk-[REDACTED]")
+
+    private fun nowSeconds(): Long = System.currentTimeMillis() / 1000
+
+    private companion object {
+        const val PAGE_SIZE = 30
+    }
 }

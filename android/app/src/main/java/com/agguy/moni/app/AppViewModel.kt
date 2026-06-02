@@ -61,6 +61,9 @@ class AppViewModel(
     private val _aiBookkeepingEnabled = MutableStateFlow(true)
     val aiBookkeepingEnabled: StateFlow<Boolean> = _aiBookkeepingEnabled.asStateFlow()
 
+    private val _aiChatRetentionDays = MutableStateFlow(90)
+    val aiChatRetentionDays: StateFlow<Int> = _aiChatRetentionDays.asStateFlow()
+
     private val _selectedYearMonth = MutableStateFlow("")
     val selectedYearMonth: StateFlow<String> = _selectedYearMonth.asStateFlow()
 
@@ -137,6 +140,7 @@ class AppViewModel(
                 syncLanguageFromDataStore()
                 syncNumPadSettingsFromDataStore()
                 syncAiBookkeepingEnabledFromDataStore()
+                syncAiChatRetentionDaysFromDataStore()
             } catch (e: Exception) {
                 val app = getApplication<Application>()
                 val errDetail = "${e.javaClass.simpleName}: ${e.message?.take(100)}"
@@ -420,6 +424,17 @@ class AppViewModel(
         viewModelScope.launch {
             DataStoreHelper.saveAiBookkeepingEnabled(getApplication(), enabled)
             _aiBookkeepingEnabled.value = enabled
+        }
+    }
+
+    private suspend fun syncAiChatRetentionDaysFromDataStore() {
+        _aiChatRetentionDays.value = DataStoreHelper.aiChatRetentionDaysFlow(getApplication()).first()
+    }
+
+    fun updateAiChatRetentionDays(days: Int) {
+        viewModelScope.launch {
+            DataStoreHelper.saveAiChatRetentionDays(getApplication(), days)
+            _aiChatRetentionDays.value = days.coerceIn(0, 3650)
         }
     }
 

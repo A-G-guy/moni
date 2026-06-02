@@ -492,6 +492,29 @@ impl MoniCore {
             .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
     }
 
+    pub async fn chat_delete_older_than(
+        &self,
+        session_id: String,
+        before_timestamp: i64,
+    ) -> Result<i64, CoreError> {
+        let inner = Arc::clone(&self.inner);
+        self.runtime
+            .spawn_blocking(move || {
+                let inner = inner
+                    .lock()
+                    .map_err(|_| CoreError::Internal("状态锁已中毒".to_string()))?;
+                crate::db::chat_repo::delete_older_than(
+                    &inner.conn,
+                    &session_id,
+                    before_timestamp,
+                )
+                .map(|count| count as i64)
+                .map_err(|e| CoreError::Database(format!("清理聊天消息失败: {e}")))
+            })
+            .await
+            .map_err(|e| CoreError::Internal(format!("任务执行失败: {e}")))?
+    }
+
     // === AI Provider 与记账解析 ===
 
     pub async fn ai_preset_list(&self) -> Result<String, CoreError> {

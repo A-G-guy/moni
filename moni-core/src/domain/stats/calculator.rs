@@ -75,22 +75,52 @@ pub fn calculate_overview_metrics(
     // 总预算
     let total_budget = budgets.iter().find(|b| b.category_id.is_none()).cloned();
 
-    // 日均剩余：有总预算时使用本月剩余预算口径，提前记账的未来支出也应扣除。
-    let daily_remaining = if let Some(ref budget) = total_budget {
-        let remaining_budget = budget.amount_cents - month_expense;
-        if is_current_month {
-            if remaining_days > 0 {
-                Some(remaining_budget / remaining_days as i64)
+    // 今日支出（仅当前月有效；当前月无记录时为 0）。
+    let today_expense_for_daily = if is_current_month {
+        today_expense.unwrap_or(0)
+    } else {
+        0
+    };
+
+    // 日均剩余：当天冻结的日消费额度。
+    //
+    // 设计目标：用户希望用「今日支出 < 日均剩余」控制总预算不超支，
+    // 但提前记的未来支出会导致参考线实时跳动。
+    // 因此把「今日支出」从分子里剔除（即按“昨日及以前支出 + 未来支出”计算），
+    // 再把分母从“今日之后剩余天数”改为“包含今天的剩余天数”，
+    // 这样：
+    // - 记今天的账 -> 分子里本月总支出与今日支出同量增加，日均剩余不变；
+    // - 记未来/过去日期的账 -> 分子变化，日均剩余实时更新；
+    // - 每天遵守 今日支出 <= 日均剩余，即可保证总预算不超支。
+    let daily_remaining = if is_current_month {
+        let days_including_today = remaining_days + 1;
+        if let Some(ref budget) = total_budget {
+            let remaining_budget_excluding_today =
+                budget.amount_cents - month_expense + today_expense_for_daily;
+            if days_including_today > 0 {
+                Some(remaining_budget_excluding_today / days_including_today as i64)
             } else {
-                Some(remaining_budget)
+                Some(remaining_budget_excluding_today)
             }
-        } else if is_future_month {
-            Some(remaining_budget / total_days as i64)
+        } else if days_including_today > 0 {
+            let remaining_balance_excluding_today =
+                month_balance + today_expense_for_daily;
+            Some(remaining_balance_excluding_today / days_including_today as i64)
         } else {
             None
         }
-    } else if remaining_days > 0 {
-        Some(month_balance / remaining_days as i64)
+    } else if is_future_month {
+        if let Some(ref budget) = total_budget {
+            if total_days > 0 {
+                Some(budget.amount_cents / total_days as i64)
+            } else {
+                Some(budget.amount_cents)
+            }
+        } else if total_days > 0 {
+            Some(month_balance / total_days as i64)
+        } else {
+            None
+        }
     } else {
         None
     };

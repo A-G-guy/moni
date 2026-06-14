@@ -64,8 +64,8 @@ fn test_overview_metrics_current_month() {
     assert_eq!(metrics.remaining_days, 16);
     assert!(metrics.total_budget.is_some());
     assert_eq!(metrics.total_budget.as_ref().unwrap().amount_cents, 30000);
-    // 有总预算时，日均剩余 = (30000 - 本月总支出 5000) / 今日之后剩余 16 天 = 1562
-    assert_eq!(metrics.daily_remaining, Some(1562));
+    // 有总预算时，日均剩余 = (30000 - 本月总支出 5000 + 今日支出 2000) / 含今日剩余 17 天 = 1588
+    assert_eq!(metrics.daily_remaining, Some(1588));
 }
 
 #[test]
@@ -177,8 +177,9 @@ fn test_daily_remaining_with_budget_reflects_today_spending() {
         "2024-03-15",
     );
 
-    assert_eq!(before_today_metrics.daily_remaining, Some(1812));
-    assert_eq!(with_today_metrics.daily_remaining, Some(1737));
+    // 记今天的账不影响当天冻结的日均剩余
+    assert_eq!(before_today_metrics.daily_remaining, Some(1705));
+    assert_eq!(with_today_metrics.daily_remaining, Some(1705));
     assert_eq!(with_today_metrics.today_expense, Some(1200));
 }
 
@@ -230,8 +231,8 @@ fn test_overview_metrics_no_budget() {
 
     assert_eq!(metrics.month_expense, 5000);
     assert!(metrics.total_budget.is_none());
-    // 日均剩余 = 月结余 / 剩余天数 = 5000 / 16 = 312
-    assert_eq!(metrics.daily_remaining, Some(312));
+    // 无总预算时，日均剩余 = (月结余 + 今日支出) / 含今日剩余天数 = 5000 / 17 = 294
+    assert_eq!(metrics.daily_remaining, Some(294));
 }
 
 #[test]
@@ -256,8 +257,9 @@ fn test_overview_metrics_non_leap_year_february() {
 fn test_screenshot_scenario_daily_remaining_includes_future_expenses() {
     // 用户截图场景：2026-06-01，预算 300000 分，
     // 今日支出 42506 分，未来 2026-06-02 支出 12850 分，月总支出 55356 分。
-    // 提前记账时，未来支出也会占用月总预算，日均剩余应以真实余额除以今日之后剩余天数。
-    // 这样用户可以用「今日支出 <= 日均剩余」判断当前节奏是否会导致月总预算超限。
+    // 提前记账时，未来支出仍会扣减日均剩余；但今日支出不影响当天冻结的日均剩余。
+    // 公式：(总预算 - 本月总支出 + 今日支出) / 含今日剩余天数，
+    // 使用户能用「今日支出 <= 日均剩余」判断当前节奏是否会导致月总预算超限。
     let budgets = vec![total_budget(300000, 55356)];
     let summaries = vec![moni_contracts::stats::MonthlySummary {
         year_month: "2026-06".to_string(),
@@ -288,7 +290,7 @@ fn test_screenshot_scenario_daily_remaining_includes_future_expenses() {
         "2026-06-01",
     );
 
-    assert_eq!(metrics.daily_remaining, Some(8436));
+    assert_eq!(metrics.daily_remaining, Some(9571));
     assert_eq!(metrics.today_expense, Some(42506));
     assert_eq!(metrics.month_expense, 55356);
     assert_eq!(metrics.total_days, 30);

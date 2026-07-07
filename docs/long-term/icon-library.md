@@ -1,3 +1,7 @@
+---
+last_modified: "2026-07-07 18:51"
+---
+
 # 图标开发规范
 
 > 本文档记录 moni 图标体系的设计决策与开发规范。代码实现参见 `android/app/src/main/java/com/agguy/moni/app/icons/` 目录。

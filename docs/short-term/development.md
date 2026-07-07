@@ -1,3 +1,7 @@
+---
+last_modified: "2026-07-07 18:51"
+---
+
 # 本地开发体检手册
 
 本文档梳理 Moni 项目的本地开发与质量保障流程。Moni 采用 Rust 内核 + Kotlin Android UI 的混合栈，本地体检也分两侧。

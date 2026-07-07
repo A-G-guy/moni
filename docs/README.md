@@ -1,3 +1,7 @@
+---
+last_modified: "2026-07-07 18:51"
+---
+
 # Moni 文档中心
 
 > moni 是一个简单但不普通、精致且量身定做的记账软件，Rust 内核 + Kotlin Android UI。

@@ -1,3 +1,7 @@
+---
+last_modified: "2026-07-07 18:51"
+---
+
 # AI Provider API 与记账 JSON Output 契约
 
 ## 目标
